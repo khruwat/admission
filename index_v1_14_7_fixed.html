@@ -120,11 +120,11 @@
 <title>ระบบรับสมัครนักเรียน</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- jquery.Thailand.js — autocomplete ที่อยู่ไทยทุกจังหวัด -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
+<script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script defer src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
+<script defer src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
 <link  rel="stylesheet" href="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.css">
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
+<script defer src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -161,6 +161,15 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
   transition:width .4s cubic-bezier(.4,0,.2,1);
   animation:none
 }
+#app-loading-text{
+  position:fixed;top:10px;right:12px;z-index:10000;
+  background:rgba(255,255,255,.96);color:#1e40af;
+  border:1px solid #bfdbfe;border-radius:999px;
+  padding:6px 12px;font-size:12px;font-weight:500;
+  box-shadow:0 4px 14px rgba(30,64,175,.12);
+  pointer-events:none;transition:opacity .25s ease
+}
+#app-loading.hide #app-loading-text{opacity:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* NAVBAR */
@@ -905,7 +914,7 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
 </head>
 <body>
 
-<div id="app-loading"><div id="app-loading-bar"></div></div>
+<div id="app-loading"><div id="app-loading-bar"></div><div id="app-loading-text">กำลังเริ่มระบบ...</div></div>
 
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
@@ -3755,35 +3764,68 @@ const APP_TYPE_TRANSFER = [
 const TRANSFER_LEVELS = ['ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
 
 /* ─── INIT ─── */
-window.addEventListener('load', function() {
+var _publicStatsRequested = false;
+var _thailandInited = false;
+
+function setAppLoading(step, percent) {
+  const box = document.getElementById('app-loading');
+  const bar = document.getElementById('app-loading-bar');
+  const txt = document.getElementById('app-loading-text');
+  if (txt && step) txt.textContent = step;
+  if (bar && Number.isFinite(percent)) bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
+  if (percent >= 100 && box) {
+    setTimeout(function() { box.classList.add('hide'); }, 250);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  showNavAdmin(!!S.token);
+  showView(S.token ? 'admin-main' : 'home');
+  setAppLoading('กำลังเชื่อมต่อข้อมูลระบบ...', 28);
+
   run('getSettings', null, function(cfg) {
     S.settings = cfg || {};
     applySettings();
-    if (S.token) {
-      showNavAdmin(true);
-      showView('admin-main');
-      loadDashboard();
-    } else {
-      showView('home');
-    }
-    const _loadEl = document.getElementById('app-loading');
-    const _barEl  = document.getElementById('app-loading-bar');
-    if (_barEl) { _barEl.style.transition = 'width .2s ease'; _barEl.style.width = '100%'; }
-    setTimeout(() => { if (_loadEl) _loadEl.classList.add('hide'); }, 250);
-    // โหลด public stats เสมอ (ไม่ต้อง login)
-    loadPublicStats();
-    // Init jquery.Thailand.js สำหรับ autocomplete ที่อยู่
-    initThailandAddress();
+    setAppLoading('โหลดค่าตั้งค่าระบบแล้ว', 62);
+
+    if (S.token) loadDashboard();
+
+    setTimeout(function() { loadPublicStats(); }, 0);
+    setTimeout(function() { initThailandAddress(); }, 300);
+
+    setAppLoading('พร้อมใช้งาน', 100);
   });
+
+  setTimeout(function() {
+    const box = document.getElementById('app-loading');
+    if (box && !box.classList.contains('hide')) {
+      setAppLoading('กำลังโหลดข้อมูลเพิ่มเติม... ระบบยังทำงานอยู่', 78);
+    }
+  }, 2500);
 });
 
 /* ─── THAILAND ADDRESS AUTOCOMPLETE (jquery.Thailand.js) ─── */
 /* ใช้ทดแทนระบบ GAS GeoData + CDN fallback เดิม ครอบคลุมทุกจังหวัด */
 function initThailandAddress() {
+  if (_thailandInited) return;
+
+  var _bindInputClear = function() {
+    var tEl = document.getElementById('reg-tambon');
+    if (tEl && !tEl.dataset.errBind) {
+      tEl.addEventListener('input', function() { showErr('err-tambon', false); });
+      tEl.dataset.errBind = '1';
+    }
+    var cEl = document.getElementById('curr-tambon');
+    if (cEl && !cEl.dataset.errBind) {
+      cEl.addEventListener('input', function() { showErr('err-curr-tambon', false); });
+      cEl.dataset.errBind = '1';
+    }
+  };
+
   var _thInit = function() {
-    if (typeof $ === 'undefined' || typeof $.Thailand === 'undefined') return;
+    if (_thailandInited) return true;
+    if (typeof $ === 'undefined' || typeof $.Thailand === 'undefined') return false;
     var DB = 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json';
-    // ① ที่อยู่ทะเบียนบ้าน
     $.Thailand({
       database: DB,
       $district: $('#reg-tambon'),
@@ -3796,7 +3838,6 @@ function initThailandAddress() {
         showErr('err-province', false);
       }
     });
-    // ② ที่อยู่ปัจจุบัน
     $.Thailand({
       database: DB,
       $district: $('#curr-tambon'),
@@ -3807,24 +3848,24 @@ function initThailandAddress() {
         showErr('err-curr-tambon', false);
       }
     });
-    // ล้าง error เมื่อพิมพ์
-    var tEl = document.getElementById('reg-tambon');
-    if (tEl) tEl.addEventListener('input', function() { showErr('err-tambon', false); });
-    var cEl = document.getElementById('curr-tambon');
-    if (cEl) cEl.addEventListener('input', function() { showErr('err-curr-tambon', false); });
+    _bindInputClear();
+    _thailandInited = true;
+    return true;
   };
 
-  if (typeof $ !== 'undefined' && typeof $.Thailand !== 'undefined') {
-    _thInit();
-  } else {
-    var _retry = 0;
-    var _wait  = setInterval(function() {
-      _retry++;
-      if (typeof $ !== 'undefined' && typeof $.Thailand !== 'undefined') {
-        clearInterval(_wait); _thInit();
-      } else if (_retry > 50) { clearInterval(_wait); }
-    }, 100);
-  }
+  if (_thInit()) return;
+
+  var _retry = 0;
+  var _wait  = setInterval(function() {
+    _retry++;
+    if (_thInit()) {
+      clearInterval(_wait);
+    } else if (_retry > 25) {
+      clearInterval(_wait);
+      _bindInputClear();
+      console.warn('jquery.Thailand.js ยังไม่พร้อมใช้งาน แต่ผู้ใช้ยังกรอกที่อยู่เองได้');
+    }
+  }, 200);
 }
 
 /* ─── SAME-ADDRESS TOGGLE ─── */
@@ -4085,9 +4126,9 @@ function applySettings() {
   if (chEl) chEl.innerHTML = chlog.slice(0,3).map(l => '<div title="'+l+'">📋 '+l+'</div>').join('');
 
   // Copyright bar
-  const yr   = c.ACADEMIC_YEAR || new Date().getFullYear();
+  const footerYear = c.ACADEMIC_YEAR || new Date().getFullYear();
   const cpEl = document.getElementById('footer-copyright');
-  if (cpEl) cpEl.textContent = '© ปีการศึกษา ' + yr + ' ' + fn + (devName ? ' · พัฒนาโดย ' + devName : '') + ' · ' + (c.SYSTEM_NAME || 'ระบบรับสมัครนักเรียนออนไลน์');
+  if (cpEl) cpEl.textContent = '© ปีการศึกษา ' + footerYear + ' ' + fn + (devName ? ' · พัฒนาโดย ' + devName : '') + ' · ' + (c.SYSTEM_NAME || 'ระบบรับสมัครนักเรียนออนไลน์');
 
   // Logo — sync navbar + footer
   const logoUrl  = c.LOGO_URL || '';
@@ -5908,8 +5949,17 @@ function doLogout() {
 
 /* ─── PUBLIC STATS DASHBOARD ─── */
 function loadPublicStats() {
+  if (_publicStatsRequested) return;
+  _publicStatsRequested = true;
+  setAppLoading('กำลังโหลดสถิติการรับสมัคร...', 72);
+
   run('getPublicStats', null, function(s) {
-    if (!s) return;
+    if (!s) {
+      _publicStatsRequested = false;
+      setAppLoading('โหลดสถิติไม่สำเร็จ แต่ระบบส่วนหลักยังใช้งานได้', 90);
+      return;
+    }
+
     S.publicStats = s; // เก็บไว้ให้ school search + study plan ใช้
     loadStudyPlans(); // โหลด plans ลง dropdown ทันที
 
@@ -5938,7 +5988,6 @@ function loadPublicStats() {
     setText('pub-m4-passed',   s.m4['ผ่าน']||0);
 
     // ─── Timeline ───
-    const tl = [];
     function tlItem(icon, label, date, sub) {
       if (!date) return '';
       return `<div class="tl-item">
@@ -5967,6 +6016,8 @@ function loadPublicStats() {
 
     const grid = document.getElementById('pub-timeline-grid');
     if (grid) grid.innerHTML = items.join('') || '<p class="text-sm text-gray">ยังไม่มีกำหนดการ</p>';
+
+    setAppLoading('โหลดสถิติการรับสมัครเรียบร้อย', 100);
   });
 }
 

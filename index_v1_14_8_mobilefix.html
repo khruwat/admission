@@ -4,6 +4,10 @@
    Student Enrollment System  v1.14.0  (index.html)
    ──────────────────────────────────────────────────
    CHANGELOG
+   v1.14.8 – 2569-03-17 – Mobile layout hotfix
+              ปรับ dashboard/filter cards ให้ใช้งานบนมือถือจริง
+              บีบ navbar user chip, ปรับปุ่ม/การ์ด/ตาราง/ฟอร์มไม่ให้ล้น
+              มือถือเล็ก: stat cards 1 คอลัมน์, filter 1 คอลัมน์
    v1.14.5 – 2569-03-17 – Redesign Footer
               3 คอลัมน์: Brand (ซ้าย) / Developer (กลาง) / Version (ขวา)
               เส้นขอบบน accent สีน้ำเงิน + bottom copyright bar
@@ -120,11 +124,11 @@
 <title>ระบบรับสมัครนักเรียน</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- jquery.Thailand.js — autocomplete ที่อยู่ไทยทุกจังหวัด -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
+<script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script defer src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
+<script defer src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
 <link  rel="stylesheet" href="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.css">
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
+<script defer src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -161,6 +165,15 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
   transition:width .4s cubic-bezier(.4,0,.2,1);
   animation:none
 }
+#app-loading-text{
+  position:fixed;top:10px;right:12px;z-index:10000;
+  background:rgba(255,255,255,.96);color:#1e40af;
+  border:1px solid #bfdbfe;border-radius:999px;
+  padding:6px 12px;font-size:12px;font-weight:500;
+  box-shadow:0 4px 14px rgba(30,64,175,.12);
+  pointer-events:none;transition:opacity .25s ease
+}
+#app-loading.hide #app-loading-text{opacity:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* NAVBAR */
@@ -901,11 +914,230 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
 .table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .table-responsive table{min-width:560px}
 
+
+/* ═══════════════════════════════════════
+   MOBILE QUALITY HOTFIX v1.14.8
+   ปรับเลย์เอาต์มือถือให้ใช้งานได้จริงทั้ง admin และ public
+   ═══════════════════════════════════════ */
+body{overflow-x:hidden}
+img,svg,canvas{max-width:100%;height:auto}
+.card,.pub-level-card,.reg-card,.stat-card,.wizard-card,.dash-grid>*{min-width:0}
+
+@media (max-width:768px){
+  html,body{overflow-x:hidden}
+  #navbar{position:sticky;top:0}
+  .nav-inner{align-items:center}
+  .nav-logo{min-width:0;flex:1}
+  .nav-logo span:last-child,
+  .nav-logo-text{
+    display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  }
+  #nav-user-info{
+    max-width:54vw;
+    min-width:0;
+    gap:6px;
+    padding:4px 6px 4px 6px;
+    border-radius:16px;
+  }
+  #nav-user-name{max-width:18vw}
+  .btn-logout{padding:6px 8px;line-height:1.2}
+
+  .container,.wizard-wrap,.quick-nav,.pub-dash,.steps-section,.announce-bar,.pub-dash-section-hdr{
+    padding-left:12px!important;padding-right:12px!important
+  }
+
+  .home-cards,.pub-stat-grid,.timeline-grid,.dash-grid,.detail-grid{
+    grid-template-columns:1fr!important
+  }
+
+  .pub-level-header{padding:12px 14px;gap:10px}
+  .pub-level-title{font-size:15px}
+  .pub-level-total{font-size:22px}
+  .pub-level-body{padding:14px}
+  .pub-mini-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pub-mini-stat .ms-val{font-size:18px}
+  .pub-timeline{padding:14px}
+
+  /* Admin mobile */
+  #view-admin-main{display:block}
+  .admin-content{
+    width:100%;
+    padding:12px!important;
+    overflow-x:hidden;
+  }
+  #admin-mobile-bar{
+    display:flex!important;
+    position:sticky;
+    top:56px;
+    z-index:25;
+    background:#f1f5f9;
+    padding:8px 0 10px;
+    margin-bottom:12px;
+  }
+  #btn-hamburger{
+    width:40px;height:40px;border-radius:10px;
+    background:#1e40af;color:#fff;border:none;
+    align-items:center;justify-content:center;
+    font-size:20px;box-shadow:var(--shadow)
+  }
+  .admin-page-header{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .admin-page-header h2{font-size:16px}
+  .admin-page-header > div{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    width:100%;
+  }
+  .admin-page-header .btn{
+    width:100%;
+    justify-content:center;
+    padding:10px 12px;
+    min-height:42px;
+  }
+
+  .stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    margin-bottom:12px!important;
+  }
+  .stats-grid[style]{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .stat-card{
+    padding:14px 12px!important;
+    border-radius:14px;
+  }
+  .stat-card .stat-label{
+    font-size:12px;
+    line-height:1.35;
+    min-height:32px;
+  }
+  .stat-card .stat-value{
+    font-size:20px;
+    line-height:1.1;
+    word-break:break-word;
+  }
+  .stat-card .stat-sub{
+    font-size:11px;
+    line-height:1.35;
+    word-break:break-word;
+  }
+
+  .card-header{
+    padding:14px 14px!important;
+    align-items:flex-start;
+  }
+  .card-header h2{
+    font-size:15px!important;
+    line-height:1.4;
+    word-break:break-word;
+  }
+  .card-body{
+    padding:14px!important;
+    overflow-x:auto;
+  }
+
+  .dash-filter-bar{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:12px;
+  }
+  .dash-filter-group{
+    min-width:0;
+  }
+  .dash-filter-group label{
+    font-size:12px;
+    margin-bottom:3px;
+  }
+  .dash-filter-bar select,
+  .dash-filter-bar input{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    font-size:16px!important;
+    min-height:44px;
+  }
+  .dash-filter-reset,
+  #df-result-count{
+    grid-column:1 / -1;
+  }
+  .dash-filter-reset{
+    width:100%;
+    min-height:44px;
+    margin-left:0!important;
+  }
+
+  #dash-trend{
+    min-width:560px;
+    padding-bottom:6px;
+  }
+
+  .progress-label{
+    gap:8px;
+    font-size:12px;
+  }
+  .progress-label > *:last-child{
+    text-align:right;
+  }
+
+  .daily-table-wrap,.table-responsive{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .score-table,.daily-table,table{
+    min-width:720px;
+  }
+
+  /* Public/student forms */
+  .wizard-footer{
+    position:sticky;
+    bottom:0;
+    background:#fff;
+    border-top:1px solid var(--border);
+    z-index:20;
+  }
+  .wizard-footer .btn{
+    min-height:44px;
+  }
+  .id-digit-dots{
+    flex-wrap:wrap;
+  }
+}
+
+/* โทรศัพท์เล็กมาก */
+@media (max-width:480px){
+  .nav-logo{font-size:13px}
+  #nav-user-info{max-width:58vw}
+  #nav-user-name{max-width:16vw}
+  .admin-page-header > div{grid-template-columns:1fr}
+  .stats-grid,
+  .stats-grid[style]{
+    grid-template-columns:1fr!important;
+  }
+  .dash-filter-bar{
+    grid-template-columns:1fr!important;
+  }
+  .pub-mini-stats{
+    grid-template-columns:1fr 1fr;
+  }
+  .btn,.btn-sm,.btn-outline,.btn-primary,.btn-gray{
+    min-height:44px;
+  }
+}
+
 </style>
 </head>
 <body>
 
-<div id="app-loading"><div id="app-loading-bar"></div></div>
+<div id="app-loading"><div id="app-loading-bar"></div><div id="app-loading-text">กำลังเริ่มระบบ...</div></div>
 
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
 
@@ -3755,35 +3987,68 @@ const APP_TYPE_TRANSFER = [
 const TRANSFER_LEVELS = ['ม.1','ม.2','ม.3','ม.4','ม.5','ม.6'];
 
 /* ─── INIT ─── */
-window.addEventListener('load', function() {
+var _publicStatsRequested = false;
+var _thailandInited = false;
+
+function setAppLoading(step, percent) {
+  const box = document.getElementById('app-loading');
+  const bar = document.getElementById('app-loading-bar');
+  const txt = document.getElementById('app-loading-text');
+  if (txt && step) txt.textContent = step;
+  if (bar && Number.isFinite(percent)) bar.style.width = Math.max(0, Math.min(100, percent)) + '%';
+  if (percent >= 100 && box) {
+    setTimeout(function() { box.classList.add('hide'); }, 250);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  showNavAdmin(!!S.token);
+  showView(S.token ? 'admin-main' : 'home');
+  setAppLoading('กำลังเชื่อมต่อข้อมูลระบบ...', 28);
+
   run('getSettings', null, function(cfg) {
     S.settings = cfg || {};
     applySettings();
-    if (S.token) {
-      showNavAdmin(true);
-      showView('admin-main');
-      loadDashboard();
-    } else {
-      showView('home');
-    }
-    const _loadEl = document.getElementById('app-loading');
-    const _barEl  = document.getElementById('app-loading-bar');
-    if (_barEl) { _barEl.style.transition = 'width .2s ease'; _barEl.style.width = '100%'; }
-    setTimeout(() => { if (_loadEl) _loadEl.classList.add('hide'); }, 250);
-    // โหลด public stats เสมอ (ไม่ต้อง login)
-    loadPublicStats();
-    // Init jquery.Thailand.js สำหรับ autocomplete ที่อยู่
-    initThailandAddress();
+    setAppLoading('โหลดค่าตั้งค่าระบบแล้ว', 62);
+
+    if (S.token) loadDashboard();
+
+    setTimeout(function() { loadPublicStats(); }, 0);
+    setTimeout(function() { initThailandAddress(); }, 300);
+
+    setAppLoading('พร้อมใช้งาน', 100);
   });
+
+  setTimeout(function() {
+    const box = document.getElementById('app-loading');
+    if (box && !box.classList.contains('hide')) {
+      setAppLoading('กำลังโหลดข้อมูลเพิ่มเติม... ระบบยังทำงานอยู่', 78);
+    }
+  }, 2500);
 });
 
 /* ─── THAILAND ADDRESS AUTOCOMPLETE (jquery.Thailand.js) ─── */
 /* ใช้ทดแทนระบบ GAS GeoData + CDN fallback เดิม ครอบคลุมทุกจังหวัด */
 function initThailandAddress() {
+  if (_thailandInited) return;
+
+  var _bindInputClear = function() {
+    var tEl = document.getElementById('reg-tambon');
+    if (tEl && !tEl.dataset.errBind) {
+      tEl.addEventListener('input', function() { showErr('err-tambon', false); });
+      tEl.dataset.errBind = '1';
+    }
+    var cEl = document.getElementById('curr-tambon');
+    if (cEl && !cEl.dataset.errBind) {
+      cEl.addEventListener('input', function() { showErr('err-curr-tambon', false); });
+      cEl.dataset.errBind = '1';
+    }
+  };
+
   var _thInit = function() {
-    if (typeof $ === 'undefined' || typeof $.Thailand === 'undefined') return;
+    if (_thailandInited) return true;
+    if (typeof $ === 'undefined' || typeof $.Thailand === 'undefined') return false;
     var DB = 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json';
-    // ① ที่อยู่ทะเบียนบ้าน
     $.Thailand({
       database: DB,
       $district: $('#reg-tambon'),
@@ -3796,7 +4061,6 @@ function initThailandAddress() {
         showErr('err-province', false);
       }
     });
-    // ② ที่อยู่ปัจจุบัน
     $.Thailand({
       database: DB,
       $district: $('#curr-tambon'),
@@ -3807,24 +4071,24 @@ function initThailandAddress() {
         showErr('err-curr-tambon', false);
       }
     });
-    // ล้าง error เมื่อพิมพ์
-    var tEl = document.getElementById('reg-tambon');
-    if (tEl) tEl.addEventListener('input', function() { showErr('err-tambon', false); });
-    var cEl = document.getElementById('curr-tambon');
-    if (cEl) cEl.addEventListener('input', function() { showErr('err-curr-tambon', false); });
+    _bindInputClear();
+    _thailandInited = true;
+    return true;
   };
 
-  if (typeof $ !== 'undefined' && typeof $.Thailand !== 'undefined') {
-    _thInit();
-  } else {
-    var _retry = 0;
-    var _wait  = setInterval(function() {
-      _retry++;
-      if (typeof $ !== 'undefined' && typeof $.Thailand !== 'undefined') {
-        clearInterval(_wait); _thInit();
-      } else if (_retry > 50) { clearInterval(_wait); }
-    }, 100);
-  }
+  if (_thInit()) return;
+
+  var _retry = 0;
+  var _wait  = setInterval(function() {
+    _retry++;
+    if (_thInit()) {
+      clearInterval(_wait);
+    } else if (_retry > 25) {
+      clearInterval(_wait);
+      _bindInputClear();
+      console.warn('jquery.Thailand.js ยังไม่พร้อมใช้งาน แต่ผู้ใช้ยังกรอกที่อยู่เองได้');
+    }
+  }, 200);
 }
 
 /* ─── SAME-ADDRESS TOGGLE ─── */
@@ -4085,9 +4349,9 @@ function applySettings() {
   if (chEl) chEl.innerHTML = chlog.slice(0,3).map(l => '<div title="'+l+'">📋 '+l+'</div>').join('');
 
   // Copyright bar
-  const yr   = c.ACADEMIC_YEAR || new Date().getFullYear();
+  const footerYear = c.ACADEMIC_YEAR || new Date().getFullYear();
   const cpEl = document.getElementById('footer-copyright');
-  if (cpEl) cpEl.textContent = '© ปีการศึกษา ' + yr + ' ' + fn + (devName ? ' · พัฒนาโดย ' + devName : '') + ' · ' + (c.SYSTEM_NAME || 'ระบบรับสมัครนักเรียนออนไลน์');
+  if (cpEl) cpEl.textContent = '© ปีการศึกษา ' + footerYear + ' ' + fn + (devName ? ' · พัฒนาโดย ' + devName : '') + ' · ' + (c.SYSTEM_NAME || 'ระบบรับสมัครนักเรียนออนไลน์');
 
   // Logo — sync navbar + footer
   const logoUrl  = c.LOGO_URL || '';
@@ -5908,8 +6172,17 @@ function doLogout() {
 
 /* ─── PUBLIC STATS DASHBOARD ─── */
 function loadPublicStats() {
+  if (_publicStatsRequested) return;
+  _publicStatsRequested = true;
+  setAppLoading('กำลังโหลดสถิติการรับสมัคร...', 72);
+
   run('getPublicStats', null, function(s) {
-    if (!s) return;
+    if (!s) {
+      _publicStatsRequested = false;
+      setAppLoading('โหลดสถิติไม่สำเร็จ แต่ระบบส่วนหลักยังใช้งานได้', 90);
+      return;
+    }
+
     S.publicStats = s; // เก็บไว้ให้ school search + study plan ใช้
     loadStudyPlans(); // โหลด plans ลง dropdown ทันที
 
@@ -5938,7 +6211,6 @@ function loadPublicStats() {
     setText('pub-m4-passed',   s.m4['ผ่าน']||0);
 
     // ─── Timeline ───
-    const tl = [];
     function tlItem(icon, label, date, sub) {
       if (!date) return '';
       return `<div class="tl-item">
@@ -5967,6 +6239,8 @@ function loadPublicStats() {
 
     const grid = document.getElementById('pub-timeline-grid');
     if (grid) grid.innerHTML = items.join('') || '<p class="text-sm text-gray">ยังไม่มีกำหนดการ</p>';
+
+    setAppLoading('โหลดสถิติการรับสมัครเรียบร้อย', 100);
   });
 }
 
@@ -6935,6 +7209,225 @@ body{font-family:'Sarabun',sans-serif;color:#111;background:#e8e8e8;-webkit-prin
   .page{margin:0;padding:10mm 12mm 12mm;box-shadow:none;min-height:unset}
   @page{size:A4 portrait;margin:0}
 }
+
+/* ═══════════════════════════════════════
+   MOBILE QUALITY HOTFIX v1.14.8
+   ปรับเลย์เอาต์มือถือให้ใช้งานได้จริงทั้ง admin และ public
+   ═══════════════════════════════════════ */
+body{overflow-x:hidden}
+img,svg,canvas{max-width:100%;height:auto}
+.card,.pub-level-card,.reg-card,.stat-card,.wizard-card,.dash-grid>*{min-width:0}
+
+@media (max-width:768px){
+  html,body{overflow-x:hidden}
+  #navbar{position:sticky;top:0}
+  .nav-inner{align-items:center}
+  .nav-logo{min-width:0;flex:1}
+  .nav-logo span:last-child,
+  .nav-logo-text{
+    display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  }
+  #nav-user-info{
+    max-width:54vw;
+    min-width:0;
+    gap:6px;
+    padding:4px 6px 4px 6px;
+    border-radius:16px;
+  }
+  #nav-user-name{max-width:18vw}
+  .btn-logout{padding:6px 8px;line-height:1.2}
+
+  .container,.wizard-wrap,.quick-nav,.pub-dash,.steps-section,.announce-bar,.pub-dash-section-hdr{
+    padding-left:12px!important;padding-right:12px!important
+  }
+
+  .home-cards,.pub-stat-grid,.timeline-grid,.dash-grid,.detail-grid{
+    grid-template-columns:1fr!important
+  }
+
+  .pub-level-header{padding:12px 14px;gap:10px}
+  .pub-level-title{font-size:15px}
+  .pub-level-total{font-size:22px}
+  .pub-level-body{padding:14px}
+  .pub-mini-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pub-mini-stat .ms-val{font-size:18px}
+  .pub-timeline{padding:14px}
+
+  /* Admin mobile */
+  #view-admin-main{display:block}
+  .admin-content{
+    width:100%;
+    padding:12px!important;
+    overflow-x:hidden;
+  }
+  #admin-mobile-bar{
+    display:flex!important;
+    position:sticky;
+    top:56px;
+    z-index:25;
+    background:#f1f5f9;
+    padding:8px 0 10px;
+    margin-bottom:12px;
+  }
+  #btn-hamburger{
+    width:40px;height:40px;border-radius:10px;
+    background:#1e40af;color:#fff;border:none;
+    align-items:center;justify-content:center;
+    font-size:20px;box-shadow:var(--shadow)
+  }
+  .admin-page-header{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .admin-page-header h2{font-size:16px}
+  .admin-page-header > div{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    width:100%;
+  }
+  .admin-page-header .btn{
+    width:100%;
+    justify-content:center;
+    padding:10px 12px;
+    min-height:42px;
+  }
+
+  .stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    margin-bottom:12px!important;
+  }
+  .stats-grid[style]{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .stat-card{
+    padding:14px 12px!important;
+    border-radius:14px;
+  }
+  .stat-card .stat-label{
+    font-size:12px;
+    line-height:1.35;
+    min-height:32px;
+  }
+  .stat-card .stat-value{
+    font-size:20px;
+    line-height:1.1;
+    word-break:break-word;
+  }
+  .stat-card .stat-sub{
+    font-size:11px;
+    line-height:1.35;
+    word-break:break-word;
+  }
+
+  .card-header{
+    padding:14px 14px!important;
+    align-items:flex-start;
+  }
+  .card-header h2{
+    font-size:15px!important;
+    line-height:1.4;
+    word-break:break-word;
+  }
+  .card-body{
+    padding:14px!important;
+    overflow-x:auto;
+  }
+
+  .dash-filter-bar{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:12px;
+  }
+  .dash-filter-group{
+    min-width:0;
+  }
+  .dash-filter-group label{
+    font-size:12px;
+    margin-bottom:3px;
+  }
+  .dash-filter-bar select,
+  .dash-filter-bar input{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    font-size:16px!important;
+    min-height:44px;
+  }
+  .dash-filter-reset,
+  #df-result-count{
+    grid-column:1 / -1;
+  }
+  .dash-filter-reset{
+    width:100%;
+    min-height:44px;
+    margin-left:0!important;
+  }
+
+  #dash-trend{
+    min-width:560px;
+    padding-bottom:6px;
+  }
+
+  .progress-label{
+    gap:8px;
+    font-size:12px;
+  }
+  .progress-label > *:last-child{
+    text-align:right;
+  }
+
+  .daily-table-wrap,.table-responsive{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .score-table,.daily-table,table{
+    min-width:720px;
+  }
+
+  /* Public/student forms */
+  .wizard-footer{
+    position:sticky;
+    bottom:0;
+    background:#fff;
+    border-top:1px solid var(--border);
+    z-index:20;
+  }
+  .wizard-footer .btn{
+    min-height:44px;
+  }
+  .id-digit-dots{
+    flex-wrap:wrap;
+  }
+}
+
+/* โทรศัพท์เล็กมาก */
+@media (max-width:480px){
+  .nav-logo{font-size:13px}
+  #nav-user-info{max-width:58vw}
+  #nav-user-name{max-width:16vw}
+  .admin-page-header > div{grid-template-columns:1fr}
+  .stats-grid,
+  .stats-grid[style]{
+    grid-template-columns:1fr!important;
+  }
+  .dash-filter-bar{
+    grid-template-columns:1fr!important;
+  }
+  .pub-mini-stats{
+    grid-template-columns:1fr 1fr;
+  }
+  .btn,.btn-sm,.btn-outline,.btn-primary,.btn-gray{
+    min-height:44px;
+  }
+}
+
 </style></head><body>
 
 <!-- TOOLBAR (no-print) -->
@@ -7259,7 +7752,226 @@ function printExamCard(a, cfg) {
     @media print{body{padding:5mm}@page{size:A5 landscape;margin:0}}
     .no-print{text-align:right;margin-bottom:8px;width:100%;max-width:440px}
     @media print{.no-print{display:none}}
-  </style></head><body>
+  
+/* ═══════════════════════════════════════
+   MOBILE QUALITY HOTFIX v1.14.8
+   ปรับเลย์เอาต์มือถือให้ใช้งานได้จริงทั้ง admin และ public
+   ═══════════════════════════════════════ */
+body{overflow-x:hidden}
+img,svg,canvas{max-width:100%;height:auto}
+.card,.pub-level-card,.reg-card,.stat-card,.wizard-card,.dash-grid>*{min-width:0}
+
+@media (max-width:768px){
+  html,body{overflow-x:hidden}
+  #navbar{position:sticky;top:0}
+  .nav-inner{align-items:center}
+  .nav-logo{min-width:0;flex:1}
+  .nav-logo span:last-child,
+  .nav-logo-text{
+    display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  }
+  #nav-user-info{
+    max-width:54vw;
+    min-width:0;
+    gap:6px;
+    padding:4px 6px 4px 6px;
+    border-radius:16px;
+  }
+  #nav-user-name{max-width:18vw}
+  .btn-logout{padding:6px 8px;line-height:1.2}
+
+  .container,.wizard-wrap,.quick-nav,.pub-dash,.steps-section,.announce-bar,.pub-dash-section-hdr{
+    padding-left:12px!important;padding-right:12px!important
+  }
+
+  .home-cards,.pub-stat-grid,.timeline-grid,.dash-grid,.detail-grid{
+    grid-template-columns:1fr!important
+  }
+
+  .pub-level-header{padding:12px 14px;gap:10px}
+  .pub-level-title{font-size:15px}
+  .pub-level-total{font-size:22px}
+  .pub-level-body{padding:14px}
+  .pub-mini-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pub-mini-stat .ms-val{font-size:18px}
+  .pub-timeline{padding:14px}
+
+  /* Admin mobile */
+  #view-admin-main{display:block}
+  .admin-content{
+    width:100%;
+    padding:12px!important;
+    overflow-x:hidden;
+  }
+  #admin-mobile-bar{
+    display:flex!important;
+    position:sticky;
+    top:56px;
+    z-index:25;
+    background:#f1f5f9;
+    padding:8px 0 10px;
+    margin-bottom:12px;
+  }
+  #btn-hamburger{
+    width:40px;height:40px;border-radius:10px;
+    background:#1e40af;color:#fff;border:none;
+    align-items:center;justify-content:center;
+    font-size:20px;box-shadow:var(--shadow)
+  }
+  .admin-page-header{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .admin-page-header h2{font-size:16px}
+  .admin-page-header > div{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    width:100%;
+  }
+  .admin-page-header .btn{
+    width:100%;
+    justify-content:center;
+    padding:10px 12px;
+    min-height:42px;
+  }
+
+  .stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    margin-bottom:12px!important;
+  }
+  .stats-grid[style]{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .stat-card{
+    padding:14px 12px!important;
+    border-radius:14px;
+  }
+  .stat-card .stat-label{
+    font-size:12px;
+    line-height:1.35;
+    min-height:32px;
+  }
+  .stat-card .stat-value{
+    font-size:20px;
+    line-height:1.1;
+    word-break:break-word;
+  }
+  .stat-card .stat-sub{
+    font-size:11px;
+    line-height:1.35;
+    word-break:break-word;
+  }
+
+  .card-header{
+    padding:14px 14px!important;
+    align-items:flex-start;
+  }
+  .card-header h2{
+    font-size:15px!important;
+    line-height:1.4;
+    word-break:break-word;
+  }
+  .card-body{
+    padding:14px!important;
+    overflow-x:auto;
+  }
+
+  .dash-filter-bar{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:12px;
+  }
+  .dash-filter-group{
+    min-width:0;
+  }
+  .dash-filter-group label{
+    font-size:12px;
+    margin-bottom:3px;
+  }
+  .dash-filter-bar select,
+  .dash-filter-bar input{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    font-size:16px!important;
+    min-height:44px;
+  }
+  .dash-filter-reset,
+  #df-result-count{
+    grid-column:1 / -1;
+  }
+  .dash-filter-reset{
+    width:100%;
+    min-height:44px;
+    margin-left:0!important;
+  }
+
+  #dash-trend{
+    min-width:560px;
+    padding-bottom:6px;
+  }
+
+  .progress-label{
+    gap:8px;
+    font-size:12px;
+  }
+  .progress-label > *:last-child{
+    text-align:right;
+  }
+
+  .daily-table-wrap,.table-responsive{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .score-table,.daily-table,table{
+    min-width:720px;
+  }
+
+  /* Public/student forms */
+  .wizard-footer{
+    position:sticky;
+    bottom:0;
+    background:#fff;
+    border-top:1px solid var(--border);
+    z-index:20;
+  }
+  .wizard-footer .btn{
+    min-height:44px;
+  }
+  .id-digit-dots{
+    flex-wrap:wrap;
+  }
+}
+
+/* โทรศัพท์เล็กมาก */
+@media (max-width:480px){
+  .nav-logo{font-size:13px}
+  #nav-user-info{max-width:58vw}
+  #nav-user-name{max-width:16vw}
+  .admin-page-header > div{grid-template-columns:1fr}
+  .stats-grid,
+  .stats-grid[style]{
+    grid-template-columns:1fr!important;
+  }
+  .dash-filter-bar{
+    grid-template-columns:1fr!important;
+  }
+  .pub-mini-stats{
+    grid-template-columns:1fr 1fr;
+  }
+  .btn,.btn-sm,.btn-outline,.btn-primary,.btn-gray{
+    min-height:44px;
+  }
+}
+
+</style></head><body>
   <div class="no-print"><button onclick="window.print()" style="padding:5px 14px;background:#1e40af;color:#fff;border:none;border-radius:5px;font-family:Kanit,sans-serif;cursor:pointer;font-size:12px">🖨 พิมพ์บัตรสอบ</button></div>
   <div class="card">
     <div class="card-top">
@@ -7446,6 +8158,225 @@ function exportDailyPDF() {
   tfoot td{background:#f1f5f9;font-weight:700;border-top:2px solid #94a3b8}
   tfoot td:first-child{background:#e2e8f0;text-align:left}
   .print-date{text-align:right;font-size:9px;color:#94a3b8;margin-bottom:6px}
+
+/* ═══════════════════════════════════════
+   MOBILE QUALITY HOTFIX v1.14.8
+   ปรับเลย์เอาต์มือถือให้ใช้งานได้จริงทั้ง admin และ public
+   ═══════════════════════════════════════ */
+body{overflow-x:hidden}
+img,svg,canvas{max-width:100%;height:auto}
+.card,.pub-level-card,.reg-card,.stat-card,.wizard-card,.dash-grid>*{min-width:0}
+
+@media (max-width:768px){
+  html,body{overflow-x:hidden}
+  #navbar{position:sticky;top:0}
+  .nav-inner{align-items:center}
+  .nav-logo{min-width:0;flex:1}
+  .nav-logo span:last-child,
+  .nav-logo-text{
+    display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  }
+  #nav-user-info{
+    max-width:54vw;
+    min-width:0;
+    gap:6px;
+    padding:4px 6px 4px 6px;
+    border-radius:16px;
+  }
+  #nav-user-name{max-width:18vw}
+  .btn-logout{padding:6px 8px;line-height:1.2}
+
+  .container,.wizard-wrap,.quick-nav,.pub-dash,.steps-section,.announce-bar,.pub-dash-section-hdr{
+    padding-left:12px!important;padding-right:12px!important
+  }
+
+  .home-cards,.pub-stat-grid,.timeline-grid,.dash-grid,.detail-grid{
+    grid-template-columns:1fr!important
+  }
+
+  .pub-level-header{padding:12px 14px;gap:10px}
+  .pub-level-title{font-size:15px}
+  .pub-level-total{font-size:22px}
+  .pub-level-body{padding:14px}
+  .pub-mini-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pub-mini-stat .ms-val{font-size:18px}
+  .pub-timeline{padding:14px}
+
+  /* Admin mobile */
+  #view-admin-main{display:block}
+  .admin-content{
+    width:100%;
+    padding:12px!important;
+    overflow-x:hidden;
+  }
+  #admin-mobile-bar{
+    display:flex!important;
+    position:sticky;
+    top:56px;
+    z-index:25;
+    background:#f1f5f9;
+    padding:8px 0 10px;
+    margin-bottom:12px;
+  }
+  #btn-hamburger{
+    width:40px;height:40px;border-radius:10px;
+    background:#1e40af;color:#fff;border:none;
+    align-items:center;justify-content:center;
+    font-size:20px;box-shadow:var(--shadow)
+  }
+  .admin-page-header{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .admin-page-header h2{font-size:16px}
+  .admin-page-header > div{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    width:100%;
+  }
+  .admin-page-header .btn{
+    width:100%;
+    justify-content:center;
+    padding:10px 12px;
+    min-height:42px;
+  }
+
+  .stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    margin-bottom:12px!important;
+  }
+  .stats-grid[style]{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .stat-card{
+    padding:14px 12px!important;
+    border-radius:14px;
+  }
+  .stat-card .stat-label{
+    font-size:12px;
+    line-height:1.35;
+    min-height:32px;
+  }
+  .stat-card .stat-value{
+    font-size:20px;
+    line-height:1.1;
+    word-break:break-word;
+  }
+  .stat-card .stat-sub{
+    font-size:11px;
+    line-height:1.35;
+    word-break:break-word;
+  }
+
+  .card-header{
+    padding:14px 14px!important;
+    align-items:flex-start;
+  }
+  .card-header h2{
+    font-size:15px!important;
+    line-height:1.4;
+    word-break:break-word;
+  }
+  .card-body{
+    padding:14px!important;
+    overflow-x:auto;
+  }
+
+  .dash-filter-bar{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:12px;
+  }
+  .dash-filter-group{
+    min-width:0;
+  }
+  .dash-filter-group label{
+    font-size:12px;
+    margin-bottom:3px;
+  }
+  .dash-filter-bar select,
+  .dash-filter-bar input{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    font-size:16px!important;
+    min-height:44px;
+  }
+  .dash-filter-reset,
+  #df-result-count{
+    grid-column:1 / -1;
+  }
+  .dash-filter-reset{
+    width:100%;
+    min-height:44px;
+    margin-left:0!important;
+  }
+
+  #dash-trend{
+    min-width:560px;
+    padding-bottom:6px;
+  }
+
+  .progress-label{
+    gap:8px;
+    font-size:12px;
+  }
+  .progress-label > *:last-child{
+    text-align:right;
+  }
+
+  .daily-table-wrap,.table-responsive{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .score-table,.daily-table,table{
+    min-width:720px;
+  }
+
+  /* Public/student forms */
+  .wizard-footer{
+    position:sticky;
+    bottom:0;
+    background:#fff;
+    border-top:1px solid var(--border);
+    z-index:20;
+  }
+  .wizard-footer .btn{
+    min-height:44px;
+  }
+  .id-digit-dots{
+    flex-wrap:wrap;
+  }
+}
+
+/* โทรศัพท์เล็กมาก */
+@media (max-width:480px){
+  .nav-logo{font-size:13px}
+  #nav-user-info{max-width:58vw}
+  #nav-user-name{max-width:16vw}
+  .admin-page-header > div{grid-template-columns:1fr}
+  .stats-grid,
+  .stats-grid[style]{
+    grid-template-columns:1fr!important;
+  }
+  .dash-filter-bar{
+    grid-template-columns:1fr!important;
+  }
+  .pub-mini-stats{
+    grid-template-columns:1fr 1fr;
+  }
+  .btn,.btn-sm,.btn-outline,.btn-primary,.btn-gray{
+    min-height:44px;
+  }
+}
+
 </style>
 </head><body>
 <div class="print-date">พิมพ์เมื่อ ${today}</div>
@@ -8112,6 +9043,225 @@ td.sig{width:90px;min-height:28px}
   .page{margin:0;padding:8mm 10mm;box-shadow:none;width:100%;min-height:unset}
   @page{size:A4 landscape;margin:0}
 }
+
+/* ═══════════════════════════════════════
+   MOBILE QUALITY HOTFIX v1.14.8
+   ปรับเลย์เอาต์มือถือให้ใช้งานได้จริงทั้ง admin และ public
+   ═══════════════════════════════════════ */
+body{overflow-x:hidden}
+img,svg,canvas{max-width:100%;height:auto}
+.card,.pub-level-card,.reg-card,.stat-card,.wizard-card,.dash-grid>*{min-width:0}
+
+@media (max-width:768px){
+  html,body{overflow-x:hidden}
+  #navbar{position:sticky;top:0}
+  .nav-inner{align-items:center}
+  .nav-logo{min-width:0;flex:1}
+  .nav-logo span:last-child,
+  .nav-logo-text{
+    display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  }
+  #nav-user-info{
+    max-width:54vw;
+    min-width:0;
+    gap:6px;
+    padding:4px 6px 4px 6px;
+    border-radius:16px;
+  }
+  #nav-user-name{max-width:18vw}
+  .btn-logout{padding:6px 8px;line-height:1.2}
+
+  .container,.wizard-wrap,.quick-nav,.pub-dash,.steps-section,.announce-bar,.pub-dash-section-hdr{
+    padding-left:12px!important;padding-right:12px!important
+  }
+
+  .home-cards,.pub-stat-grid,.timeline-grid,.dash-grid,.detail-grid{
+    grid-template-columns:1fr!important
+  }
+
+  .pub-level-header{padding:12px 14px;gap:10px}
+  .pub-level-title{font-size:15px}
+  .pub-level-total{font-size:22px}
+  .pub-level-body{padding:14px}
+  .pub-mini-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pub-mini-stat .ms-val{font-size:18px}
+  .pub-timeline{padding:14px}
+
+  /* Admin mobile */
+  #view-admin-main{display:block}
+  .admin-content{
+    width:100%;
+    padding:12px!important;
+    overflow-x:hidden;
+  }
+  #admin-mobile-bar{
+    display:flex!important;
+    position:sticky;
+    top:56px;
+    z-index:25;
+    background:#f1f5f9;
+    padding:8px 0 10px;
+    margin-bottom:12px;
+  }
+  #btn-hamburger{
+    width:40px;height:40px;border-radius:10px;
+    background:#1e40af;color:#fff;border:none;
+    align-items:center;justify-content:center;
+    font-size:20px;box-shadow:var(--shadow)
+  }
+  .admin-page-header{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .admin-page-header h2{font-size:16px}
+  .admin-page-header > div{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    width:100%;
+  }
+  .admin-page-header .btn{
+    width:100%;
+    justify-content:center;
+    padding:10px 12px;
+    min-height:42px;
+  }
+
+  .stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    margin-bottom:12px!important;
+  }
+  .stats-grid[style]{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .stat-card{
+    padding:14px 12px!important;
+    border-radius:14px;
+  }
+  .stat-card .stat-label{
+    font-size:12px;
+    line-height:1.35;
+    min-height:32px;
+  }
+  .stat-card .stat-value{
+    font-size:20px;
+    line-height:1.1;
+    word-break:break-word;
+  }
+  .stat-card .stat-sub{
+    font-size:11px;
+    line-height:1.35;
+    word-break:break-word;
+  }
+
+  .card-header{
+    padding:14px 14px!important;
+    align-items:flex-start;
+  }
+  .card-header h2{
+    font-size:15px!important;
+    line-height:1.4;
+    word-break:break-word;
+  }
+  .card-body{
+    padding:14px!important;
+    overflow-x:auto;
+  }
+
+  .dash-filter-bar{
+    display:grid!important;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:12px;
+  }
+  .dash-filter-group{
+    min-width:0;
+  }
+  .dash-filter-group label{
+    font-size:12px;
+    margin-bottom:3px;
+  }
+  .dash-filter-bar select,
+  .dash-filter-bar input{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    font-size:16px!important;
+    min-height:44px;
+  }
+  .dash-filter-reset,
+  #df-result-count{
+    grid-column:1 / -1;
+  }
+  .dash-filter-reset{
+    width:100%;
+    min-height:44px;
+    margin-left:0!important;
+  }
+
+  #dash-trend{
+    min-width:560px;
+    padding-bottom:6px;
+  }
+
+  .progress-label{
+    gap:8px;
+    font-size:12px;
+  }
+  .progress-label > *:last-child{
+    text-align:right;
+  }
+
+  .daily-table-wrap,.table-responsive{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .score-table,.daily-table,table{
+    min-width:720px;
+  }
+
+  /* Public/student forms */
+  .wizard-footer{
+    position:sticky;
+    bottom:0;
+    background:#fff;
+    border-top:1px solid var(--border);
+    z-index:20;
+  }
+  .wizard-footer .btn{
+    min-height:44px;
+  }
+  .id-digit-dots{
+    flex-wrap:wrap;
+  }
+}
+
+/* โทรศัพท์เล็กมาก */
+@media (max-width:480px){
+  .nav-logo{font-size:13px}
+  #nav-user-info{max-width:58vw}
+  #nav-user-name{max-width:16vw}
+  .admin-page-header > div{grid-template-columns:1fr}
+  .stats-grid,
+  .stats-grid[style]{
+    grid-template-columns:1fr!important;
+  }
+  .dash-filter-bar{
+    grid-template-columns:1fr!important;
+  }
+  .pub-mini-stats{
+    grid-template-columns:1fr 1fr;
+  }
+  .btn,.btn-sm,.btn-outline,.btn-primary,.btn-gray{
+    min-height:44px;
+  }
+}
+
 </style></head><body>
 
 <div class="toolbar">
