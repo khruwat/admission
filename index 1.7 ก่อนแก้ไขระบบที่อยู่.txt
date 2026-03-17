@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <!--
    ระบบรับสมัครนักเรียน โรงเรียนหนองนาคำวิทยาคม
-   Student Enrollment System  v1.8.0  (index.html)
+   Student Enrollment System  v1.0.0  (index.html)
    ──────────────────────────────────────────────────
    CHANGELOG
-   v1.8.0 – 2569-03-17 – ผนวก jquery.Thailand.js autocomplete ที่อยู่
-              เพิ่ม fields: เลขที่, หมู่, ซอย, ถนน, อาคาร/หมู่บ้าน
-              ที่อยู่ 2 ชุด: ทะเบียนบ้าน + ที่อยู่ติดต่อ พร้อม toggle
-              ลบ dropdown cascade เก่า (getGeoData / CDN loader)
-   v1.7.0 – 2569-03-16 – Supabase dual-write, initial release
+   v1.0.0 – 2569-03-16 – initial release
+              ฟีเจอร์: SPA Wizard 5 ขั้น, ตรวจสอบสถานะ,
+              ประกาศผล, Admin Sidebar Layout, Dashboard,
+              CRUD Applications, พิมพ์ใบสมัคร/บัตรสอบ,
+              ตั้งค่าระบบ, AuditLog, จัดการ Users
 -->
 <html lang="th">
 <head>
@@ -16,12 +16,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>ระบบรับสมัครนักเรียน</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<!-- jquery.Thailand.js — ระบบ autocomplete ที่อยู่ไทย -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
-<link  rel="stylesheet" href="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.css">
-<script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -524,49 +518,6 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
 .mt-16{margin-top:16px}.mt-20{margin-top:20px}.mb-16{margin-bottom:16px}
 .divider{height:1px;background:var(--border);margin:16px 0}
 .section-label{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:12px;display:block;padding-bottom:8px;border-bottom:2px solid var(--primary-xl)}
-/* ── jquery.Thailand.js Typeahead Override ── */
-.twitter-typeahead{width:100% !important;display:block !important}
-.tt-menu{
-  border:1.5px solid var(--border) !important;border-radius:var(--r) !important;
-  box-shadow:var(--shadow-md) !important;max-height:220px;overflow-y:auto;
-  background:#fff !important;margin-top:4px !important;z-index:9999 !important
-}
-.tt-suggestion{
-  padding:9px 14px !important;font-size:14px !important;
-  font-family:'Kanit',sans-serif !important;color:#1e293b !important;cursor:pointer
-}
-.tt-suggestion:hover,.tt-suggestion.tt-cursor{background:var(--primary-xl) !important;color:var(--primary) !important}
-.tt-highlight{color:var(--primary) !important;font-weight:600 !important}
-/* ── Address Section Header ── */
-.addr-section-head{
-  display:flex;align-items:center;gap:10px;padding:12px 16px;
-  border-radius:var(--r);margin-bottom:16px;border:1px solid
-}
-.addr-section-head.blue{background:#eff6ff;border-color:#bfdbfe}
-.addr-section-head.amber{background:#fffbeb;border-color:#fde68a}
-.addr-section-head .ash-icon{font-size:18px;flex-shrink:0}
-.addr-section-head h4{font-size:14px;font-weight:600;margin:0}
-.addr-section-head p{font-size:12px;margin:2px 0 0;opacity:.75}
-.addr-section-head.blue h4{color:var(--primary)}
-.addr-section-head.blue p{color:var(--info)}
-.addr-section-head.amber h4{color:#92400e}
-.addr-section-head.amber p{color:#b45309}
-/* ── Same Address Toggle ── */
-.same-addr-toggle{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;
-  background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:var(--r);
-  margin-bottom:14px;cursor:pointer;user-select:none;transition:border-color .2s
-}
-.same-addr-toggle:hover{border-color:var(--success)}
-.same-addr-toggle input[type="checkbox"]{width:16px;height:16px;accent-color:var(--success);cursor:pointer;flex-shrink:0}
-.same-addr-toggle span{font-size:13.5px;font-weight:500;color:#166534}
-.addr-copy-preview{
-  display:none;background:#f0fdf4;border:1.5px dashed #86efac;
-  border-radius:var(--r);padding:11px 14px;font-size:13px;
-  color:#166534;line-height:1.8;margin-bottom:10px
-}
-/* ── Address readonly autofill fields ── */
-.form-control.addr-ro{background:#f8fafc !important;color:var(--gray) !important;cursor:default}
 /* COUNTDOWN */
 .countdown-waiting{background:#fef9c3;border:1px solid #fde68a;color:#92400e}
 .countdown-open{background:#dcfce7;border:1px solid #86efac;color:#166534}
@@ -1014,126 +965,42 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
         <div class="wizard-card-header"><h3>ที่อยู่และข้อมูลครอบครัว</h3><p>ขั้นตอนที่ 3 จาก 5</p></div>
         <div class="wizard-card-body">
 
-          <!-- ══ ที่อยู่ตามทะเบียนบ้าน (jquery.Thailand.js) ══ -->
-          <div class="addr-section-head blue">
-            <span class="ash-icon">🏠</span>
-            <div>
-              <h4>ที่อยู่ตามทะเบียนบ้าน</h4>
-              <p>พิมพ์ชื่อ ตำบล/แขวง แล้วเลือกจากรายการ — อำเภอ จังหวัด รหัสไปรษณีย์จะกรอกให้อัตโนมัติ</p>
-            </div>
+          <!-- ══ ที่อยู่ ══ -->
+          <p class="section-label">🏠 ที่อยู่ปัจจุบัน</p>
+          <div class="form-group">
+            <label>บ้านเลขที่ / ซอย / ถนน <span class="req">*</span></label>
+            <input type="text" id="reg-address" class="form-control" placeholder="บ้านเลขที่ ซอย ถนน">
+            <div id="err-address" class="form-error">กรุณากรอกที่อยู่</div>
           </div>
-
-          <!-- แถว 1: เลขที่ + อาคาร/หมู่บ้าน -->
-          <div class="grid-2">
-            <div class="form-group">
-              <label>เลขที่บ้าน <span class="req">*</span></label>
-              <input type="text" id="reg-house-no" class="form-control" placeholder="เช่น 123/4" autocomplete="off">
-              <div id="err-house-no" class="form-error">กรุณากรอกเลขที่บ้าน</div>
-            </div>
-            <div class="form-group">
-              <label>ชื่ออาคาร / หมู่บ้าน</label>
-              <input type="text" id="reg-building" class="form-control" placeholder="เช่น หมู่บ้านสุขสันต์">
-            </div>
-          </div>
-
-          <!-- แถว 2: หมู่ ซอย ถนน รหัสไปรษณีย์ -->
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-            <div class="form-group" style="margin:0">
-              <label>หมู่ที่</label>
-              <input type="text" id="reg-moo" class="form-control" placeholder="เช่น 5">
-            </div>
-            <div class="form-group" style="margin:0">
-              <label>ซอย</label>
-              <input type="text" id="reg-soi" class="form-control" placeholder="ซอย...">
-            </div>
-            <div class="form-group" style="margin:0">
-              <label>ถนน</label>
-              <input type="text" id="reg-road" class="form-control" placeholder="ถนน...">
-            </div>
-            <div class="form-group" style="margin:0">
-              <label>รหัสไปรษณีย์</label>
-              <input type="text" id="reg-zip" class="form-control addr-ro" maxlength="5" placeholder="อัตโนมัติ" readonly>
-            </div>
-          </div>
-
-          <!-- แถว 3: ตำบล (autocomplete) + อำเภอ + จังหวัด (auto-fill) -->
           <div class="grid-3">
             <div class="form-group">
-              <label>ตำบล / แขวง <span class="req">*</span></label>
-              <input type="text" id="reg-subdistrict" class="form-control" placeholder="พิมพ์ชื่อตำบล..." autocomplete="off">
-              <div class="form-hint">พิมพ์แล้วเลือกจากรายการที่ขึ้นมา</div>
-              <div id="err-subdistrict" class="form-error">กรุณากรอกตำบล/แขวง</div>
-            </div>
-            <div class="form-group">
-              <label>อำเภอ / เขต <span class="req">*</span></label>
-              <input type="text" id="reg-district" class="form-control addr-ro" placeholder="กรอกอัตโนมัติ" readonly>
-              <div id="err-district" class="form-error">กรุณากรอกอำเภอ/เขต</div>
-            </div>
-            <div class="form-group">
               <label>จังหวัด <span class="req">*</span></label>
-              <input type="text" id="reg-province" class="form-control addr-ro" placeholder="กรอกอัตโนมัติ" readonly>
-              <div id="err-province" class="form-error">กรุณากรอกจังหวัด</div>
+              <select id="reg-province" class="form-control" onchange="onProvinceChange()">
+                <option value="">-- เลือกจังหวัด --</option>
+              </select>
+              <div id="err-province" class="form-error">กรุณาเลือกจังหวัด</div>
+            </div>
+            <div class="form-group">
+              <label>อำเภอ/เขต <span class="req">*</span></label>
+              <select id="reg-district" class="form-control" onchange="onDistrictChange()" disabled>
+                <option value="">-- เลือกอำเภอ --</option>
+              </select>
+              <div id="err-district" class="form-error">กรุณาเลือกอำเภอ</div>
+            </div>
+            <div class="form-group">
+              <label>ตำบล/แขวง <span class="req">*</span></label>
+              <select id="reg-subdistrict-sel" class="form-control" onchange="onSubdistrictChange()" disabled style="display:none">
+                <option value="">-- เลือกตำบล --</option>
+              </select>
+              <input type="text" id="reg-subdistrict-txt" class="form-control" placeholder="ตำบล/แขวง" style="display:none">
+              <input type="hidden" id="reg-subdistrict">
+              <div id="err-subdistrict" class="form-error">กรุณากรอกตำบล</div>
             </div>
           </div>
-
-          <!-- ══ ที่อยู่ที่ติดต่อได้ ══ -->
-          <div class="divider" style="margin:20px 0"></div>
-          <div class="addr-section-head amber">
-            <span class="ash-icon">📬</span>
-            <div>
-              <h4>ที่อยู่ที่ติดต่อได้ / ที่พักปัจจุบัน</h4>
-              <p>สำหรับจัดส่งเอกสาร — กรณีไม่ตรงกับทะเบียนบ้านให้กรอกใหม่</p>
-            </div>
-          </div>
-          <label class="same-addr-toggle">
-            <input type="checkbox" id="cur-same-as-home" onchange="onCurSameAsHome(this)">
-            <span>✅ ใช้ที่อยู่เดียวกับทะเบียนบ้าน</span>
-          </label>
-          <div id="cur-addr-copy-preview" class="addr-copy-preview"></div>
-          <div id="cur-addr-fields">
-            <div class="grid-2">
-              <div class="form-group">
-                <label>เลขที่บ้าน</label>
-                <input type="text" id="cur-house-no" class="form-control" placeholder="เช่น 99/1" autocomplete="off">
-              </div>
-              <div class="form-group">
-                <label>ชื่ออาคาร / หมู่บ้าน</label>
-                <input type="text" id="cur-building" class="form-control" placeholder="เช่น คอนโด ABC">
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-              <div class="form-group" style="margin:0">
-                <label>หมู่ที่</label>
-                <input type="text" id="cur-moo" class="form-control" placeholder="เช่น 3">
-              </div>
-              <div class="form-group" style="margin:0">
-                <label>ซอย</label>
-                <input type="text" id="cur-soi" class="form-control" placeholder="ซอย...">
-              </div>
-              <div class="form-group" style="margin:0">
-                <label>ถนน</label>
-                <input type="text" id="cur-road" class="form-control" placeholder="ถนน...">
-              </div>
-              <div class="form-group" style="margin:0">
-                <label>รหัสไปรษณีย์</label>
-                <input type="text" id="cur-zip" class="form-control addr-ro" maxlength="5" placeholder="อัตโนมัติ" readonly>
-              </div>
-            </div>
-            <div class="grid-3">
-              <div class="form-group">
-                <label>ตำบล / แขวง</label>
-                <input type="text" id="cur-subdistrict" class="form-control" placeholder="พิมพ์ชื่อตำบล..." autocomplete="off">
-                <div class="form-hint">พิมพ์แล้วเลือกจากรายการ</div>
-              </div>
-              <div class="form-group">
-                <label>อำเภอ / เขต</label>
-                <input type="text" id="cur-district" class="form-control addr-ro" placeholder="กรอกอัตโนมัติ" readonly>
-              </div>
-              <div class="form-group">
-                <label>จังหวัด</label>
-                <input type="text" id="cur-province" class="form-control addr-ro" placeholder="กรอกอัตโนมัติ" readonly>
-              </div>
-            </div>
+          <div class="form-group" style="max-width:160px">
+            <label>รหัสไปรษณีย์</label>
+            <input type="text" id="reg-zip" class="form-control" maxlength="5" placeholder="xxxxx"
+              oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)">
           </div>
 
           <!-- ══ บิดา ══ -->
@@ -2973,10 +2840,10 @@ function validateStep(s) {
   }
   if (s === 3) {
     let ok = true;
-    if (!val('reg-house-no').trim())     { showErr('err-house-no',    true); ok=false; }
+    if (!val('reg-address').trim())      { showErr('err-address',     true); ok=false; }
+    if (!val('reg-province'))            { showErr('err-province',    true); ok=false; }
+    if (!val('reg-district'))            { showErr('err-district',    true); ok=false; }
     if (!val('reg-subdistrict').trim())  { showErr('err-subdistrict', true); ok=false; }
-    if (!val('reg-district').trim())     { showErr('err-district',    true); ok=false; }
-    if (!val('reg-province').trim())     { showErr('err-province',    true); ok=false; }
     // ผู้ปกครอง
     const gt = document.querySelector('input[name="reg-guardian-type"]:checked');
     if (!gt) { showErr('err-guardian-type', true); ok=false; }
@@ -3044,35 +2911,11 @@ function collectStep(s) {
     else                                guardianName = val('reg-guardian-name').trim();
 
     Object.assign(S.regData, {
-      // ── ที่อยู่ทะเบียนบ้าน ──
-      HOUSE_NO:    val('reg-house-no').trim(),
-      BUILDING:    val('reg-building').trim(),
-      MOO:         val('reg-moo').trim(),
-      SOI:         val('reg-soi').trim(),
-      ROAD:        val('reg-road').trim(),
-      SUBDISTRICT: val('reg-subdistrict').trim(),
-      DISTRICT:    val('reg-district').trim(),
-      PROVINCE:    val('reg-province').trim(),
-      ZIP:         val('reg-zip').trim(),
-      // ADDRESS รวม (ใช้สำหรับ admin display + พิมพ์ใบสมัคร)
-      ADDRESS: [
-        val('reg-house-no').trim(),
-        val('reg-moo')  ? 'หมู่ '+val('reg-moo')  : '',
-        val('reg-soi')  ? 'ซอย'+val('reg-soi')    : '',
-        val('reg-road') ? 'ถนน'+val('reg-road')   : '',
-        val('reg-building').trim()
-      ].filter(Boolean).join(' '),
-      // ── ที่อยู่ที่ติดต่อได้ ──
-      CUR_SAME_AS_HOME: document.getElementById('cur-same-as-home').checked,
-      CUR_HOUSE_NO:    document.getElementById('cur-same-as-home').checked ? val('reg-house-no').trim()    : val('cur-house-no').trim(),
-      CUR_BUILDING:    document.getElementById('cur-same-as-home').checked ? val('reg-building').trim()    : val('cur-building').trim(),
-      CUR_MOO:         document.getElementById('cur-same-as-home').checked ? val('reg-moo').trim()         : val('cur-moo').trim(),
-      CUR_SOI:         document.getElementById('cur-same-as-home').checked ? val('reg-soi').trim()         : val('cur-soi').trim(),
-      CUR_ROAD:        document.getElementById('cur-same-as-home').checked ? val('reg-road').trim()        : val('cur-road').trim(),
-      CUR_SUBDISTRICT: document.getElementById('cur-same-as-home').checked ? val('reg-subdistrict').trim() : val('cur-subdistrict').trim(),
-      CUR_DISTRICT:    document.getElementById('cur-same-as-home').checked ? val('reg-district').trim()    : val('cur-district').trim(),
-      CUR_PROVINCE:    document.getElementById('cur-same-as-home').checked ? val('reg-province').trim()    : val('cur-province').trim(),
-      CUR_ZIP:         document.getElementById('cur-same-as-home').checked ? val('reg-zip').trim()         : val('cur-zip').trim(),
+      ADDRESS:          val('reg-address').trim(),
+      SUBDISTRICT:      val('reg-subdistrict').trim(),
+      DISTRICT:         val('reg-district').trim(),
+      PROVINCE:         val('reg-province'),
+      ZIP:              val('reg-zip').trim(),
       // บิดา
       FATHER_PREFIX:    val('reg-father-prefix'),
       FATHER_FNAME:     val('reg-father-fname').trim(),
@@ -3148,28 +2991,9 @@ function buildConfirm() {
       ['สัญชาติ', d.NATIONALITY],
       ['ศาสนา', d.RELIGION]
     ]},
-    { t:'ที่อยู่ทะเบียนบ้าน', f:[
-      ['เลขที่/อาคาร', [d.HOUSE_NO,d.BUILDING].filter(Boolean).join(' ')||'–'],
-      d.MOO  ? ['หมู่', d.MOO]   : null,
-      d.SOI  ? ['ซอย', d.SOI]   : null,
-      d.ROAD ? ['ถนน', d.ROAD]  : null,
-      ['ตำบล/แขวง', d.SUBDISTRICT||'–'],
-      ['อำเภอ/เขต', d.DISTRICT||'–'],
-      ['จังหวัด', d.PROVINCE||'–'],
-      ['รหัสไปรษณีย์', d.ZIP||'–'],
-    ].filter(Boolean)},
-    { t:'ที่อยู่ที่ติดต่อได้', f: d.CUR_SAME_AS_HOME ? [
-      ['หมายเหตุ', 'เหมือนที่อยู่ทะเบียนบ้าน']
-    ] : [
-      ['เลขที่/อาคาร', [d.CUR_HOUSE_NO,d.CUR_BUILDING].filter(Boolean).join(' ')||'–'],
-      d.CUR_MOO  ? ['หมู่', d.CUR_MOO]   : null,
-      d.CUR_SOI  ? ['ซอย', d.CUR_SOI]   : null,
-      d.CUR_ROAD ? ['ถนน', d.CUR_ROAD]  : null,
-      ['ตำบล/แขวง', d.CUR_SUBDISTRICT||'–'],
-      ['อำเภอ/เขต', d.CUR_DISTRICT||'–'],
-      ['จังหวัด', d.CUR_PROVINCE||'–'],
-      ['รหัสไปรษณีย์', d.CUR_ZIP||'–'],
-    ].filter(Boolean)},
+    { t:'ที่อยู่', f:[
+      ['ที่อยู่', [d.ADDRESS,d.SUBDISTRICT,d.DISTRICT,d.PROVINCE,d.ZIP].filter(Boolean).join(' ')]
+    ]},
     { t:'บิดา', f:[
       ['ชื่อ-สกุล', [d.FATHER_PREFIX,d.FATHER_FNAME,d.FATHER_LNAME].filter(Boolean).join(' ')||'–'],
       ['อาชีพ', d.FATHER_OCCUPATION||'–'],
@@ -3246,9 +3070,168 @@ function doSubmit() {
 }
 
 /* ─── THAI ID CARD VALIDATION ─── */
-/* ─── THAILAND ADDRESS — jquery.Thailand.js autocomplete (v1.8.0) ─── */
-// initProvinceDropdown / onProvinceChange / onDistrictChange /
-// onSubdistrictChange / _loadSubdistrictsFromCDN ถูกแทนที่โดย $.Thailand() ด้านล่าง
+/* ─── THAILAND ADDRESS (data embedded in GAS, no CDN) ─── */
+(function initProvinceDropdown() {
+  run('getGeoData', '', function(res) {
+    if (!res || !res.provinces) return;
+    const sel = document.getElementById('reg-province');
+    if (!sel) return;
+    res.provinces.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p; o.textContent = p;
+      sel.appendChild(o);
+    });
+  });
+})();
+
+function onProvinceChange() {
+  const prov  = val('reg-province');
+  const dSel  = document.getElementById('reg-district');
+  const sdSel = document.getElementById('reg-subdistrict-sel');
+  const sdTxt = document.getElementById('reg-subdistrict-txt');
+  const zip   = document.getElementById('reg-zip');
+
+  dSel.innerHTML  = '<option value="">-- เลือกอำเภอ --</option>';
+  dSel.disabled   = true;
+  sdSel.innerHTML = '<option value="">-- เลือกตำบล --</option>';
+  sdSel.style.display = 'none'; sdSel.disabled = true;
+  sdTxt.style.display = 'none'; sdTxt.value = '';
+  setInputVal('reg-subdistrict', '');
+  if (zip) zip.value = '';
+  // clear cached subs
+  window._geoSubsCache = {};
+  if (!prov) return;
+
+  run('getGeoData', prov, function(res) {
+    if (!res) return;
+    (res.districts || []).forEach(function(d) {
+      var o = document.createElement('option');
+      o.value = d; o.textContent = d;
+      dSel.appendChild(o);
+    });
+    dSel.disabled = false;
+    // เก็บ subdistrict data ใน global cache
+    window._geoSubsCache = res.subdistricts || {};
+  });
+}
+
+function onDistrictChange() {
+  const dist  = val('reg-district');
+  const sdSel = document.getElementById('reg-subdistrict-sel');
+  const sdTxt = document.getElementById('reg-subdistrict-txt');
+  const zip   = document.getElementById('reg-zip');
+
+  sdSel.innerHTML = '<option value="">-- เลือกตำบล --</option>';
+  sdSel.style.display = 'none'; sdSel.disabled = true;
+  sdTxt.style.display = 'none'; sdTxt.value = '';
+  setInputVal('reg-subdistrict', '');
+  if (zip) zip.value = '';
+  if (!dist) return;
+
+  // ลอง cache จาก GAS ก่อน
+  var cache = window._geoSubsCache || {};
+  var subs  = cache[dist] || [];
+
+  if (subs.length) {
+    subs.forEach(function(pair) {
+      var name = Array.isArray(pair) ? pair[0] : pair.name;
+      var z    = Array.isArray(pair) ? pair[1] : (pair.zip || '');
+      var o = document.createElement('option');
+      o.value = name; o.textContent = name; o.dataset.zip = z;
+      sdSel.appendChild(o);
+    });
+    sdSel.style.display = ''; sdSel.disabled = false;
+  } else {
+    // จังหวัดอื่น → โหลดจาก CDN แบบ lazy
+    sdSel.innerHTML = '<option value="">⏳ กำลังโหลดตำบล...</option>';
+    sdSel.style.display = ''; sdSel.disabled = true;
+    _loadSubdistrictsFromCDN(val('reg-province'), dist, function(list) {
+      sdSel.innerHTML = '<option value="">-- เลือกตำบล --</option>';
+      if (list && list.length) {
+        list.forEach(function(sd) {
+          var o = document.createElement('option');
+          o.value = sd.name; o.textContent = sd.name; o.dataset.zip = sd.zip || '';
+          sdSel.appendChild(o);
+        });
+        sdSel.style.display = ''; sdSel.disabled = false;
+      } else {
+        sdSel.style.display = 'none';
+        sdTxt.placeholder = 'พิมพ์ชื่อตำบล/แขวง';
+        sdTxt.style.display = '';
+        sdTxt.oninput = function() { setInputVal('reg-subdistrict', sdTxt.value.trim()); };
+        sdTxt.focus();
+      }
+    });
+  }
+}
+
+// CDN lazy-load subdistricts สำหรับจังหวัดที่ไม่มีข้อมูลใน GAS
+const _cdnSubCache = {};
+const _GEO_CDN = 'https://cdn.jsdelivr.net/gh/thailand-geography-data/thailand-geography-json@main/src/geography.json';
+let _cdnGeoLoading = false;
+let _cdnGeoCallbacks = [];
+let _cdnGeoData = null;
+
+function _loadSubdistrictsFromCDN(province, district, cb) {
+  // ถ้ามี cache แล้ว
+  const cacheKey = province + '|' + district;
+  if (_cdnSubCache[cacheKey] !== undefined) { cb(_cdnSubCache[cacheKey]); return; }
+
+  function extractFromData(data) {
+    if (!data) { _cdnSubCache[cacheKey] = []; cb([]); return; }
+    const pData = data.find(function(p) { return p.provinceNameTh === province; });
+    if (!pData) { _cdnSubCache[cacheKey] = []; cb([]); return; }
+    const dData = pData.districts.find(function(d) { return d.districtNameTh === district; });
+    if (!dData || !dData.subdistricts) { _cdnSubCache[cacheKey] = []; cb([]); return; }
+    const list = dData.subdistricts
+      .slice().sort(function(a,b){ return a.subdistrictNameTh.localeCompare(b.subdistrictNameTh,'th'); })
+      .map(function(sd){ return { name: sd.subdistrictNameTh, zip: String(sd.postalCode||'') }; });
+    _cdnSubCache[cacheKey] = list;
+    cb(list);
+  }
+
+  if (_cdnGeoData) { extractFromData(_cdnGeoData); return; }
+
+  // queue callback
+  _cdnGeoCallbacks.push(function() { extractFromData(_cdnGeoData); cb(_cdnSubCache[cacheKey]||[]); });
+
+  if (_cdnGeoLoading) return; // already loading
+  _cdnGeoLoading = true;
+
+  // ลอง sessionStorage ก่อน
+  try {
+    const cached = sessionStorage.getItem('thaiGeo_cdn_v2');
+    if (cached) {
+      _cdnGeoData = JSON.parse(cached);
+      _cdnGeoLoading = false;
+      _cdnGeoCallbacks.forEach(function(fn){ fn(); });
+      _cdnGeoCallbacks = [];
+      return;
+    }
+  } catch(e) {}
+
+  fetch(_GEO_CDN)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      _cdnGeoData = data;
+      _cdnGeoLoading = false;
+      try { sessionStorage.setItem('thaiGeo_cdn_v2', JSON.stringify(data)); } catch(e) {}
+      _cdnGeoCallbacks.forEach(function(fn){ fn(); });
+      _cdnGeoCallbacks = [];
+    })
+    .catch(function(){
+      _cdnGeoLoading = false;
+      _cdnGeoCallbacks.forEach(function(fn){ fn(); });
+      _cdnGeoCallbacks = [];
+    });
+}
+
+function onSubdistrictChange() {
+  const sdSel = document.getElementById('reg-subdistrict-sel');
+  const sel   = sdSel.options[sdSel.selectedIndex];
+  setInputVal('reg-subdistrict', sel ? sel.value : '');
+  if (sel && sel.dataset.zip) setInputVal('reg-zip', sel.dataset.zip);
+}
 
 /* ─── GUARDIAN TYPE ─── */
 function onGuardianTypeChange() {
@@ -4078,28 +4061,7 @@ function openAppDetail(appId) {
         ${F('คำนำหน้า',a.PREFIX)}${F('ชื่อ',a.FNAME)}${F('นามสกุล',a.LNAME)}
         ${F('เลขบัตร ปชช.',a.ID_CARD)}${F('วันเกิด',fmtDateTH(a.BIRTHDATE))}
         ${F('สัญชาติ',a.NATIONALITY)}${F('ศาสนา',a.RELIGION)}${F('โทรศัพท์',a.PHONE)}
-        ${F('ที่อยู่ทะเบียนบ้าน', [
-          [a.HOUSE_NO,a.BUILDING].filter(Boolean).join(' '),
-          a.MOO  ? 'หมู่ '+a.MOO  : '',
-          a.SOI  ? 'ซอย'+a.SOI   : '',
-          a.ROAD ? 'ถนน'+a.ROAD  : '',
-          a.SUBDISTRICT ? 'ต.'+a.SUBDISTRICT : '',
-          a.DISTRICT    ? 'อ.'+a.DISTRICT    : '',
-          a.PROVINCE    ? 'จ.'+a.PROVINCE    : '',
-          a.ZIP||''
-        ].filter(Boolean).join(' ') || a.ADDRESS || '–')}
-        ${(a.CUR_SAME_AS_HOME===true||String(a.CUR_SAME_AS_HOME).toLowerCase()==='true')
-          ? F('ที่อยู่ติดต่อ','เหมือนทะเบียนบ้าน')
-          : F('ที่อยู่ติดต่อ', [
-            [a.CUR_HOUSE_NO,a.CUR_BUILDING].filter(Boolean).join(' '),
-            a.CUR_MOO  ? 'หมู่ '+a.CUR_MOO  : '',
-            a.CUR_SOI  ? 'ซอย'+a.CUR_SOI   : '',
-            a.CUR_ROAD ? 'ถนน'+a.CUR_ROAD  : '',
-            a.CUR_SUBDISTRICT ? 'ต.'+a.CUR_SUBDISTRICT : '',
-            a.CUR_DISTRICT    ? 'อ.'+a.CUR_DISTRICT    : '',
-            a.CUR_PROVINCE    ? 'จ.'+a.CUR_PROVINCE    : '',
-            a.CUR_ZIP||''
-          ].filter(Boolean).join(' ') || '–')}
+        ${F('ที่อยู่',[a.ADDRESS,a.SUBDISTRICT,a.DISTRICT,a.PROVINCE,a.ZIP].filter(Boolean).join(' '))}
         ${F('ผู้ปกครอง',(a.PARENT_NAME||'')+'  ('+a.PARENT_RELATION+')')}${F('โทร.ผู้ปกครอง',a.PARENT_PHONE)}
         ${F('โรงเรียนเดิม',a.OLD_SCHOOL)}${F('ระดับชั้นที่จบ',a.OLD_LEVEL)}
         ${F('GPA',a.GPA)}${F('ความสามารถพิเศษ',a.SPECIAL_ABILITY)}
@@ -4795,83 +4757,6 @@ function doSyncSupabase() {
       toast('Sync ไม่สำเร็จ', 'error');
     }
   });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   jquery.Thailand.js — INIT (v1.8.0)
-   ═══════════════════════════════════════════════════════════════ */
-$(function() {
-  var DB = 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json';
-
-  // ── ที่อยู่ทะเบียนบ้าน ──
-  $.Thailand({
-    database:  DB,
-    $district: $('#reg-subdistrict'),
-    $amphoe:   $('#reg-district'),
-    $province: $('#reg-province'),
-    $zipcode:  $('#reg-zip'),
-    onDataFill: function() {
-      showErr('err-subdistrict', false);
-      showErr('err-district',    false);
-      showErr('err-province',    false);
-      // sync preview ถ้า checkbox ติ๊กอยู่
-      var cb = document.getElementById('cur-same-as-home');
-      if (cb && cb.checked) onCurSameAsHome(cb);
-    }
-  });
-
-  // ── ที่อยู่ที่ติดต่อได้ ──
-  $.Thailand({
-    database:  DB,
-    $district: $('#cur-subdistrict'),
-    $amphoe:   $('#cur-district'),
-    $province: $('#cur-province'),
-    $zipcode:  $('#cur-zip'),
-    onDataFill: function() {}
-  });
-});
-
-/* ── toggle "ใช้ที่อยู่เดียวกับทะเบียนบ้าน" ── */
-function onCurSameAsHome(cb) {
-  var fields  = document.getElementById('cur-addr-fields');
-  var preview = document.getElementById('cur-addr-copy-preview');
-  if (!cb) return;
-  if (cb.checked) {
-    if (fields) fields.style.display = 'none';
-    var parts = [];
-    var hn = val('reg-house-no'); if (hn) parts.push('เลขที่ '+hn);
-    var bl = val('reg-building'); if (bl) parts.push(bl);
-    var mo = val('reg-moo');      if (mo) parts.push('หมู่ '+mo);
-    var so = val('reg-soi');      if (so) parts.push('ซอย'+so);
-    var rd = val('reg-road');     if (rd) parts.push('ถนน'+rd);
-    var sd = val('reg-subdistrict'); if (sd) parts.push('ต.'+sd);
-    var di = val('reg-district');    if (di) parts.push('อ.'+di);
-    var pr = val('reg-province');    if (pr) parts.push('จ.'+pr);
-    var zp = val('reg-zip');         if (zp) parts.push(zp);
-    if (preview) {
-      preview.innerHTML = '📋 <strong>ใช้ที่อยู่เดียวกับทะเบียนบ้าน:</strong><br>'
-        + (parts.length ? parts.join(' ')
-           : '<em style="color:#6b7280">ยังไม่ได้กรอกที่อยู่ทะเบียนบ้าน — กรุณากรอกด้านบนก่อน</em>');
-      preview.style.display = '';
-    }
-  } else {
-    if (fields)  fields.style.display  = '';
-    if (preview) preview.style.display = 'none';
-  }
-}
-
-/* ── reset address fields เมื่อเริ่มกรอกใหม่ ── */
-function _resetAddressFields() {
-  ['reg-house-no','reg-building','reg-moo','reg-soi','reg-road',
-   'reg-subdistrict','reg-district','reg-province','reg-zip',
-   'cur-house-no','cur-building','cur-moo','cur-soi','cur-road',
-   'cur-subdistrict','cur-district','cur-province','cur-zip'
-  ].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  var cb = document.getElementById('cur-same-as-home');
-  if (cb) { cb.checked = false; onCurSameAsHome(cb); }
 }
 </script>
 </body>

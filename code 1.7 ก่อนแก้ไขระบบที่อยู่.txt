@@ -1,6 +1,6 @@
 /* =============================================================
    ระบบรับสมัครนักเรียน โรงเรียนหนองนาคำวิทยาคม
-   Student Enrollment System  v1.8.0
+   Student Enrollment System  v1.7.0
    ─────────────────────────────────────────────────────────────
    Sheets   : Applications | Users | Settings | AuditLog
    Roles    : ADMIN | STAFF
@@ -8,10 +8,6 @@
    Default  : admin / admin1234
    ─────────────────────────────────────────────────────────────
    CHANGELOG
-   v1.8.0 – 2569-03-17 – ผนวกระบบบันทึกที่อยู่ jquery.Thailand.js
-              เพิ่ม APP_COLS: HOUSE_NO/BUILDING/MOO/SOI/ROAD
-              เพิ่ม APP_COLS: CUR_* (ที่อยู่ติดต่อ 9 fields)
-              runMigration() เรียกได้จาก Apps Script Editor โดยตรง
    v1.7.0 – 2569-03-16 – Supabase dual-write (applications table)
               SUPA_URL/SUPA_KEY ตั้งค่าใน Settings + syncAllToSupabase()
               _supaReq/_supaUpsert/_supaPatch/_supaDelete/_supaGetAll helpers
@@ -34,8 +30,8 @@ const _SS    = SpreadsheetApp.getActiveSpreadsheet();
 const _CACHE = CacheService.getScriptCache();
 
 // ─── SUPABASE CONFIG (อ่านค่าจาก Settings sheet ณ runtime) ───
-const SUPA_URL     = 'https://mgspxcxmkpanxfxoczvh.supabase.co';
-const SUPA_KEY     = 'sb_publishable_VYxfHMbwaj64YiwbQeWF2A_wGYq2hS0';
+const SUPA_URL     = 'https://vudbdydinxcdwowdlbti.supabase.co';
+const SUPA_KEY     = 'sb_publishable_4WaexTTMtcZC6N7anTEaLA_XOgrAZQR';
 const SUPA_ENABLED = (SUPA_URL !== '' && SUPA_KEY !== '');
 
 const SH = { APP:'Applications', USERS:'Users', SETTINGS:'Settings', LOGS:'AuditLog' };
@@ -43,14 +39,9 @@ const SH = { APP:'Applications', USERS:'Users', SETTINGS:'Settings', LOGS:'Audit
 const APP_COLS = [
   'APP_ID','LEVEL','APP_TYPE','PREFIX','FNAME','LNAME','ID_CARD',
   'BIRTHDATE','NATIONALITY','RELIGION',
-  // ── ที่อยู่ทะเบียนบ้าน (v1.8.0) ──
-  'HOUSE_NO','BUILDING','MOO','SOI','ROAD',
+  // ที่อยู่
   'ADDRESS','SUBDISTRICT','DISTRICT','PROVINCE','ZIP',
-  // ── ที่อยู่ที่ติดต่อได้ (v1.8.0) ──
-  'CUR_SAME_AS_HOME',
-  'CUR_HOUSE_NO','CUR_BUILDING','CUR_MOO','CUR_SOI','CUR_ROAD',
-  'CUR_SUBDISTRICT','CUR_DISTRICT','CUR_PROVINCE','CUR_ZIP',
-  // ── นักเรียน ──
+  // นักเรียน
   'PHONE',
   'PHOTO_URL',
   'FATHER_PREFIX','FATHER_FNAME','FATHER_LNAME','FATHER_ID_CARD',
@@ -111,11 +102,11 @@ const SETTINGS_DEFAULTS = [
   ['DEVELOPER_NAME',     ''],
   ['DEVELOPER_POSITION', ''],
   ['DEVELOPER_PHONE',    ''],
-  ['SYSTEM_VERSION',     'v1.8.0'],
-  ['CHANGELOG_TEXT',     'v1.8.0 – 2569-03-17 – ระบบบันทึกที่อยู่ขั้นสูง jquery.Thailand.js\nv1.7.0 – 2569-03-16 – Supabase dual-write, real-time sync\nv1.6.0 – 2569-03-16 – ROLE: STAFF, Permission system, Audit log'],
+  ['SYSTEM_VERSION',     'v1.7.0'],
+  ['CHANGELOG_TEXT',     'v1.7.0 – 2569-03-16 – Supabase dual-write, real-time sync\nv1.6.0 – 2569-03-16 – ROLE: STAFF, Permission system, Audit log\nv1.5.2 – 2569-03-16 – Footer, System info, Register checklist modal'],
   ['ANNOUNCEMENT',       ''],
-  ['SUPA_URL',           'https://mgspxcxmkpanxfxoczvh.supabase.co'],
-  ['SUPA_KEY',           'sb_publishable_VYxfHMbwaj64YiwbQeWF2A_wGYq2hS0'],
+  ['SUPA_URL',           'https://vudbdydinxcdwowdlbti.supabase.co'],
+  ['SUPA_KEY',           'sb_publishable_4WaexTTMtcZC6N7anTEaLA_XOgrAZQR'],
 ];
 
 // ─── SUPABASE HELPERS ───
@@ -171,8 +162,6 @@ function _toSupaRec(rec) {
     let v = rec[c];
     if (c === 'BIRTHDATE' && v && v !== '') {
       v = (v instanceof Date) ? v.toISOString().slice(0,10) : String(v).slice(0,10);
-    } else if (c === 'CUR_SAME_AS_HOME') {
-      v = (v === true || String(v).toLowerCase() === 'true'); // boolean
     } else {
       v = (v === null || v === undefined) ? '' : String(v);
     }
@@ -268,9 +257,7 @@ function _toNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 const TEXT_COLS = [
   'ID_CARD','ZIP','PHONE','PARENT_PHONE','EXAM_NO','APP_ID','EXAM_ROOM',
   'OLD_STUDENT_ID','FATHER_ID_CARD','MOTHER_ID_CARD','GUARDIAN_ID_CARD',
-  'FATHER_PHONE','MOTHER_PHONE','GUARDIAN_PHONE',
-  // ที่อยู่ใหม่ v1.8.0
-  'HOUSE_NO','MOO','SOI','CUR_HOUSE_NO','CUR_MOO','CUR_SOI','CUR_ZIP'
+  'FATHER_PHONE','MOTHER_PHONE','GUARDIAN_PHONE'
 ];
 
 function setupSystem() {
@@ -316,36 +303,6 @@ function setupSystem() {
     lSh.getRange('A1:D1').setFontWeight('bold').setBackground('#f3e8ff');
   }
   return { ok:true, msg:'Setup complete — login: admin / admin1234' };
-}
-
-// ─── RUN MIGRATION — เรียกได้โดยตรงจาก Apps Script Editor ───
-// ใช้หลัง deploy v1.8.0 เพื่ออัปเดต column ใหม่ใน Applications sheet
-// วิธีใช้: Apps Script Editor → dropdown เลือก runMigration → ▶ Run → ดู Logs
-function runMigration() {
-  try {
-    Logger.log('▶ เริ่ม migration v1.8.0...');
-    _migrateAppSheet();
-    const sh   = _sheet(SH.APP);
-    const hdrs = sh.getRange(1, 1, 1, sh.getLastColumn())
-                   .getValues()[0].map(h => String(h).trim()).filter(Boolean);
-    const newCols = [
-      'HOUSE_NO','BUILDING','MOO','SOI','ROAD',
-      'CUR_SAME_AS_HOME','CUR_HOUSE_NO','CUR_BUILDING',
-      'CUR_MOO','CUR_SOI','CUR_ROAD',
-      'CUR_SUBDISTRICT','CUR_DISTRICT','CUR_PROVINCE','CUR_ZIP'
-    ];
-    const missing = newCols.filter(c => !hdrs.includes(c));
-    Logger.log('✅ Migration สำเร็จ — รวม ' + hdrs.length + ' columns');
-    if (missing.length === 0) {
-      Logger.log('✅ columns ใหม่ครบทั้ง ' + newCols.length + ' columns');
-    } else {
-      Logger.log('⚠️ ยังขาด: ' + missing.join(', ') + ' — ลองรันซ้ำ');
-    }
-    return { ok:true, total:hdrs.length, missing };
-  } catch(e) {
-    Logger.log('❌ ล้มเหลว: ' + e);
-    return { ok:false, msg:String(e) };
-  }
 }
 
 // ─── SETTINGS ───
@@ -598,28 +555,7 @@ function submitApplication(data) {
     const rec = Object.assign({}, data, {
       APP_ID:           _str(appId),
       ID_CARD:          _str(data.ID_CARD).trim(),
-      // ── ที่อยู่ทะเบียนบ้าน ──
-      HOUSE_NO:         _str(data.HOUSE_NO),
-      BUILDING:         _str(data.BUILDING),
-      MOO:              _str(data.MOO),
-      SOI:              _str(data.SOI),
-      ROAD:             _str(data.ROAD),
-      ADDRESS:          _str(data.ADDRESS),
-      SUBDISTRICT:      _str(data.SUBDISTRICT),
-      DISTRICT:         _str(data.DISTRICT),
-      PROVINCE:         _str(data.PROVINCE),
       ZIP:              _str(data.ZIP),
-      // ── ที่อยู่ที่ติดต่อได้ ──
-      CUR_SAME_AS_HOME: (data.CUR_SAME_AS_HOME === true || String(data.CUR_SAME_AS_HOME) === 'true'),
-      CUR_HOUSE_NO:     _str(data.CUR_HOUSE_NO),
-      CUR_BUILDING:     _str(data.CUR_BUILDING),
-      CUR_MOO:          _str(data.CUR_MOO),
-      CUR_SOI:          _str(data.CUR_SOI),
-      CUR_ROAD:         _str(data.CUR_ROAD),
-      CUR_SUBDISTRICT:  _str(data.CUR_SUBDISTRICT),
-      CUR_DISTRICT:     _str(data.CUR_DISTRICT),
-      CUR_PROVINCE:     _str(data.CUR_PROVINCE),
-      CUR_ZIP:          _str(data.CUR_ZIP),
       PHONE:            _str(data.PHONE),
       FATHER_ID_CARD:   _str(data.FATHER_ID_CARD),
       FATHER_PHONE:     _str(data.FATHER_PHONE),
@@ -1307,4 +1243,7 @@ function checkSchoolZone(schoolName) {
   if (!schools.length) return { hasZone:false };
   const inZone = schools.some(s => s === String(schoolName||'').trim());
   return { hasZone:true, inZone };
+}
+function fixHeaders() {
+  _migrateAppSheet();
 }

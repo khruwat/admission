@@ -1,6 +1,6 @@
 /* =============================================================
    ระบบรับสมัครนักเรียน โรงเรียนหนองนาคำวิทยาคม
-   Student Enrollment System  v1.8.0
+   Student Enrollment System  v1.13.0
    ─────────────────────────────────────────────────────────────
    Sheets   : Applications | Users | Settings | AuditLog
    Roles    : ADMIN | STAFF
@@ -8,20 +8,48 @@
    Default  : admin / admin1234
    ─────────────────────────────────────────────────────────────
    CHANGELOG
-   v1.8.0 – 2569-03-17 – ผนวกระบบบันทึกที่อยู่ jquery.Thailand.js
-              เพิ่ม APP_COLS: HOUSE_NO/BUILDING/MOO/SOI/ROAD
-              เพิ่ม APP_COLS: CUR_* (ที่อยู่ติดต่อ 9 fields)
-              runMigration() เรียกได้จาก Apps Script Editor โดยตรง
+   v1.13.0 – 2569-03-17 – แผนการเรียนรายชั้น (per-grade study plans)
+              SETTINGS_DEFAULTS: STUDY_PLANS_M1–M6 (optional, fallback → MID/HIGH)
+              getPublicStats(): studyPlansByLevel {'ม.1':[], ..., 'ม.6':[]}
+              ม.ต้น: M1/M2/M3 → fallback STUDY_PLANS_MID
+              ม.ปลาย: M4/M5/M6 → fallback STUDY_PLANS_HIGH
+   v1.12.0 – 2569-03-17 – เพิ่มรหัสประจำบ้าน + ที่อยู่ปัจจุบัน
+              APP_COLS: HOUSE_CODE, CURR_SAME, CURR_ADDRESS,
+                CURR_SUBDISTRICT, CURR_DISTRICT, CURR_PROVINCE, CURR_ZIP
+              TEXT_COLS: เพิ่ม HOUSE_CODE, CURR_ZIP
+              submitApplication: map HOUSE_CODE + CURR_* fields
+              updateApplicationByStudent: ขยาย ALLOWED_FIELDS
+   v1.11.0 – 2569-03-17 – ขยายสิทธิ์แก้ไขข้อมูลตนเอง
+              แก้ไขได้ทุก field ยกเว้น ID_CARD (reference)
+              เพิ่ม STATUS "รายงานตัวแล้ว" → ล็อคการแก้ไขทั้งหมด
+              ขยาย ALLOWED_FIELDS: ชื่อ, สัญชาติ, ศาสนา, ที่อยู่,
+                บิดา/มารดา (ชื่อ+อาชีพ+รายได้+เบอร์), ผู้ปกครอง,
+                โรงเรียนเดิม, GPA, แผนการเรียน
+              safeUpdates: GPA เก็บเป็น number
+   v1.10.0 – 2569-03-17 – แก้บั๊ก timezone วันเดือนปีเกิด (critical fix)
+               _localDateStr(): Utilities.formatDate ใน timezone script (UTC+7)
+               _sheetData(): Date → timezone-safe, แยก date-only vs timestamp
+               _toDateStr(): ใช้ _localDateStr แทน toISOString()
+               _toSupaRec(): BIRTHDATE ใช้ _localDateStr แทน toISOString().slice
+               ก่อน fix: "5/5/2014 7:00:00" → "2014-05-04" (ผิด 1 วัน!)
+               หลัง fix: "5/5/2014 7:00:00" → "2014-05-05" (ถูกต้อง)
+   v1.9.0 – 2569-03-17 – ยืนยันตัวตนด้วยวันเกิดก่อนแก้ไข
+              verifyOwnerAndGetApp(idCard, birthdate) — ตรวจสอบเจ้าของ
+              updateApplicationByStudent(idCard, birthdate, appId, updates)
+              อนุญาตแก้ไขเฉพาะ: ที่อยู่, เบอร์โทร, อาชีพ/รายได้บิดา-มารดา
+              จำกัดการพยายาม 3 ครั้ง (frontend) — บันทึก Audit log
+              Supabase sync อัตโนมัติเมื่อแก้ไขสำเร็จ
+   v1.8.0 – 2569-03-17 – อัปเกรดระบบที่อยู่ (index.html)
+              แทนที่ GAS GeoData cascade + CDN fallback
+              ด้วย jquery.Thailand.js autocomplete ครอบคลุมทุกจังหวัด
+              ลบ _buildGeo() / getGeoData() (dead code ~130 บรรทัด)
+              เพิ่ม fields: reg-moo, reg-soi, reg-road
+              ADDRESS บันทึกครบ เลขที่+หมู่+ซอย+ถนน
    v1.7.0 – 2569-03-16 – Supabase dual-write (applications table)
               SUPA_URL/SUPA_KEY ตั้งค่าใน Settings + syncAllToSupabase()
               _supaReq/_supaUpsert/_supaPatch/_supaDelete/_supaGetAll helpers
               submit/update/delete/cancel sync อัตโนมัติ
    v1.6.0 – 2569-03-16 – เพิ่ม ROLE: STAFF (เจ้าหน้าที่รับสมัคร)
-              STAFF: ดูข้อมูลสมัคร/แก้ไขสถานะ/กำหนดเลขสอบ ได้
-              STAFF: ไม่มีสิทธิ์ Settings/Users/Backup/ลบ
-              DriveApp OAuth scope ประกาศชัดเจน (แก้ permission error)
-              Audit log ทุก action ครบถ้วน (IP, role, timestamp)
-              addAdminUser รองรับ role STAFF
    v1.5.2 – 2569-03-16 – Footer/System info, Photo upload, Checklist modal
    v1.5.0 – 2569-03-16 – Embed geo data, parent ID validation
    ============================================================= */
@@ -34,8 +62,8 @@ const _SS    = SpreadsheetApp.getActiveSpreadsheet();
 const _CACHE = CacheService.getScriptCache();
 
 // ─── SUPABASE CONFIG (อ่านค่าจาก Settings sheet ณ runtime) ───
-const SUPA_URL     = 'https://mgspxcxmkpanxfxoczvh.supabase.co';
-const SUPA_KEY     = 'sb_publishable_VYxfHMbwaj64YiwbQeWF2A_wGYq2hS0';
+const SUPA_URL     = 'https://vudbdydinxcdwowdlbti.supabase.co';
+const SUPA_KEY     = 'sb_publishable_4WaexTTMtcZC6N7anTEaLA_XOgrAZQR';
 const SUPA_ENABLED = (SUPA_URL !== '' && SUPA_KEY !== '');
 
 const SH = { APP:'Applications', USERS:'Users', SETTINGS:'Settings', LOGS:'AuditLog' };
@@ -43,14 +71,11 @@ const SH = { APP:'Applications', USERS:'Users', SETTINGS:'Settings', LOGS:'Audit
 const APP_COLS = [
   'APP_ID','LEVEL','APP_TYPE','PREFIX','FNAME','LNAME','ID_CARD',
   'BIRTHDATE','NATIONALITY','RELIGION',
-  // ── ที่อยู่ทะเบียนบ้าน (v1.8.0) ──
-  'HOUSE_NO','BUILDING','MOO','SOI','ROAD',
-  'ADDRESS','SUBDISTRICT','DISTRICT','PROVINCE','ZIP',
-  // ── ที่อยู่ที่ติดต่อได้ (v1.8.0) ──
-  'CUR_SAME_AS_HOME',
-  'CUR_HOUSE_NO','CUR_BUILDING','CUR_MOO','CUR_SOI','CUR_ROAD',
-  'CUR_SUBDISTRICT','CUR_DISTRICT','CUR_PROVINCE','CUR_ZIP',
-  // ── นักเรียน ──
+  // ที่อยู่ตามทะเบียนบ้าน
+  'HOUSE_CODE','ADDRESS','SUBDISTRICT','DISTRICT','PROVINCE','ZIP',
+  // ที่อยู่ปัจจุบัน (ติดต่อได้)
+  'CURR_SAME','CURR_ADDRESS','CURR_SUBDISTRICT','CURR_DISTRICT','CURR_PROVINCE','CURR_ZIP',
+  // นักเรียน
   'PHONE',
   'PHOTO_URL',
   'FATHER_PREFIX','FATHER_FNAME','FATHER_LNAME','FATHER_ID_CARD',
@@ -70,7 +95,7 @@ const APP_COLS = [
   'REMARK','CREATED_AT','UPDATED_AT'
 ];
 
-const STATUSES = ['สมัครแล้ว','ชำระเงินแล้ว','มีสิทธิ์สอบ','ผ่าน','ไม่ผ่าน'];
+const STATUSES = ['สมัครแล้ว','ชำระเงินแล้ว','มีสิทธิ์สอบ','ผ่าน','ไม่ผ่าน','รายงานตัวแล้ว'];
 
 const SETTINGS_DEFAULTS = [
   ['SCHOOL_FULLNAME',    'โรงเรียนหนองนาคำวิทยาคม'],
@@ -107,15 +132,22 @@ const SETTINGS_DEFAULTS = [
   ['SERVICE_AREA_SCHOOLS',''],
   ['STUDY_PLANS_MID',     'แผนการเรียนทั่วไป'],
   ['STUDY_PLANS_HIGH',    'วิทยาศาสตร์-คณิตศาสตร์\nศิลปะ-ภาษา\nศิลปะ-การงานอาชีพ'],
+  // แผนการเรียนรายชั้น (ถ้าว่าง → ใช้ pool รวม MID/HIGH)
+  ['STUDY_PLANS_M1',      ''],
+  ['STUDY_PLANS_M2',      ''],
+  ['STUDY_PLANS_M3',      ''],
+  ['STUDY_PLANS_M4',      ''],
+  ['STUDY_PLANS_M5',      ''],
+  ['STUDY_PLANS_M6',      ''],
   ['SYSTEM_NAME',        'ระบบรับสมัครนักเรียนออนไลน์'],
   ['DEVELOPER_NAME',     ''],
   ['DEVELOPER_POSITION', ''],
   ['DEVELOPER_PHONE',    ''],
-  ['SYSTEM_VERSION',     'v1.8.0'],
-  ['CHANGELOG_TEXT',     'v1.8.0 – 2569-03-17 – ระบบบันทึกที่อยู่ขั้นสูง jquery.Thailand.js\nv1.7.0 – 2569-03-16 – Supabase dual-write, real-time sync\nv1.6.0 – 2569-03-16 – ROLE: STAFF, Permission system, Audit log'],
+  ['SYSTEM_VERSION',     'v1.13.0'],
+  ['CHANGELOG_TEXT',     'v1.13.0 – 2569-03-17 – แผนการเรียนรายชั้น M1–M6 (per-grade study plans)\nv1.12.0 – 2569-03-17 – เพิ่มรหัสประจำบ้าน + ที่อยู่ปัจจุบัน (HOUSE_CODE, CURR_*)\nv1.11.0 – 2569-03-17 – ขยายสิทธิ์แก้ไข, lock "รายงานตัวแล้ว"'],
   ['ANNOUNCEMENT',       ''],
-  ['SUPA_URL',           'https://mgspxcxmkpanxfxoczvh.supabase.co'],
-  ['SUPA_KEY',           'sb_publishable_VYxfHMbwaj64YiwbQeWF2A_wGYq2hS0'],
+  ['SUPA_URL',           'https://vudbdydinxcdwowdlbti.supabase.co'],
+  ['SUPA_KEY',           'sb_publishable_4WaexTTMtcZC6N7anTEaLA_XOgrAZQR'],
 ];
 
 // ─── SUPABASE HELPERS ───
@@ -170,9 +202,8 @@ function _toSupaRec(rec) {
   APP_COLS.forEach(c => {
     let v = rec[c];
     if (c === 'BIRTHDATE' && v && v !== '') {
-      v = (v instanceof Date) ? v.toISOString().slice(0,10) : String(v).slice(0,10);
-    } else if (c === 'CUR_SAME_AS_HOME') {
-      v = (v === true || String(v).toLowerCase() === 'true'); // boolean
+      // timezone-safe: ถ้าเป็น Date object ใช้ _localDateStr; ถ้าเป็น string ตัดเฉพาะวัน
+      v = (v instanceof Date) ? _localDateStr(v) : String(v).slice(0, 10);
     } else {
       v = (v === null || v === undefined) ? '' : String(v);
     }
@@ -203,6 +234,13 @@ function _sheet(name) {
   return _SS.getSheetByName(name) || _SS.insertSheet(name);
 }
 
+// แปลง Date object → "YYYY-MM-DD" ในเวลา timezone ของ Script (ไทย UTC+7)
+// ใช้ Utilities.formatDate แทน toISOString() ป้องกันบั๊ก timezone เลื่อนวัน
+function _localDateStr(d) {
+  if (!(d instanceof Date) || isNaN(d)) return '';
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+}
+
 function _sheetData(name, useDisplay) {
   const sh   = _sheet(name);
   const last = sh.getLastRow();
@@ -213,8 +251,18 @@ function _sheetData(name, useDisplay) {
   return vals.slice(1).map(row => {
     const o = {};
     hdrs.forEach((h,i) => {
-      // getValues: Date → ISO string; getDisplayValues: already string
-      o[h] = (!useDisplay && row[i] instanceof Date) ? row[i].toISOString() : row[i];
+      if (!useDisplay && row[i] instanceof Date) {
+        // DATE-ONLY columns (วันเกิด, วันสมัคร ฯลฯ) → "YYYY-MM-DD" timezone-safe
+        // TIMESTAMP columns (CREATED_AT, UPDATED_AT) → "YYYY-MM-DDTHH:mm:ss" ยังคง timezone ไว้
+        const isTimestamp = ['CREATED_AT','UPDATED_AT','LAST_LOGIN','TIMESTAMP'].includes(h);
+        if (isTimestamp) {
+          o[h] = Utilities.formatDate(row[i], Session.getScriptTimeZone(), "yyyy-MM-dd'T'HH:mm:ss");
+        } else {
+          o[h] = _localDateStr(row[i]);
+        }
+      } else {
+        o[h] = row[i];
+      }
     });
     return o;
   });
@@ -257,8 +305,9 @@ function _deleteRow(shName, matchCol, matchVal) {
 
 function _toDateStr(v) {
   if (!v || v === '') return '';
+  if (v instanceof Date) return _localDateStr(v);  // Date object → timezone-safe
   const d = new Date(v);
-  return isNaN(d) ? '' : d.toISOString().slice(0,10);
+  return isNaN(d) ? '' : _localDateStr(d);
 }
 function _toNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
@@ -266,11 +315,9 @@ function _toNum(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
 // คอลัมน์ที่ต้องเก็บเป็น Plain Text เสมอ (มี 0 นำหน้า หรือเป็น string ล้วน)
 const TEXT_COLS = [
-  'ID_CARD','ZIP','PHONE','PARENT_PHONE','EXAM_NO','APP_ID','EXAM_ROOM',
+  'ID_CARD','HOUSE_CODE','ZIP','CURR_ZIP','PHONE','PARENT_PHONE','EXAM_NO','APP_ID','EXAM_ROOM',
   'OLD_STUDENT_ID','FATHER_ID_CARD','MOTHER_ID_CARD','GUARDIAN_ID_CARD',
-  'FATHER_PHONE','MOTHER_PHONE','GUARDIAN_PHONE',
-  // ที่อยู่ใหม่ v1.8.0
-  'HOUSE_NO','MOO','SOI','CUR_HOUSE_NO','CUR_MOO','CUR_SOI','CUR_ZIP'
+  'FATHER_PHONE','MOTHER_PHONE','GUARDIAN_PHONE'
 ];
 
 function setupSystem() {
@@ -316,36 +363,6 @@ function setupSystem() {
     lSh.getRange('A1:D1').setFontWeight('bold').setBackground('#f3e8ff');
   }
   return { ok:true, msg:'Setup complete — login: admin / admin1234' };
-}
-
-// ─── RUN MIGRATION — เรียกได้โดยตรงจาก Apps Script Editor ───
-// ใช้หลัง deploy v1.8.0 เพื่ออัปเดต column ใหม่ใน Applications sheet
-// วิธีใช้: Apps Script Editor → dropdown เลือก runMigration → ▶ Run → ดู Logs
-function runMigration() {
-  try {
-    Logger.log('▶ เริ่ม migration v1.8.0...');
-    _migrateAppSheet();
-    const sh   = _sheet(SH.APP);
-    const hdrs = sh.getRange(1, 1, 1, sh.getLastColumn())
-                   .getValues()[0].map(h => String(h).trim()).filter(Boolean);
-    const newCols = [
-      'HOUSE_NO','BUILDING','MOO','SOI','ROAD',
-      'CUR_SAME_AS_HOME','CUR_HOUSE_NO','CUR_BUILDING',
-      'CUR_MOO','CUR_SOI','CUR_ROAD',
-      'CUR_SUBDISTRICT','CUR_DISTRICT','CUR_PROVINCE','CUR_ZIP'
-    ];
-    const missing = newCols.filter(c => !hdrs.includes(c));
-    Logger.log('✅ Migration สำเร็จ — รวม ' + hdrs.length + ' columns');
-    if (missing.length === 0) {
-      Logger.log('✅ columns ใหม่ครบทั้ง ' + newCols.length + ' columns');
-    } else {
-      Logger.log('⚠️ ยังขาด: ' + missing.join(', ') + ' — ลองรันซ้ำ');
-    }
-    return { ok:true, total:hdrs.length, missing };
-  } catch(e) {
-    Logger.log('❌ ล้มเหลว: ' + e);
-    return { ok:false, msg:String(e) };
-  }
 }
 
 // ─── SETTINGS ───
@@ -598,28 +615,14 @@ function submitApplication(data) {
     const rec = Object.assign({}, data, {
       APP_ID:           _str(appId),
       ID_CARD:          _str(data.ID_CARD).trim(),
-      // ── ที่อยู่ทะเบียนบ้าน ──
-      HOUSE_NO:         _str(data.HOUSE_NO),
-      BUILDING:         _str(data.BUILDING),
-      MOO:              _str(data.MOO),
-      SOI:              _str(data.SOI),
-      ROAD:             _str(data.ROAD),
-      ADDRESS:          _str(data.ADDRESS),
-      SUBDISTRICT:      _str(data.SUBDISTRICT),
-      DISTRICT:         _str(data.DISTRICT),
-      PROVINCE:         _str(data.PROVINCE),
+      HOUSE_CODE:       _str(data.HOUSE_CODE).replace(/\D/g,'').slice(0,11),
       ZIP:              _str(data.ZIP),
-      // ── ที่อยู่ที่ติดต่อได้ ──
-      CUR_SAME_AS_HOME: (data.CUR_SAME_AS_HOME === true || String(data.CUR_SAME_AS_HOME) === 'true'),
-      CUR_HOUSE_NO:     _str(data.CUR_HOUSE_NO),
-      CUR_BUILDING:     _str(data.CUR_BUILDING),
-      CUR_MOO:          _str(data.CUR_MOO),
-      CUR_SOI:          _str(data.CUR_SOI),
-      CUR_ROAD:         _str(data.CUR_ROAD),
-      CUR_SUBDISTRICT:  _str(data.CUR_SUBDISTRICT),
-      CUR_DISTRICT:     _str(data.CUR_DISTRICT),
-      CUR_PROVINCE:     _str(data.CUR_PROVINCE),
-      CUR_ZIP:          _str(data.CUR_ZIP),
+      CURR_SAME:        _str(data.CURR_SAME),
+      CURR_ADDRESS:     _str(data.CURR_ADDRESS),
+      CURR_SUBDISTRICT: _str(data.CURR_SUBDISTRICT),
+      CURR_DISTRICT:    _str(data.CURR_DISTRICT),
+      CURR_PROVINCE:    _str(data.CURR_PROVINCE),
+      CURR_ZIP:         _str(data.CURR_ZIP),
       PHONE:            _str(data.PHONE),
       FATHER_ID_CARD:   _str(data.FATHER_ID_CARD),
       FATHER_PHONE:     _str(data.FATHER_PHONE),
@@ -757,6 +760,104 @@ function _migrateAppSheet() {
   }
 }
 
+// ─── PUBLIC: VERIFY OWNER (student self-edit) ───
+// ตรวจสอบความเป็นเจ้าของโดยใช้วันเดือนปีเกิดเป็น PIN
+function verifyOwnerAndGetApp(idCard, birthdate) {
+  if (!idCard || !birthdate) return { ok:false, msg:'กรุณากรอกข้อมูลให้ครบ' };
+  const apps = _sheetData(SH.APP);
+  const app  = apps.find(a => String(a.ID_CARD).trim() === String(idCard).trim());
+  if (!app) return { ok:false, msg:'ไม่พบข้อมูลการสมัคร' };
+
+  // เปรียบเทียบวันเกิด (เก็บ ISO YYYY-MM-DD)
+  const appDOB   = String(app.BIRTHDATE || '').slice(0, 10);
+  const inputDOB = String(birthdate).slice(0, 10);
+
+  if (!appDOB || appDOB !== inputDOB) {
+    _log('PUBLIC', 'VERIFY_FAIL', 'ID:' + String(idCard).slice(-4) + ' dob mismatch');
+    return { ok:false, msg:'วันเดือนปีเกิดไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง' };
+  }
+
+  // ไม่ส่งรหัสผ่าน / ข้อมูลอ่อนไหวกลับ (ส่งเฉพาะที่ UI ต้องการ)
+  const safe = {};
+  [
+    'APP_ID','LEVEL','APP_TYPE','STATUS',
+    'PREFIX','FNAME','LNAME','ID_CARD','BIRTHDATE','NATIONALITY','RELIGION',
+    'PHOTO_URL',
+    'ADDRESS','SUBDISTRICT','DISTRICT','PROVINCE','ZIP','PHONE',
+    'FATHER_PREFIX','FATHER_FNAME','FATHER_LNAME','FATHER_PHONE',
+    'FATHER_OCCUPATION','FATHER_INCOME','FATHER_STATUS',
+    'MOTHER_PREFIX','MOTHER_FNAME','MOTHER_LNAME','MOTHER_PHONE',
+    'MOTHER_OCCUPATION','MOTHER_INCOME','MOTHER_STATUS',
+    'GUARDIAN_TYPE','GUARDIAN_NAME','GUARDIAN_PHONE',
+    'OLD_SCHOOL','OLD_LEVEL','GPA','SPECIAL_ABILITY',
+    'STUDY_PLAN','STUDY_PLAN_ALT','TRANSFER_LEVEL',
+    'EXAM_NO','CREATED_AT'
+  ].forEach(k => { if (app[k] !== undefined) safe[k] = app[k]; });
+
+  _log('PUBLIC', 'VERIFY_OK', 'APP:' + app.APP_ID);
+  return { ok:true, app:safe };
+}
+
+// ─── PUBLIC: UPDATE BY STUDENT (หลังยืนยันตัวตน) ───
+// อนุญาตแก้ไขเฉพาะฟิลด์ที่ไม่กระทบสถานะการสมัคร
+function updateApplicationByStudent(idCard, birthdate, appId, updates) {
+  // ยืนยันตัวตนก่อนทุกครั้ง (double-verify)
+  const verify = verifyOwnerAndGetApp(idCard, birthdate);
+  if (!verify.ok) return verify;
+  if (String(verify.app.APP_ID) !== String(appId))
+    return { ok:false, msg:'ข้อมูลใบสมัครไม่ตรงกัน' };
+
+  // ห้ามแก้ไขเฉพาะเมื่อ "รายงานตัวแล้ว" (ยืนยันตัวรับเป็นนักเรียนแล้ว)
+  if (verify.app.STATUS === 'รายงานตัวแล้ว')
+    return { ok:false, msg:'ไม่สามารถแก้ไขได้ เนื่องจากยืนยันตัวรับเป็นนักเรียนแล้ว' };
+
+  // whitelist — ห้ามแก้ ID_CARD, APP_ID, STATUS, EXAM_NO, EXAM_ROOM, SCORE, RESULT_NOTE (admin-only)
+  const ALLOWED_FIELDS = [
+    'PREFIX','FNAME','LNAME','NATIONALITY','RELIGION','PHOTO_URL',
+    'HOUSE_CODE',
+    'ADDRESS','SUBDISTRICT','DISTRICT','PROVINCE','ZIP',
+    'CURR_SAME','CURR_ADDRESS','CURR_SUBDISTRICT','CURR_DISTRICT','CURR_PROVINCE','CURR_ZIP',
+    'PHONE',
+    'FATHER_PREFIX','FATHER_FNAME','FATHER_LNAME',
+    'FATHER_PHONE','FATHER_OCCUPATION','FATHER_INCOME',
+    'MOTHER_PREFIX','MOTHER_FNAME','MOTHER_LNAME',
+    'MOTHER_PHONE','MOTHER_OCCUPATION','MOTHER_INCOME',
+    'GUARDIAN_NAME','GUARDIAN_PHONE',
+    'OLD_SCHOOL','OLD_LEVEL','GPA','SPECIAL_ABILITY',
+    'STUDY_PLAN','STUDY_PLAN_ALT'
+  ];
+
+  const safeUpdates = {};
+  ALLOWED_FIELDS.forEach(function(k) {
+    if (updates[k] !== undefined && updates[k] !== null) {
+      const numericFields = ['FATHER_INCOME','MOTHER_INCOME','GPA'];
+      safeUpdates[k] = (numericFields.includes(k) && updates[k] !== '')
+        ? _toNum(updates[k])
+        : String(updates[k]);
+    }
+  });
+  safeUpdates.UPDATED_AT = new Date();
+
+  return _withLock(function() {
+    const ok = _updateRow(SH.APP, 'APP_ID', appId, safeUpdates);
+    if (ok) {
+      // Supabase sync
+      try {
+        const supaUpdates = {};
+        Object.entries(safeUpdates).forEach(function([k,v]) {
+          supaUpdates[k.toLowerCase()] = (v instanceof Date)
+            ? v.toISOString() : (v === null ? '' : String(v));
+        });
+        _supaPatch('applications', appId, supaUpdates);
+      } catch(e) { Logger.log('Supabase patch failed: '+e); }
+
+      _log('STUDENT_EDIT', 'EDIT_APP',
+        appId + ' | fields: ' + Object.keys(safeUpdates).filter(k=>k!=='UPDATED_AT').join(', '));
+    }
+    return { ok:ok, msg:ok ? '' : 'ไม่พบใบสมัคร' };
+  });
+}
+
 // ─── PUBLIC: CHECK STATUS ───
 function checkStatus(idCard) {
   if (!idCard) return { ok:false, msg:'กรุณาระบุเลขบัตรประชาชน' };
@@ -769,139 +870,6 @@ function checkStatus(idCard) {
     STATUS:a.STATUS, EXAM_NO:a.EXAM_NO, EXAM_ROOM:a.EXAM_ROOM,
     SCORE:a.SCORE, RESULT_NOTE:a.RESULT_NOTE, CREATED_AT:a.CREATED_AT
   }))};
-}
-
-// ─── GEO DATA (ข้อมูลที่อยู่ไทย ฝังใน code.gs ไม่ต้องโหลดจากภายนอก) ───
-// รูปแบบ: province → { districts: ['อำเภอ',...], sub: {'อำเภอ': [['ตำบล','ZIP'],...] } }
-// ขอนแก่น: ครบทุกตำบล | จังหวัดอื่น: ครบทุกอำเภอ ตำบล fallback → text input
-var _GEO_DATA = null;
-function _buildGeo() {
-  if (_GEO_DATA) return _GEO_DATA;
-  _GEO_DATA = {
-'กรุงเทพมหานคร':{d:['พระนคร','ดุสิต','หนองจอก','บางรัก','บางเขน','บางกะปิ','ปทุมวัน','ป้อมปราบศัตรูพ่าย','พระโขนง','มีนบุรี','ลาดกระบัง','ยานนาวา','สัมพันธวงศ์','พระโขนง','บางกอกน้อย','ห้วยขวาง','บางกอกใหญ่','ธนบุรี','บางกอกน้อย','บางขุนเทียน','ภาษีเจริญ','หนองแขม','ราษฎร์บูรณะ','หลักสี่','ลาดพร้าว','วังทองหลาง','คลองสาน','ตลิ่งชัน','บางซื่อ','จตุจักร','บึงกุ่ม','สาทร','บางคอแหลม','ประเวศ','คลองเตย','สวนหลวง','จอมทอง','ดอนเมือง','ราษฎร์บูรณะ','หลักสี่','ลาดพร้าว','วังทองหลาง','ทวีวัฒนา','ทุ่งครุ','บางบอน']},
-'กระบี่':{d:['เมืองกระบี่','เขาพนม','เกาะลันตา','ปลายพระยา','ลำทับ','เหนือคลอง','อ่าวลึก','คลองท่อม']},
-'กาญจนบุรี':{d:['เมืองกาญจนบุรี','ไทรโยค','บ่อพลอย','ศรีสวัสดิ์','ท่ามะกา','ท่าม่วง','ทองผาภูมิ','สังขละบุรี','พนมทวน','เลาขวัญ','ด่านมะขามเตี้ย','หนองปรือ','ห้วยกระเจา']},
-'กาฬสินธุ์':{d:['เมืองกาฬสินธุ์','นามน','กมลาไสย','ร่องคำ','กุฉินารายณ์','เขาวง','ยางตลาด','ห้วยเม็ก','สหัสขันธ์','คำม่วง','ท่าคันโท','หนองกุงศรี','สมเด็จ','ห้วยผึ้ง','สามชัย','นาคู','ดอนจาน','ฆ้องชัย']},
-'กำแพงเพชร':{d:['เมืองกำแพงเพชร','ไทรงาม','คลองลาน','ขาณุวรลักษบุรี','คลองขลุง','พรานกระต่าย','ลานกระบือ','ทรายทองวัฒนา','ปางศิลาทอง','บึงสามัคคี','โกสัมพีนคร']},
-'ขอนแก่น':{d:['เมืองขอนแก่น','บ้านฝาง','พระยืน','หนองเรือ','ชุมแพ','สีชมพู','น้ำพอง','อุบลรัตน์','กระนวน','บ้านไผ่','เปือยน้อย','พล','แวงใหญ่','แวงน้อย','หนองสองห้อง','ภูเวียง','มัญจาคีรี','ชนบท','เขาสวนกวาง','ภูผาม่าน','ซำสูง','โคกโพธิ์ไชย','หนองนาคำ','บ้านแฮด','โนนศิลา','เวียงเก่า'],
-s:{
-'เมืองขอนแก่น':[['พระลับ','40000'],['สาวะถี','40000'],['บ้านทุ่ม','40000'],['เมืองเก่า','40000'],['บึงเนียม','40000'],['โนนทอง','40000'],['บ้านเป็ด','40000'],['หนองตูม','40000'],['โคกสี','40000'],['ท่าพระ','40260'],['บ้านค้อ','40000'],['พระลับ','40000'],['บ้านหว้า','40000'],['ในเมือง','40000'],['สาวะถี','40000'],['บ้านทุ่ม','40000'],['โนนทอง','40000'],['บึงเนียม','40000'],['สาวะถี','40000'],['โคกสี','40000'],['เมืองเก่า','40000']],
-'บ้านฝาง':[['บ้านฝาง','40270'],['ป่าหวายนั่ง','40270'],['โนนฆ้อง','40270'],['บ้านเหล่า','40270'],['ป่ามะนาว','40270'],['โคกงาม','40270'],['หนองบัว','40270']],
-'พระยืน':[['พระยืน','40320'],['พระบุ','40320'],['บ้านโต้น','40320'],['หนองแวง','40320'],['ขามป้อม','40320']],
-'หนองเรือ':[['หนองเรือ','40240'],['บ้านเม็ง','40240'],['บ้านกง','40240'],['ยางคำ','40240'],['จระเข้','40240'],['โนนทอง','40240'],['กุดกว้าง','40240'],['โนนสะอาด','40240'],['บ้านผือ','40240']],
-'ชุมแพ':[['ชุมแพ','40130'],['โนนหัน','40130'],['นาหนองทุ่ม','40130'],['โนนอุดม','40130'],['ขัวเรียง','40130'],['หนองไผ่','40130'],['ไชยสอ','40130'],['วังหินลาด','40130'],['นาเพียง','40130'],['หนองเขียด','40130'],['หนองทุ่มลุมพุก','40130']],
-'สีชมพู':[['สีชมพู','40220'],['ศรีสุข','40220'],['นาจาน','40220'],['วังเพิ่ม','40220'],['ซำยาง','40220'],['หนองแดง','40220'],['ดงลาน','40220'],['บริบูรณ์','40220'],['บ้านใหม่','40220'],['ภูห่าน','40220']],
-'น้ำพอง':[['น้ำพอง','40140'],['วังชัย','40140'],['หนองกุง','40140'],['บัวใหญ่','40140'],['สะอาด','40140'],['ม่วงหวาน','40140'],['พังทุย','40140'],['กุดน้ำใส','40140'],['หนองโก','40140'],['บ้านขาม','40140'],['โนนทอง','40140']],
-'อุบลรัตน์':[['อุบลรัตน์','40250'],['นาคำ','40250'],['ศรีสุขสำราญ','40250'],['ทุ่งโป่ง','40250'],['เขื่อนอุบลรัตน์','40250'],['โคกสูง','40250']],
-'กระนวน':[['หนองโก','40170'],['หนองกุงใหญ่','40170'],['ห้วยโจด','40170'],['ห้วยยาง','40170'],['บ้านฝาง','40170'],['ดูนสาด','40170'],['หนองโน','40170'],['น้ำอ้อม','40170'],['หัวนาคำ','40170']],
-'บ้านไผ่':[['บ้านไผ่','40110'],['ในเมือง','40110'],['เมืองเพีย','40110'],['บ้านลาน','40110'],['แคนเหนือ','40110'],['ภูเหล็ก','40110'],['ป่าปอ','40110'],['หินตั้ง','40110'],['หนองน้ำใส','40110'],['บ้านทุ่ม','40110']],
-'เปือยน้อย':[['เปือยน้อย','40340'],['วังม่วง','40340'],['ขามป้อม','40340'],['สระแก้ว','40340']],
-'พล':[['เมืองพล','40120'],['โจดหนองแก','40120'],['เก่างิ้ว','40120'],['หนองมะเขือ','40120'],['หนองแวงโสกพระ','40120'],['เพ็กใหญ่','40120'],['โคกสง่า','40120'],['หนองแวงนางเบ้า','40120'],['ลอมคอม','40120'],['โนนข่า','40120'],['หัวทุ่ง','40120']],
-'แวงใหญ่':[['แวงใหญ่','40330'],['ก้านเหลือง','40330'],['หัวทุ่ง','40330'],['โนนสะอาด','40330'],['คอนฉิม','40330']],
-'แวงน้อย':[['แวงน้อย','40230'],['ก้านเหลือง','40230'],['ท่านางแนว','40230'],['ละหานนา','40230'],['ทางขวาง','40230']],
-'หนองสองห้อง':[['หนองสองห้อง','40190'],['คึมชาด','40190'],['โนนธาตุ','40190'],['ตะกั่วป่า','40190'],['สำโรง','40190'],['หนองเม็ก','40190'],['ดอนดู่','40190'],['ดงเค็ง','40190'],['หันโจด','40190'],['ดอนดั่ง','40190'],['วังหิน','40190'],['หนองไผ่ล้อม','40190']],
-'ภูเวียง':[['หน้าพระธาตุ','40150'],['กุดขอนแก่น','40150'],['นาชุมแสง','40150'],['นาหว้า','40150'],['หนองกุงธนสาร','40150'],['หนองกุงเซิน','40150'],['บ้านเรือ','40150'],['หว้าทอง','40150'],['กุดเค้า','40150'],['สาวะถี','40150']],
-'มัญจาคีรี':[['กุดเค้า','40160'],['สวนหม่อน','40160'],['หนองแวง','40160'],['ท่าศาลา','40160'],['นาข่า','40160'],['นางาม','40160'],['โพนเพ็ก','40160'],['คำแคน','40160'],['หนองไผ่','40160'],['หนองปลาเข็ง','40160']],
-'ชนบท':[['ชนบท','40180'],['กุดเพียขอม','40180'],['วังแสง','40180'],['ห้วยแก','40180'],['บ้านแท่น','40180'],['ศรีบุญเรือง','40180'],['โนนพะยอม','40180'],['ปอแดง','40180']],
-'เขาสวนกวาง':[['เขาสวนกวาง','40280'],['ดงเมืองแอม','40280'],['นางิ้ว','40280'],['โนนสมบูรณ์','40280'],['คำม่วง','40280']],
-'ภูผาม่าน':[['ภูผาม่าน','40350'],['วังสวาบ','40350'],['ห้วยม่วง','40350'],['โนนคอม','40350']],
-'ซำสูง':[['คูคำ','40170'],['ห้วยเตย','40170'],['คำแมด','40170'],['บ้านโนน','40170'],['สูงเนิน','40170'],['หนองช้างใหญ่','40170']],
-'โคกโพธิ์ไชย':[['บ้านโคก','40160'],['โพธิ์ไชย','40160'],['ซับสมบูรณ์','40160'],['นาแพง','40160']],
-'หนองนาคำ':[['กุดธาตุ','40150'],['บ้านโคก','40150'],['หนองนาคำ','40150']],
-'บ้านแฮด':[['บ้านแฮด','40110'],['โมนน้อย','40110'],['หนองแวงโสกพระ','40110'],['โนนสมบูรณ์','40110']],
-'โนนศิลา':[['โนนศิลา','40340'],['หนองปลาหมอ','40340'],['บ้านหัน','40340'],['เปือยใหญ่','40340'],['โนนแดง','40340']],
-'เวียงเก่า':[['เมืองเก่าพัฒนา','40150'],['เขาน้อย','40150'],['ในเมือง','40150']],
-}},
-'จันทบุรี':{d:['เมืองจันทบุรี','ขลุง','ท่าใหม่','โป่งน้ำร้อน','มะขาม','แหลมสิงห์','สอยดาว','แก่งหางแมว','นายายอาม','เขาคิชฌกูฏ']},
-'ฉะเชิงเทรา':{d:['เมืองฉะเชิงเทรา','คลองเขื่อน','บางคล้า','บางน้ำเปรี้ยว','บางปะกง','บ้านโพธิ์','พนมสารคาม','ราชสาส์น','สนามชัยเขต','แปลงยาว','ท่าตะเกียบ']},
-'ชลบุรี':{d:['เมืองชลบุรี','บ้านบึง','หนองใหญ่','บางละมุง','พานทอง','พนัสนิคม','ศรีราชา','เกาะสีชัง','สัตหีบ','บ่อทอง','เกาะจันทร์']},
-'ชัยนาท':{d:['เมืองชัยนาท','มโนรมย์','วัดสิงห์','สรรพยา','สรรคบุรี','หันคา','หนองมะโมง','เนินขาม']},
-'ชัยภูมิ':{d:['เมืองชัยภูมิ','บ้านเขว้า','คอนสวรรค์','เกษตรสมบูรณ์','หนองบัวแดง','จัตุรัส','บำเหน็จณรงค์','หนองบัวระเหว','เทพสถิต','ภูเขียว','บ้านแท่น','แก้งคร้อ','คอนสาร','ภักดีชุมพล','เนินสง่า','ซับใหญ่']},
-'ชุมพร':{d:['เมืองชุมพร','ท่าแซะ','ปะทิว','หลังสวน','ละแม','พะโต๊ะ','สวี','ทุ่งตะโก']},
-'เชียงราย':{d:['เมืองเชียงราย','เวียงชัย','เชียงของ','เทิง','พาน','ป่าแดด','แม่จัน','เชียงแสน','แม่ลาว','เวียงป่าเป้า','พญาเม็งราย','เวียงแก่น','ขุนตาล','แม่ฟ้าหลวง','แม่ลาว','เวียงเชียงรุ้ง','ดอยหลวง']},
-'เชียงใหม่':{d:['เมืองเชียงใหม่','จอมทอง','แม่แจ่ม','เชียงดาว','ดอยสะเก็ด','แม่แตง','แม่ริม','สะเมิง','ฝาง','แม่อาย','พร้าว','สันป่าตอง','สันกำแพง','สันทราย','หางดง','ฮอด','ดอยเต่า','อมก๋อย','สารภี','เวียงแหง','ไชยปราการ','แม่วาง','แม่ออน','ดอยหล่อ','กัลยาณิวัฒนา']},
-'ตรัง':{d:['เมืองตรัง','กันตัง','ย่านตาขาว','ปะเหลียน','สิเกา','ห้วยยอด','วังวิเศษ','นาโยง','รัษฎา','หาดสำราญ']},
-'ตราด':{d:['เมืองตราด','คลองใหญ่','เขาสมิง','บ่อไร','แหลมงอบ','เกาะกูด','เกาะช้าง']},
-'ตาก':{d:['เมืองตาก','บ้านตาก','สามเงา','แม่ระมาด','ท่าสองยาง','แม่สอด','พบพระ','อุ้มผาง','วังเจ้า']},
-'นครนายก':{d:['เมืองนครนายก','ปากพลี','บ้านนา','องครักษ์']},
-'นครปฐม':{d:['เมืองนครปฐม','กำแพงแสน','นครชัยศรี','ดอนตูม','บางเลน','สามพราน','พุทธมณฑล']},
-'นครพนม':{d:['เมืองนครพนม','ปลาปาก','ท่าอุเทน','บ้านแพง','ธาตุพนม','เรณูนคร','นาแก','ศรีสงคราม','นาหว้า','โพนสวรรค์','นาทม','วังยาง']},
-'นครราชสีมา':{d:['เมืองนครราชสีมา','ครบุรี','เสิงสาง','คง','บ้านเหลื่อม','จักราช','โชคชัย','ด่านขุนทด','โนนไทย','โนนสูง','ขามสะแกแสง','บัวใหญ่','ประทาย','ปักธงชัย','พิมาย','ห้วยแถลง','ชุมพวง','สูงเนิน','ขามทะเลสอ','สีดา','เฉลิมพระเกียรติ','เมืองยาง','พระทองคำ','ลำทะเมนชัย','บัวลาย','สีคิ้ว','ปากช่อง','หนองบุญมาก','แก้งสนามนาง','โนนแดง','วังน้ำเขียว','พิมาย','เทพารักษ์']},
-'นครศรีธรรมราช':{d:['เมืองนครศรีธรรมราช','พรหมคีรี','ลานสกา','ฉวาง','พิปูน','เชียรใหญ่','ชะอวด','ท่าศาลา','ทุ่งสง','นาบอน','ทุ่งใหญ่','ปากพนัง','ร่อนพิบูลย์','สิชล','ขนอม','หัวไทร','บางขัน','ถ้ำพรรณรา','จุฬาภรณ์','พระพรหม','นบพิตำ','ช้างกลาง','เฉลิมพระเกียรติ']},
-'นครสวรรค์':{d:['เมืองนครสวรรค์','โกรกพระ','ชุมแสง','หนองบัว','บรรพตพิสัย','เก้าเลี้ยว','ตาคลี','ท่าตะโก','ไพศาลี','พยุหะคีรี','ลาดยาว','ตากฟ้า','แม่วงก์','แม่เปิน','ชุมตาบง']},
-'นนทบุรี':{d:['เมืองนนทบุรี','บางกรวย','บางใหญ่','บางบัวทอง','ไทรน้อย','ปากเกร็ด']},
-'นราธิวาส':{d:['เมืองนราธิวาส','ตากใบ','บาเจาะ','ยี่งอ','ระแงะ','รือเสาะ','ศรีสาคร','แว้ง','สุคิริน','สุไหงโก-ลก','สุไหงปาดี','จะแนะ','เจาะไอร้อง']},
-'น่าน':{d:['เมืองน่าน','แม่จริม','บ้านหลวง','นาน้อย','ปัว','ท่าวังผา','เวียงสา','ทุ่งช้าง','เชียงกลาง','นาหมื่น','สันติสุข','บ่อเกลือ','สองแคว','ภูเพียง','เฉลิมพระเกียรติ']},
-'บึงกาฬ':{d:['เมืองบึงกาฬ','พรเจริญ','โซ่พิสัย','เซกา','ปากคาด','บึงโขงหลง','ศรีวิไล','บุ้งคล้า']},
-'บุรีรัมย์':{d:['เมืองบุรีรัมย์','คูเมือง','กระสัง','นางรอง','หนองกี่','ละหานทราย','ประโคนชัย','บ้านกรวด','พุทไธสง','ลำปลายมาศ','สตึก','ปะคำ','นาโพธิ์','หนองหงส์','พลับพลาชัย','ห้วยราช','โนนสุวรรณ','ชำนิ','บ้านใหม่ไชยพจน์','โนนดินแดง','บ้านด่าน','แคนดง','เฉลิมพระเกียรติ']},
-'ปทุมธานี':{d:['เมืองปทุมธานี','คลองหลวง','ธัญบุรี','หนองเสือ','ลาดหลุมแก้ว','ลำลูกกา','สามโคก']},
-'ประจวบคีรีขันธ์':{d:['เมืองประจวบคีรีขันธ์','กุยบุรี','ทับสะแก','บางสะพาน','บางสะพานน้อย','บึงนาราง','สามร้อยยอด','หัวหิน','ปราณบุรี','เขาย้อย','ปากท่อ','วังมะนาว']},
-'ปราจีนบุรี':{d:['เมืองปราจีนบุรี','กบินทร์บุรี','นาดี','บ้านสร้าง','ประจันตคาม','ศรีมหาโพธิ','ศรีมโหสถ']},
-'ปัตตานี':{d:['เมืองปัตตานี','โคกโพธิ์','หนองจิก','ปะนาเระ','มายอ','ทุ่งยางแดง','สายบุรี','ไม้แก่น','ยะหริ่ง','ยะรัง','กะพ้อ','แม่ลาน']},
-'พระนครศรีอยุธยา':{d:['พระนครศรีอยุธยา','ท่าเรือ','นครหลวง','บางซ้าย','บางบาล','บางปะอิน','บางปะหัน','บางไทร','บางสาย','บ้านแพรก','ผักไห่','ภาชี','ลาดบัวหลวง','วังน้อย','เสนา','บางเมือง']},
-'พะเยา':{d:['เมืองพะเยา','จุน','เชียงคำ','เชียงม่วน','ดอกคำใต้','ปง','แม่ใจ','ภูซาง','ภูกามยาว']},
-'พังงา':{d:['เมืองพังงา','เกาะยาว','กะปง','ตะกั่วทุ่ง','ตะกั่วป่า','ทับปุด','ท้ายเหมือง','คุระบุรี','ตะกั่วป่า']},
-'พัทลุง':{d:['เมืองพัทลุง','กงหรา','เขาชัยสน','ตะโหมด','ควนขนุน','ปากพะยูน','ศรีบรรพต','ป่าบอน','บางแก้ว','ป่าพะยอม','เขาย้อย']},
-'พิจิตร':{d:['เมืองพิจิตร','วังทรายพูน','โพธิ์ประทับช้าง','ตะพานหิน','บางมูลนาก','โพทะเล','สามง่าม','ทับคล้อ','สากเหล็ก','บึงนาราง','ดงเจริญ','วชิรบารมี']},
-'พิษณุโลก':{d:['เมืองพิษณุโลก','นครไทย','ชาติตระการ','บางระกำ','บางกระทุ่ม','พรหมพิราม','วัดโบสถ์','วังทอง','เนินมะปราง']},
-'เพชรบุรี':{d:['เมืองเพชรบุรี','เขาย้อย','หนองหญ้าปล้อง','ชะอำ','ท่ายาง','บ้านลาด','บ้านแหลม','แก่งกระจาน']},
-'เพชรบูรณ์':{d:['เมืองเพชรบูรณ์','ชนแดน','หล่มสัก','หล่มเก่า','วิเชียรบุรี','ศรีเทพ','หนองไผ่','บึงสามพัน','น้ำหนาว','วังโป่ง','เขาค้อ']},
-'แพร่':{d:['เมืองแพร่','ร้องกวาง','ลอง','สูงเม่น','เด่นชัย','สอง','วังชิ้น','หนองม่วงไข่']},
-'ภูเก็ต':{d:['เมืองภูเก็ต','กะทู้','ถลาง']},
-'มหาสารคาม':{d:['เมืองมหาสารคาม','แกดำ','โกสุมพิสัย','กันทรวิชัย','เชียงยืน','บรบือ','นาเชือก','พยัคฆภูมิพิสัย','วาปีปทุม','นาดูน','ยางสีสุราช','กุดรัง','ชื่นชม']},
-'มุกดาหาร':{d:['เมืองมุกดาหาร','นิคมคำสร้อย','ดอนตาล','ดงหลวง','คำชะอี','หว้านใหญ่','หนองสูง']},
-'แม่ฮ่องสอน':{d:['เมืองแม่ฮ่องสอน','ขุนยวม','ปาย','แม่สะเรียง','แม่ลาน้อย','สบเมย','ปางมะผ้า']},
-'ยโสธร':{d:['เมืองยโสธร','ทรายมูล','กุดชุม','คำเขื่อนแก้ว','ป่าติ้ว','มหาชนะชัย','ค้อวัง','เลิงนกทา','ไทยเจริญ']},
-'ยะลา':{d:['เมืองยะลา','เบตง','บันนังสตา','ธารโต','ยะหา','รามัน','กาบัง','กรงปินัง']},
-'ร้อยเอ็ด':{d:['เมืองร้อยเอ็ด','เกษตรวิสัย','ปทุมรัตต์','จตุรพักตรพิมาน','ธวัชบุรี','พนมไพร','โพนทอง','โพธิ์ชัย','หนองพอก','เสลภูมิ','สุวรรณภูมิ','เมืองสรวง','โพนทราย','อาจสามารถ','เมยวดี','ศรีสมเด็จ','จังหาร','เชียงขวัญ','หนองฮี','ทุ่งเขาหลวง']},
-'ระนอง':{d:['เมืองระนอง','ละอุ่น','กะเปอร์','กระบุรี','สุขสำราญ']},
-'ระยอง':{d:['เมืองระยอง','บ้านฉาง','แกลง','วังจันทร์','บ้านค่าย','ปลวกแดง','เขาชะเมา','นิคมพัฒนา']},
-'ราชบุรี':{d:['เมืองราชบุรี','จอมบึง','สวนผึ้ง','ดำเนินสะดวก','บ้านโป่ง','บางแพ','โพธาราม','ปากท่อ','วัดเพลง','บ้านคา']},
-'ลพบุรี':{d:['เมืองลพบุรี','พัฒนานิคม','โคกสำโรง','ชัยบาดาล','ท่าวุ้ง','บ้านหมี่','ท่าหลวง','สระโบสถ์','โคกเจริญ','ลำสนธิ','หนองม่วง']},
-'ลำปาง':{d:['เมืองลำปาง','แม่เมาะ','เกาะคา','เสริมงาม','งาว','แจ้ห่ม','วังเหนือ','เถิน','แม่พริก','แม่ทะ','สบปราบ','ห้างฉัตร','เมืองปาน']},
-'ลำพูน':{d:['เมืองลำพูน','แม่ทา','บ้านโฮ่ง','ลี้','ทุ่งหัวช้าง','ป่าซาง','บ้านธิ','เวียงหนองล่อง']},
-'เลย':{d:['เมืองเลย','นาด้วง','เชียงคาน','ปากชม','ด่านซ้าย','นาแห้ว','ภูเรือ','ท่าลี่','วังสะพุง','ภูกระดึง','ภูหลวง','ผาขาว','เอราวัณ','หนองหิน']},
-'ศรีสะเกษ':{d:['เมืองศรีสะเกษ','ยางชุมน้อย','กันทรารมย์','กันทรลักษ์','ขุขันธ์','ไพรบึง','ปรางค์กู่','ขุนหาญ','ราษีไศล','อุทุมพรพิสัย','บึงบูรพ์','ห้วยทับทัน','โนนคูณ','ศรีรัตนะ','น้ำเกลี้ยง','วังหิน','ภูสิงห์','เมืองจันทร์','เบญจลักษ์','พยุห์','โพธิ์ศรีสุวรรณ','ศิลาลาด']},
-'สกลนคร':{d:['เมืองสกลนคร','กุสุมาลย์','กุดบาก','พรรณานิคม','พังโคน','วาริชภูมิ','นิคมน้ำอูน','วานรนิวาส','คำตากล้า','บ้านม่วง','อากาศอำนวย','สว่างแดนดิน','ส่องดาว','เต่างอย','โคกศรีสุพรรณ','เจริญศิลป์','โพนนาแก้ว','ภูพาน']},
-'สงขลา':{d:['เมืองสงขลา','สทิงพระ','จะนะ','นาทวี','เทพา','สะบ้าย้อย','ระโนด','กระแสสินธุ์','รัตภูมิ','สะเดา','หาดใหญ่','นาหม่อม','ควนเนียง','บางกล่ำ','สิงหนคร','คลองหอยโข่ง']},
-'สตูล':{d:['เมืองสตูล','ควนโดน','ควนกาหลง','ท่าแพ','ละงู','ทุ่งหว้า','มะนัง']},
-'สมุทรปราการ':{d:['เมืองสมุทรปราการ','บางบ่อ','บางพลี','พระประแดง','พระสมุทรเจดีย์','บางเสาธง']},
-'สมุทรสงคราม':{d:['เมืองสมุทรสงคราม','บางคนที','อัมพวา']},
-'สมุทรสาคร':{d:['เมืองสมุทรสาคร','กระทุ่มแบน','บ้านแพ้ว']},
-'สระแก้ว':{d:['เมืองสระแก้ว','คลองหาด','ตาพระยา','วังน้ำเย็น','วัฒนานคร','อรัญประเทศ','เขาฉกรรจ์','โคกสูง','วังสมบูรณ์']},
-'สระบุรี':{d:['เมืองสระบุรี','แก่งคอย','หนองแค','วิหารแดง','หนองแซง','บ้านหมอ','ดอนพุด','หนองโดน','พระพุทธบาท','สระโบสถ์','วังม่วง','เฉลิมพระเกียรติ']},
-'สิงห์บุรี':{d:['เมืองสิงห์บุรี','บางระจัน','ค่ายบางระจัน','พรหมบุรี','ท่าช้าง','อินทร์บุรี']},
-'สุโขทัย':{d:['เมืองสุโขทัย','บ้านด่านลานหอย','คีรีมาศ','กงไกรลาศ','ศรีสัชนาลัย','ศรีสำโรง','สวรรคโลก','ศรีนคร','ทุ่งเสลี่ยม']},
-'สุพรรณบุรี':{d:['เมืองสุพรรณบุรี','เดิมบางนางบวช','ด่านช้าง','บางปลาม้า','ศรีประจันต์','ดอนเจดีย์','สองพี่น้อง','สามชุก','อู่ทอง','หนองหญ้าไซ']},
-'สุราษฎร์ธานี':{d:['เมืองสุราษฎร์ธานี','กาญจนดิษฐ์','ดอนสัก','เกาะสมุย','เกาะพะงัน','ไชยา','ท่าชนะ','คีรีรัฐนิคม','บ้านตาขุน','พนม','ท่าฉาง','บ้านนาสาร','บ้านนาเดิม','เคียนซา','เวียงสระ','พระแสง','พุนพิน','ชัยบุรี','วิภาวดี']},
-'สุรินทร์':{d:['เมืองสุรินทร์','ชุมพลบุรี','ท่าตูม','จอมพระ','ปราสาท','กาบเชิง','รัตนบุรี','สนม','ศรีขรภูมิ','สังขะ','ลำดวน','สำโรงทาบ','บัวเชด','พนมดงรัก','ศรีณรงค์','เขวาสินรินทร์','โนนนารายณ์']},
-'หนองคาย':{d:['เมืองหนองคาย','ท่าบ่อ','โพนพิสัย','ศรีเชียงใหม่','สังคม','สระใคร','เฝ้าไร่','รัตนวาปี','โพธิ์ตาก']},
-'หนองบัวลำภู':{d:['เมืองหนองบัวลำภู','นากลาง','โนนสัง','ศรีบุญเรือง','สุวรรณคูหา','นาวัง']},
-'อ่างทอง':{d:['เมืองอ่างทอง','ไชโย','ป่าโมก','โพธิ์ทอง','แสวงหา','วิเศษชัยชาญ','สามโก้']},
-'อำนาจเจริญ':{d:['เมืองอำนาจเจริญ','ชานุมาน','ปทุมราชวงศา','พนา','เสนางคนิคม','หัวตะพาน','ลืออำนาจ']},
-'อุดรธานี':{d:['เมืองอุดรธานี','กุดจับ','หนองวัวซอ','กุมภวาปี','โนนสะอาด','หนองหาน','ทุ่งฝน','ไชยวาน','ศรีธาตุ','วังสามหมอ','บ้านดุง','บ้านผือ','น้ำโสม','เพ็ญ','สร้างคอม','หนองแสง','นายูง','พิบูลย์รักษ์','กู่แก้ว','ประจักษ์ศิลปาคม']},
-'อุตรดิตถ์':{d:['เมืองอุตรดิตถ์','ตรอน','ท่าปลา','น้ำปาด','ฟากท่า','บ้านโคก','พิชัย','ลับแล','ทองแสนขัน']},
-'อุทัยธานี':{d:['เมืองอุทัยธานี','ทัพทัน','สว่างอารมณ์','หนองฉาง','หนองขาหย่าง','บ้านไร่','ลานสัก','ห้วยคต']},
-'อุบลราชธานี':{d:['เมืองอุบลราชธานี','ศรีเมืองใหม่','โขงเจียม','เขื่องใน','เขมราฐ','เดชอุดม','นาจะหลวย','น้ำยืน','บุณฑริก','ตระการพืชผล','กุดข้าวปุ้น','ม่วงสามสิบ','วารินชำราบ','พิบูลมังสาหาร','ตาลสุม','โพธิ์ไทร','สำโรง','ดอนมดแดง','สิรินธร','ทุ่งศรีอุดม','นาเยีย','นาตาล','เหล่าเสือโก้ก','สว่างวีระวงศ์','น้ำขุ่น']}
-};
-  return _GEO_DATA;
-}
-
-function getGeoData(province) {
-  const g = _buildGeo();
-  if (!province) {
-    return { provinces: Object.keys(g).sort() };
-  }
-  const p = g[province];
-  if (!p) return { districts:[], subdistricts:{} };
-  const subs = {};
-  if (p.s) {
-    Object.entries(p.s).forEach(([dist, pairs]) => {
-      const seen = new Set();
-      subs[dist] = pairs.filter(([name]) => { if (seen.has(name)) return false; seen.add(name); return true; });
-    });
-  }
-  return { districts: (p.d || []).slice().sort(), subdistricts: subs };
 }
 
 // ─── PUBLIC: RESULTS ───
@@ -954,6 +922,23 @@ function getPublicStats() {
     m4Open:       String(cfg.REG_OPEN_M4) !== 'false',
     studyPlansMid:  String(cfg.STUDY_PLANS_MID ||'แผนการเรียนทั่วไป').split('\n').map(s=>s.trim()).filter(Boolean),
     studyPlansHigh: String(cfg.STUDY_PLANS_HIGH||'วิทยาศาสตร์-คณิตศาสตร์\nศิลปะ-ภาษา\nศิลปะ-การงานอาชีพ').split('\n').map(s=>s.trim()).filter(Boolean),
+    // แผนการเรียนรายชั้น — ถ้าว่างใช้ pool รวม (MID/HIGH) แทน
+    studyPlansByLevel: (function() {
+      function _plans(key, fallback) {
+        var v = String(cfg[key] || '').trim();
+        return v ? v.split('\n').map(function(s){return s.trim();}).filter(Boolean) : fallback;
+      }
+      var mid  = String(cfg.STUDY_PLANS_MID ||'แผนการเรียนทั่วไป').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+      var high = String(cfg.STUDY_PLANS_HIGH||'วิทยาศาสตร์-คณิตศาสตร์\nศิลปะ-ภาษา\nศิลปะ-การงานอาชีพ').split('\n').map(function(s){return s.trim();}).filter(Boolean);
+      return {
+        'ม.1': _plans('STUDY_PLANS_M1', mid),
+        'ม.2': _plans('STUDY_PLANS_M2', mid),
+        'ม.3': _plans('STUDY_PLANS_M3', mid),
+        'ม.4': _plans('STUDY_PLANS_M4', high),
+        'ม.5': _plans('STUDY_PLANS_M5', high),
+        'ม.6': _plans('STUDY_PLANS_M6', high),
+      };
+    })(),
     serviceSchools: String(cfg.SERVICE_AREA_SCHOOLS||'').split('\n').map(s=>s.trim()).filter(Boolean),
   };
 }
@@ -1307,4 +1292,7 @@ function checkSchoolZone(schoolName) {
   if (!schools.length) return { hasZone:false };
   const inZone = schools.some(s => s === String(schoolName||'').trim());
   return { hasZone:true, inZone };
+}
+function fixHeaders() {
+  _migrateAppSheet();
 }

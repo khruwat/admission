@@ -1,14 +1,30 @@
 <!DOCTYPE html>
 <!--
    ระบบรับสมัครนักเรียน โรงเรียนหนองนาคำวิทยาคม
-   Student Enrollment System  v1.8.0  (index.html)
+   Student Enrollment System  v1.4.0  (index.html)
    ──────────────────────────────────────────────────
    CHANGELOG
-   v1.8.0 – 2569-03-17 – ผนวก jquery.Thailand.js autocomplete ที่อยู่
-              เพิ่ม fields: เลขที่, หมู่, ซอย, ถนน, อาคาร/หมู่บ้าน
-              ที่อยู่ 2 ชุด: ทะเบียนบ้าน + ที่อยู่ติดต่อ พร้อม toggle
-              ลบ dropdown cascade เก่า (getGeoData / CDN loader)
-   v1.7.0 – 2569-03-16 – Supabase dual-write, initial release
+   v1.4.0 – 2569-03-17 – ขยายสิทธิ์แก้ไขข้อมูลตนเอง
+              modal-edit-app: ครบทุก field (8 sections)
+              เพิ่ม photo upload + crop 1×1.5 นิ้วใน edit modal
+              lock banner สีม่วงเมื่อสถานะ "รายงานตัวแล้ว"
+              เพิ่ม badge-purple + status "รายงานตัวแล้ว" ใน filter/admin
+   v1.3.0 – 2569-03-17 – แก้บั๊ก timezone วันเดือนปีเกิด
+              fmtDateTH/fmtDateTimeTH: parse "YYYY-MM-DD" โดยตรง ไม่ผ่าน Date()
+              ป้องกัน string "2014-05-04T17:00:00Z" แสดงผิดวัน
+              fmtDateTimeTH: ดึงเวลาจาก string แทน Date constructor
+   v1.2.0 – 2569-03-17 – ยืนยันตัวตนด้วยวันเกิดก่อนแก้ไขใบสมัคร
+   v1.1.0 – 2569-03-17 – อัปเกรดระบบที่อยู่
+              แทนที่ GAS cascade select + CDN fallback
+              ด้วย jquery.Thailand.js typeahead autocomplete
+              รองรับทุกจังหวัดทั่วประเทศ ไม่ต้องพึ่ง CDN ภายนอก
+              เพิ่ม fields: หมู่ที่, ซอย, ถนน (reg-moo/soi/road)
+              ADDRESS บันทึกครบ เลขที่+หมู่+ซอย+ถนน
+   v1.0.0 – 2569-03-16 – initial release
+              ฟีเจอร์: SPA Wizard 5 ขั้น, ตรวจสอบสถานะ,
+              ประกาศผล, Admin Sidebar Layout, Dashboard,
+              CRUD Applications, พิมพ์ใบสมัคร/บัตรสอบ,
+              ตั้งค่าระบบ, AuditLog, จัดการ Users
 -->
 <html lang="th">
 <head>
@@ -16,7 +32,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>ระบบรับสมัครนักเรียน</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<!-- jquery.Thailand.js — ระบบ autocomplete ที่อยู่ไทย -->
+<!-- jquery.Thailand.js — autocomplete ที่อยู่ไทยทุกจังหวัด -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
 <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
@@ -109,6 +125,7 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
 .badge-green{background:var(--success-l);color:var(--success)}
 .badge-red{background:var(--danger-l);color:var(--danger)}
 .badge-info{background:var(--info-l);color:var(--info)}
+.badge-purple{background:#f3e8ff;color:#7c3aed}
 
 .form-group{margin-bottom:18px}
 .form-group label{display:block;font-size:13px;font-weight:500;color:#475569;margin-bottom:6px}
@@ -133,6 +150,31 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
 .id-digit-dots span.valid{background:var(--success-l);color:var(--success)}
 .id-digit-dots span.invalid{background:var(--danger-l);color:var(--danger)}
 .id-digit-dots .dot-sep{width:6px;background:transparent!important;font-size:8px;color:var(--gray)}
+
+/* ── TYPEAHEAD OVERRIDE (jquery.Thailand.js) ── */
+.twitter-typeahead{width:100%!important;display:block!important}
+.tt-menu{
+  border:1.5px solid var(--primary-l)!important;
+  border-radius:var(--r)!important;
+  box-shadow:var(--shadow-md)!important;
+  max-height:220px;overflow-y:auto;
+  background:#fff!important;
+  margin-top:3px!important;
+  z-index:9999!important
+}
+.tt-suggestion{
+  padding:9px 14px!important;
+  font-size:14px!important;
+  font-family:'Kanit',sans-serif!important;
+  color:#1e293b!important;
+  cursor:pointer;
+  border-bottom:1px solid var(--border)
+}
+.tt-suggestion:hover,.tt-suggestion.tt-cursor{
+  background:var(--primary-xl)!important;
+  color:var(--primary)!important
+}
+.tt-highlight{color:var(--primary)!important;font-weight:700!important}
 
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
@@ -524,49 +566,6 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
 .mt-16{margin-top:16px}.mt-20{margin-top:20px}.mb-16{margin-bottom:16px}
 .divider{height:1px;background:var(--border);margin:16px 0}
 .section-label{font-size:14px;font-weight:600;color:#1e293b;margin-bottom:12px;display:block;padding-bottom:8px;border-bottom:2px solid var(--primary-xl)}
-/* ── jquery.Thailand.js Typeahead Override ── */
-.twitter-typeahead{width:100% !important;display:block !important}
-.tt-menu{
-  border:1.5px solid var(--border) !important;border-radius:var(--r) !important;
-  box-shadow:var(--shadow-md) !important;max-height:220px;overflow-y:auto;
-  background:#fff !important;margin-top:4px !important;z-index:9999 !important
-}
-.tt-suggestion{
-  padding:9px 14px !important;font-size:14px !important;
-  font-family:'Kanit',sans-serif !important;color:#1e293b !important;cursor:pointer
-}
-.tt-suggestion:hover,.tt-suggestion.tt-cursor{background:var(--primary-xl) !important;color:var(--primary) !important}
-.tt-highlight{color:var(--primary) !important;font-weight:600 !important}
-/* ── Address Section Header ── */
-.addr-section-head{
-  display:flex;align-items:center;gap:10px;padding:12px 16px;
-  border-radius:var(--r);margin-bottom:16px;border:1px solid
-}
-.addr-section-head.blue{background:#eff6ff;border-color:#bfdbfe}
-.addr-section-head.amber{background:#fffbeb;border-color:#fde68a}
-.addr-section-head .ash-icon{font-size:18px;flex-shrink:0}
-.addr-section-head h4{font-size:14px;font-weight:600;margin:0}
-.addr-section-head p{font-size:12px;margin:2px 0 0;opacity:.75}
-.addr-section-head.blue h4{color:var(--primary)}
-.addr-section-head.blue p{color:var(--info)}
-.addr-section-head.amber h4{color:#92400e}
-.addr-section-head.amber p{color:#b45309}
-/* ── Same Address Toggle ── */
-.same-addr-toggle{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;
-  background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:var(--r);
-  margin-bottom:14px;cursor:pointer;user-select:none;transition:border-color .2s
-}
-.same-addr-toggle:hover{border-color:var(--success)}
-.same-addr-toggle input[type="checkbox"]{width:16px;height:16px;accent-color:var(--success);cursor:pointer;flex-shrink:0}
-.same-addr-toggle span{font-size:13.5px;font-weight:500;color:#166534}
-.addr-copy-preview{
-  display:none;background:#f0fdf4;border:1.5px dashed #86efac;
-  border-radius:var(--r);padding:11px 14px;font-size:13px;
-  color:#166534;line-height:1.8;margin-bottom:10px
-}
-/* ── Address readonly autofill fields ── */
-.form-control.addr-ro{background:#f8fafc !important;color:var(--gray) !important;cursor:default}
 /* COUNTDOWN */
 .countdown-waiting{background:#fef9c3;border:1px solid #fde68a;color:#92400e}
 .countdown-open{background:#dcfce7;border:1px solid #86efac;color:#166534}
@@ -1014,126 +1013,63 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
         <div class="wizard-card-header"><h3>ที่อยู่และข้อมูลครอบครัว</h3><p>ขั้นตอนที่ 3 จาก 5</p></div>
         <div class="wizard-card-body">
 
-          <!-- ══ ที่อยู่ตามทะเบียนบ้าน (jquery.Thailand.js) ══ -->
-          <div class="addr-section-head blue">
-            <span class="ash-icon">🏠</span>
-            <div>
-              <h4>ที่อยู่ตามทะเบียนบ้าน</h4>
-              <p>พิมพ์ชื่อ ตำบล/แขวง แล้วเลือกจากรายการ — อำเภอ จังหวัด รหัสไปรษณีย์จะกรอกให้อัตโนมัติ</p>
-            </div>
-          </div>
+          <!-- ══ ที่อยู่ ══ -->
+          <p class="section-label">🏠 ที่อยู่ปัจจุบัน</p>
 
-          <!-- แถว 1: เลขที่ + อาคาร/หมู่บ้าน -->
+          <!-- บ้านเลขที่ + หมู่บ้าน/อาคาร -->
           <div class="grid-2">
             <div class="form-group">
-              <label>เลขที่บ้าน <span class="req">*</span></label>
-              <input type="text" id="reg-house-no" class="form-control" placeholder="เช่น 123/4" autocomplete="off">
-              <div id="err-house-no" class="form-error">กรุณากรอกเลขที่บ้าน</div>
+              <label>บ้านเลขที่ / อาคาร <span class="req">*</span></label>
+              <input type="text" id="reg-address" class="form-control" placeholder="เช่น 123/4 หมู่บ้านสุขสันต์">
+              <div id="err-address" class="form-error">กรุณากรอกบ้านเลขที่</div>
             </div>
             <div class="form-group">
-              <label>ชื่ออาคาร / หมู่บ้าน</label>
-              <input type="text" id="reg-building" class="form-control" placeholder="เช่น หมู่บ้านสุขสันต์">
-            </div>
-          </div>
-
-          <!-- แถว 2: หมู่ ซอย ถนน รหัสไปรษณีย์ -->
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-            <div class="form-group" style="margin:0">
               <label>หมู่ที่</label>
-              <input type="text" id="reg-moo" class="form-control" placeholder="เช่น 5">
-            </div>
-            <div class="form-group" style="margin:0">
-              <label>ซอย</label>
-              <input type="text" id="reg-soi" class="form-control" placeholder="ซอย...">
-            </div>
-            <div class="form-group" style="margin:0">
-              <label>ถนน</label>
-              <input type="text" id="reg-road" class="form-control" placeholder="ถนน...">
-            </div>
-            <div class="form-group" style="margin:0">
-              <label>รหัสไปรษณีย์</label>
-              <input type="text" id="reg-zip" class="form-control addr-ro" maxlength="5" placeholder="อัตโนมัติ" readonly>
+              <input type="text" id="reg-moo" class="form-control" placeholder="เช่น 5" inputmode="numeric">
             </div>
           </div>
 
-          <!-- แถว 3: ตำบล (autocomplete) + อำเภอ + จังหวัด (auto-fill) -->
+          <!-- ซอย + ถนน -->
+          <div class="grid-2">
+            <div class="form-group">
+              <label>ซอย</label>
+              <input type="text" id="reg-soi" class="form-control" placeholder="ชื่อซอย">
+            </div>
+            <div class="form-group">
+              <label>ถนน</label>
+              <input type="text" id="reg-road" class="form-control" placeholder="ชื่อถนน">
+            </div>
+          </div>
+
+          <!-- ตำบล (typeahead) + อำเภอ + จังหวัด -->
           <div class="grid-3">
             <div class="form-group">
               <label>ตำบล / แขวง <span class="req">*</span></label>
-              <input type="text" id="reg-subdistrict" class="form-control" placeholder="พิมพ์ชื่อตำบล..." autocomplete="off">
-              <div class="form-hint">พิมพ์แล้วเลือกจากรายการที่ขึ้นมา</div>
-              <div id="err-subdistrict" class="form-error">กรุณากรอกตำบล/แขวง</div>
+              <input type="text" id="reg-tambon" class="form-control"
+                placeholder="🔍 พิมพ์ชื่อตำบล..." autocomplete="off">
+              <div class="form-hint">พิมพ์ชื่อตำบลแล้วเลือกจากรายการ</div>
+              <div id="err-tambon" class="form-error">กรุณากรอกตำบล/แขวง</div>
             </div>
             <div class="form-group">
               <label>อำเภอ / เขต <span class="req">*</span></label>
-              <input type="text" id="reg-district" class="form-control addr-ro" placeholder="กรอกอัตโนมัติ" readonly>
-              <div id="err-district" class="form-error">กรุณากรอกอำเภอ/เขต</div>
+              <input type="text" id="reg-amphoe" class="form-control"
+                placeholder="กรอกอัตโนมัติ" readonly>
+              <div id="err-amphoe" class="form-error">กรุณากรอกอำเภอ/เขต</div>
             </div>
             <div class="form-group">
               <label>จังหวัด <span class="req">*</span></label>
-              <input type="text" id="reg-province" class="form-control addr-ro" placeholder="กรอกอัตโนมัติ" readonly>
+              <input type="text" id="reg-province" class="form-control"
+                placeholder="กรอกอัตโนมัติ" readonly>
               <div id="err-province" class="form-error">กรุณากรอกจังหวัด</div>
             </div>
           </div>
 
-          <!-- ══ ที่อยู่ที่ติดต่อได้ ══ -->
-          <div class="divider" style="margin:20px 0"></div>
-          <div class="addr-section-head amber">
-            <span class="ash-icon">📬</span>
-            <div>
-              <h4>ที่อยู่ที่ติดต่อได้ / ที่พักปัจจุบัน</h4>
-              <p>สำหรับจัดส่งเอกสาร — กรณีไม่ตรงกับทะเบียนบ้านให้กรอกใหม่</p>
-            </div>
-          </div>
-          <label class="same-addr-toggle">
-            <input type="checkbox" id="cur-same-as-home" onchange="onCurSameAsHome(this)">
-            <span>✅ ใช้ที่อยู่เดียวกับทะเบียนบ้าน</span>
-          </label>
-          <div id="cur-addr-copy-preview" class="addr-copy-preview"></div>
-          <div id="cur-addr-fields">
-            <div class="grid-2">
-              <div class="form-group">
-                <label>เลขที่บ้าน</label>
-                <input type="text" id="cur-house-no" class="form-control" placeholder="เช่น 99/1" autocomplete="off">
-              </div>
-              <div class="form-group">
-                <label>ชื่ออาคาร / หมู่บ้าน</label>
-                <input type="text" id="cur-building" class="form-control" placeholder="เช่น คอนโด ABC">
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-              <div class="form-group" style="margin:0">
-                <label>หมู่ที่</label>
-                <input type="text" id="cur-moo" class="form-control" placeholder="เช่น 3">
-              </div>
-              <div class="form-group" style="margin:0">
-                <label>ซอย</label>
-                <input type="text" id="cur-soi" class="form-control" placeholder="ซอย...">
-              </div>
-              <div class="form-group" style="margin:0">
-                <label>ถนน</label>
-                <input type="text" id="cur-road" class="form-control" placeholder="ถนน...">
-              </div>
-              <div class="form-group" style="margin:0">
-                <label>รหัสไปรษณีย์</label>
-                <input type="text" id="cur-zip" class="form-control addr-ro" maxlength="5" placeholder="อัตโนมัติ" readonly>
-              </div>
-            </div>
-            <div class="grid-3">
-              <div class="form-group">
-                <label>ตำบล / แขวง</label>
-                <input type="text" id="cur-subdistrict" class="form-control" placeholder="พิมพ์ชื่อตำบล..." autocomplete="off">
-                <div class="form-hint">พิมพ์แล้วเลือกจากรายการ</div>
-              </div>
-              <div class="form-group">
-                <label>อำเภอ / เขต</label>
-                <input type="text" id="cur-district" class="form-control addr-ro" placeholder="กรอกอัตโนมัติ" readonly>
-              </div>
-              <div class="form-group">
-                <label>จังหวัด</label>
-                <input type="text" id="cur-province" class="form-control addr-ro" placeholder="กรอกอัตโนมัติ" readonly>
-              </div>
-            </div>
+          <!-- รหัสไปรษณีย์ -->
+          <div class="form-group" style="max-width:160px">
+            <label>รหัสไปรษณีย์</label>
+            <input type="text" id="reg-zip" class="form-control" maxlength="5" placeholder="xxxxx"
+              inputmode="numeric"
+              oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)">
           </div>
 
           <!-- ══ บิดา ══ -->
@@ -1722,6 +1658,7 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
           <option value="">ทุกสถานะ</option>
           <option>สมัครแล้ว</option><option>ชำระเงินแล้ว</option>
           <option>มีสิทธิ์สอบ</option><option>ผ่าน</option><option>ไม่ผ่าน</option>
+          <option>รายงานตัวแล้ว</option>
         </select>
         <input type="text" id="f-search" placeholder="🔍 ค้นหาชื่อ / เลขที่ / บัตรประชาชน" oninput="loadApplications()">
         <span id="f-count" class="text-sm text-gray" style="margin-left:auto;white-space:nowrap"></span>
@@ -2329,6 +2266,472 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
   </div>
 </div>
 
+<!-- VERIFY EDIT IDENTITY MODAL -->
+<div id="modal-verify-edit" style="
+  display:none;position:fixed;inset:0;z-index:9350;
+  background:rgba(15,23,42,.65);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;max-width:440px;width:100%;
+    box-shadow:0 24px 56px rgba(0,0,0,.3);animation:fadeInUp .2s ease">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#d97706,#f59e0b);border-radius:16px 16px 0 0;padding:20px 24px 16px">
+      <div style="font-size:28px;margin-bottom:6px">🔐</div>
+      <h3 style="color:#fff;font-size:17px;font-weight:700;margin-bottom:2px">ยืนยันตัวตนก่อนแก้ไข</h3>
+      <p style="color:rgba(255,255,255,.85);font-size:13px">กรอกวันเดือนปีเกิดของผู้สมัครเพื่อยืนยันความเป็นเจ้าของใบสมัคร</p>
+    </div>
+    <!-- Body -->
+    <div style="padding:22px 24px">
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400e;margin-bottom:18px">
+        💡 ใช้ <strong>วันเดือนปีเกิด</strong> ของผู้สมัคร ตรงตามที่กรอกไว้ตอนสมัคร เป็นรหัสยืนยันตัวตน
+      </div>
+      <!-- Birthdate dropdowns -->
+      <div style="margin-bottom:16px">
+        <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:8px">
+          วันเดือนปีเกิด <span style="color:#dc2626">*</span>
+        </label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="verify-birth-day" class="form-control" style="width:80px" onchange="onVerifyBirthdateChange()">
+            <option value="">วัน</option>
+          </select>
+          <select id="verify-birth-month" class="form-control" style="width:140px" onchange="onVerifyBirthdateChange()">
+            <option value="">เดือน</option>
+            <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option>
+            <option value="03">มีนาคม</option><option value="04">เมษายน</option>
+            <option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
+            <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option>
+            <option value="09">กันยายน</option><option value="10">ตุลาคม</option>
+            <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+          </select>
+          <select id="verify-birth-year" class="form-control" style="width:110px" onchange="onVerifyBirthdateChange()">
+            <option value="">ปี พ.ศ.</option>
+          </select>
+        </div>
+        <input type="hidden" id="verify-birthdate">
+      </div>
+      <!-- Attempt counter -->
+      <div id="verify-attempt-msg" style="display:none;background:#fee2e2;border:1px solid #fca5a5;
+        border-radius:8px;padding:9px 13px;font-size:12.5px;color:#b91c1c;margin-bottom:12px">
+      </div>
+      <div id="verify-success-msg" style="display:none;background:#dcfce7;border:1px solid #86efac;
+        border-radius:8px;padding:9px 13px;font-size:12.5px;color:#15803d;margin-bottom:12px">
+        ✅ ยืนยันตัวตนสำเร็จ — กำลังเปิดฟอร์มแก้ไข...
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:0 24px 20px;display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeVerifyEditModal()" style="
+        padding:9px 20px;border-radius:8px;border:1.5px solid #e2e8f0;
+        background:#fff;color:#64748b;font-size:13px;cursor:pointer">
+        ยกเลิก
+      </button>
+      <button id="btn-do-verify-edit" onclick="doVerifyEdit()" disabled style="
+        padding:9px 24px;border-radius:8px;border:none;
+        background:#d97706;color:#fff;font-size:13px;font-weight:600;
+        cursor:pointer;opacity:.4;transition:all .2s">
+        🔓 ยืนยันและแก้ไขข้อมูล
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT APPLICATION MODAL (student self-edit after verify) -->
+<div id="modal-edit-app" style="
+  display:none;position:fixed;inset:0;z-index:9400;
+  background:rgba(15,23,42,.65);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;max-width:700px;width:100%;
+    box-shadow:0 24px 56px rgba(0,0,0,.3);animation:fadeInUp .2s ease;
+    max-height:92dvh;display:flex;flex-direction:column">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#065f46,#10b981);border-radius:16px 16px 0 0;
+      padding:18px 24px 14px;flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:22px;margin-bottom:4px">✏️</div>
+          <h3 style="color:#fff;font-size:16px;font-weight:700;margin:0">แก้ไข / เพิ่มเติมข้อมูลใบสมัคร</h3>
+          <p id="edit-app-id-label" style="color:rgba(255,255,255,.8);font-size:12px;margin-top:2px"></p>
+        </div>
+        <button onclick="closeEditModal()" style="
+          background:rgba(255,255,255,.2);border:none;color:#fff;
+          width:32px;height:32px;border-radius:50%;font-size:16px;
+          cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    </div>
+
+    <!-- LOCKED banner (แสดงเฉพาะสถานะ "รายงานตัวแล้ว") -->
+    <div id="edit-locked-banner" style="
+      display:none;background:#7c3aed;color:#fff;
+      padding:12px 24px;font-size:13px;font-weight:500;
+      display:flex;align-items:center;gap:8px">
+      <span style="font-size:18px">🔒</span>
+      <span>ยืนยันตัวรับเป็นนักเรียนแล้ว — ข้อมูลถูกล็อค ไม่สามารถแก้ไขได้</span>
+    </div>
+
+    <!-- Body (scrollable) -->
+    <div id="edit-app-body" style="overflow-y:auto;flex:1;padding:20px 24px">
+
+      <!-- ข้อมูล reference (ห้ามแก้) -->
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
+        padding:12px 16px;margin-bottom:18px">
+        <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600">
+          🔒 เลขประจำตัวประชาชน (ใช้เป็น reference — แก้ไขไม่ได้)
+        </div>
+        <div id="edit-readonly-info" style="font-size:13px;color:#1e293b;font-weight:600;
+          letter-spacing:2px;font-family:monospace"></div>
+      </div>
+
+      <!-- ══ ① ข้อมูลส่วนตัว ══ -->
+      <p style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:12px;
+        border-bottom:2px solid #dbeafe;padding-bottom:6px">🧑 ข้อมูลส่วนตัว</p>
+
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>คำนำหน้า <span class="req">*</span></label>
+          <select id="edt-prefix" class="form-control" style="max-width:200px">
+            <option value="">-- เลือก --</option>
+            <option value="เด็กชาย">เด็กชาย</option>
+            <option value="เด็กหญิง">เด็กหญิง</option>
+            <option value="นาย">นาย</option>
+            <option value="นางสาว">นางสาว</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>ชื่อ <span class="req">*</span></label>
+          <input type="text" id="edt-fname" class="form-control" placeholder="ชื่อจริง">
+          <div id="err-edt-fname" class="form-error">กรุณากรอกชื่อ</div>
+        </div>
+        <div class="form-group">
+          <label>นามสกุล <span class="req">*</span></label>
+          <input type="text" id="edt-lname" class="form-control" placeholder="นามสกุล">
+          <div id="err-edt-lname" class="form-error">กรุณากรอกนามสกุล</div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:18px">
+        <div class="form-group">
+          <label>สัญชาติ</label>
+          <select id="edt-nationality" class="form-control"
+            onchange="onOtherToggle('edt-nationality','edt-nationality-other')">
+            <option value="ไทย">ไทย</option><option value="กัมพูชา">กัมพูชา</option>
+            <option value="ลาว">ลาว</option><option value="พม่า">พม่า</option>
+            <option value="เวียดนาม">เวียดนาม</option><option value="จีน">จีน</option>
+            <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+          </select>
+          <input type="text" id="edt-nationality-other" class="form-control"
+            placeholder="ระบุสัญชาติ" style="display:none;margin-top:6px">
+        </div>
+        <div class="form-group">
+          <label>ศาสนา</label>
+          <select id="edt-religion" class="form-control"
+            onchange="onOtherToggle('edt-religion','edt-religion-other')">
+            <option value="พุทธ">พุทธ</option><option value="คริสต์">คริสต์</option>
+            <option value="อิสลาม">อิสลาม</option><option value="พราหมณ์-ฮินดู">พราหมณ์-ฮินดู</option>
+            <option value="ซิกข์">ซิกข์</option><option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+          </select>
+          <input type="text" id="edt-religion-other" class="form-control"
+            placeholder="ระบุศาสนา" style="display:none;margin-top:6px">
+        </div>
+      </div>
+
+      <!-- ══ ② รูปภาพ ══ -->
+      <p style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:12px;
+        border-bottom:2px solid #dbeafe;padding-bottom:6px">📷 รูปภาพผู้สมัคร</p>
+
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin-bottom:18px">
+        <!-- Preview box 1:1.5 -->
+        <div id="edt-photo-preview-box" style="
+          width:80px;height:120px;border:2px dashed var(--primary-l);
+          border-radius:8px;background:#f8fafc;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;overflow:hidden;
+          cursor:pointer;flex-shrink:0;position:relative"
+          onclick="document.getElementById('edt-photo-input').click()">
+          <img id="edt-photo-preview-img" src="" alt=""
+            style="display:none;width:100%;height:100%;object-fit:cover">
+          <div id="edt-photo-preview-placeholder" style="text-align:center;padding:6px">
+            <div style="font-size:24px;margin-bottom:4px">📷</div>
+            <div style="font-size:10px;color:var(--gray);line-height:1.3">คลิกเพื่อ<br>เลือกรูป</div>
+          </div>
+          <div style="position:absolute;bottom:3px;left:0;right:0;
+            text-align:center;font-size:9px;color:var(--gray)">1×1.5 นิ้ว</div>
+        </div>
+        <!-- Controls -->
+        <div style="display:flex;flex-direction:column;gap:6px;padding-top:4px">
+          <input type="file" id="edt-photo-input" accept="image/*" style="display:none"
+            onchange="onEdtPhotoSelected(this)">
+          <button type="button" class="btn btn-outline btn-sm"
+            onclick="document.getElementById('edt-photo-input').click()">
+            📂 เลือกรูปภาพใหม่
+          </button>
+          <button type="button" class="btn btn-gray btn-sm" id="edt-btn-remove-photo"
+            style="display:none" onclick="removeEdtPhoto()">
+            🗑 ลบรูป
+          </button>
+          <div id="edt-photo-status" class="form-hint" style="max-width:220px;line-height:1.5">
+            รองรับ JPG, PNG — ตัด 1×1.5 นิ้วอัตโนมัติ
+          </div>
+        </div>
+      </div>
+      <canvas id="edt-photo-canvas" style="display:none"></canvas>
+      <input type="hidden" id="edt-photo-data">
+
+      <!-- ══ ③ ที่อยู่ ══ -->
+      <p style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:12px;
+        border-bottom:2px solid #dbeafe;padding-bottom:6px">🏠 ที่อยู่ปัจจุบัน</p>
+
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>บ้านเลขที่ / อาคาร <span class="req">*</span></label>
+          <input type="text" id="edt-address" class="form-control" placeholder="เช่น 123/4 หมู่บ้านสุขสันต์">
+        </div>
+        <div class="form-group">
+          <label>หมู่ที่</label>
+          <input type="text" id="edt-moo" class="form-control" placeholder="เช่น 5" inputmode="numeric">
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>ซอย</label>
+          <input type="text" id="edt-soi" class="form-control" placeholder="ชื่อซอย">
+        </div>
+        <div class="form-group">
+          <label>ถนน</label>
+          <input type="text" id="edt-road" class="form-control" placeholder="ชื่อถนน">
+        </div>
+      </div>
+      <div class="grid-3" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>ตำบล / แขวง <span class="req">*</span></label>
+          <input type="text" id="edt-tambon" class="form-control"
+            placeholder="🔍 พิมพ์ชื่อตำบล..." autocomplete="off">
+          <div id="err-edt-tambon" class="form-error">กรุณากรอกตำบล/แขวง</div>
+        </div>
+        <div class="form-group">
+          <label>อำเภอ / เขต</label>
+          <input type="text" id="edt-amphoe" class="form-control"
+            placeholder="กรอกอัตโนมัติ" readonly>
+        </div>
+        <div class="form-group">
+          <label>จังหวัด</label>
+          <input type="text" id="edt-province" class="form-control"
+            placeholder="กรอกอัตโนมัติ" readonly>
+        </div>
+      </div>
+      <div class="form-group" style="max-width:160px;margin-bottom:18px">
+        <label>รหัสไปรษณีย์</label>
+        <input type="text" id="edt-zip" class="form-control" maxlength="5" placeholder="xxxxx"
+          inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)">
+      </div>
+
+      <!-- ══ ④ เบอร์โทร ══ -->
+      <p style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:12px;
+        border-bottom:2px solid #dbeafe;padding-bottom:6px">📞 เบอร์โทรศัพท์</p>
+      <div class="grid-2" style="margin-bottom:18px">
+        <div class="form-group">
+          <label>เบอร์โทรนักเรียน</label>
+          <input type="tel" id="edt-phone" class="form-control" maxlength="10" placeholder="0xxxxxxxxx"
+            oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+        </div>
+      </div>
+
+      <!-- ══ ⑤ บิดา ══ -->
+      <p style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:12px;
+        border-bottom:2px solid #dbeafe;padding-bottom:6px">👨 ข้อมูลบิดา</p>
+      <div class="grid-3" style="margin-bottom:6px">
+        <div class="form-group">
+          <label>คำนำหน้า</label>
+          <select id="edt-father-prefix" class="form-control">
+            <option value="">-- เลือก --</option>
+            <option value="นาย">นาย</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ชื่อ</label>
+          <input type="text" id="edt-father-fname" class="form-control" placeholder="ชื่อ">
+        </div>
+        <div class="form-group">
+          <label>นามสกุล</label>
+          <input type="text" id="edt-father-lname" class="form-control" placeholder="นามสกุล">
+        </div>
+      </div>
+      <div class="grid-3" style="margin-bottom:18px">
+        <div class="form-group">
+          <label>อาชีพ</label>
+          <select id="edt-father-occ" class="form-control"
+            onchange="onOtherToggle('edt-father-occ','edt-father-occ-other')">
+            <option value="">-- เลือก --</option>
+            <option>เกษตรกร</option><option>รับจ้างทั่วไป</option>
+            <option>ค้าขาย</option><option>รับราชการ</option>
+            <option>พนักงานรัฐวิสาหกิจ</option><option>พนักงานบริษัทเอกชน</option>
+            <option>ธุรกิจส่วนตัว</option><option>แพทย์/พยาบาล</option>
+            <option>ครู/อาจารย์</option><option>ตำรวจ/ทหาร</option>
+            <option>ว่างงาน</option><option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+          </select>
+          <input type="text" id="edt-father-occ-other" class="form-control"
+            placeholder="ระบุอาชีพ" style="display:none;margin-top:6px">
+        </div>
+        <div class="form-group">
+          <label>รายได้ต่อเดือน</label>
+          <select id="edt-father-income-range" class="form-control" onchange="syncEdtIncomeRange('father')">
+            <option value="">-- เลือกช่วง --</option>
+            <option value="0">ไม่มีรายได้</option><option value="3000">น้อยกว่า 3,000</option>
+            <option value="5000">3,001–5,000</option><option value="8000">5,001–8,000</option>
+            <option value="15000">8,001–15,000</option><option value="30000">15,001–30,000</option>
+            <option value="50000">30,001–50,000</option><option value="99999">มากกว่า 50,000</option>
+          </select>
+          <input type="hidden" id="edt-father-income">
+        </div>
+        <div class="form-group">
+          <label>เบอร์โทรบิดา</label>
+          <input type="tel" id="edt-father-phone" class="form-control" maxlength="10"
+            placeholder="0xxxxxxxxx" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+        </div>
+      </div>
+
+      <!-- ══ ⑥ มารดา ══ -->
+      <p style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:12px;
+        border-bottom:2px solid #dbeafe;padding-bottom:6px">👩 ข้อมูลมารดา</p>
+      <div class="grid-3" style="margin-bottom:6px">
+        <div class="form-group">
+          <label>คำนำหน้า</label>
+          <select id="edt-mother-prefix" class="form-control">
+            <option value="">-- เลือก --</option>
+            <option value="นาง">นาง</option>
+            <option value="นางสาว">นางสาว</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ชื่อ</label>
+          <input type="text" id="edt-mother-fname" class="form-control" placeholder="ชื่อ">
+        </div>
+        <div class="form-group">
+          <label>นามสกุล</label>
+          <input type="text" id="edt-mother-lname" class="form-control" placeholder="นามสกุล">
+        </div>
+      </div>
+      <div class="grid-3" style="margin-bottom:18px">
+        <div class="form-group">
+          <label>อาชีพ</label>
+          <select id="edt-mother-occ" class="form-control"
+            onchange="onOtherToggle('edt-mother-occ','edt-mother-occ-other')">
+            <option value="">-- เลือก --</option>
+            <option>เกษตรกร</option><option>รับจ้างทั่วไป</option>
+            <option>ค้าขาย</option><option>รับราชการ</option>
+            <option>พนักงานรัฐวิสาหกิจ</option><option>พนักงานบริษัทเอกชน</option>
+            <option>ธุรกิจส่วนตัว</option><option>แพทย์/พยาบาล</option>
+            <option>ครู/อาจารย์</option><option>ตำรวจ/ทหาร</option>
+            <option>แม่บ้าน</option><option>ว่างงาน</option>
+            <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+          </select>
+          <input type="text" id="edt-mother-occ-other" class="form-control"
+            placeholder="ระบุอาชีพ" style="display:none;margin-top:6px">
+        </div>
+        <div class="form-group">
+          <label>รายได้ต่อเดือน</label>
+          <select id="edt-mother-income-range" class="form-control" onchange="syncEdtIncomeRange('mother')">
+            <option value="">-- เลือกช่วง --</option>
+            <option value="0">ไม่มีรายได้</option><option value="3000">น้อยกว่า 3,000</option>
+            <option value="5000">3,001–5,000</option><option value="8000">5,001–8,000</option>
+            <option value="15000">8,001–15,000</option><option value="30000">15,001–30,000</option>
+            <option value="50000">30,001–50,000</option><option value="99999">มากกว่า 50,000</option>
+          </select>
+          <input type="hidden" id="edt-mother-income">
+        </div>
+        <div class="form-group">
+          <label>เบอร์โทรมารดา</label>
+          <input type="tel" id="edt-mother-phone" class="form-control" maxlength="10"
+            placeholder="0xxxxxxxxx" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+        </div>
+      </div>
+
+      <!-- ══ ⑦ ผู้ปกครอง ══ -->
+      <div id="edt-guardian-phone-group" style="display:none">
+        <p style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:12px;
+          border-bottom:2px solid #dbeafe;padding-bottom:6px">👥 ผู้ปกครอง</p>
+        <div class="grid-2" style="margin-bottom:18px">
+          <div class="form-group">
+            <label>ชื่อ-นามสกุลผู้ปกครอง</label>
+            <input type="text" id="edt-guardian-name" class="form-control" placeholder="ชื่อ นามสกุล">
+          </div>
+          <div class="form-group">
+            <label>เบอร์โทรผู้ปกครอง</label>
+            <input type="tel" id="edt-guardian-phone" class="form-control" maxlength="10"
+              placeholder="0xxxxxxxxx" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ⑧ การศึกษาเดิม ══ -->
+      <p style="font-size:13px;font-weight:700;color:#1e40af;margin-bottom:12px;
+        border-bottom:2px solid #dbeafe;padding-bottom:6px">🏫 การศึกษาเดิม</p>
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>โรงเรียนเดิม</label>
+          <input type="text" id="edt-old-school" class="form-control" placeholder="ชื่อโรงเรียนเดิม">
+        </div>
+        <div class="form-group">
+          <label>ระดับชั้นที่จบ</label>
+          <select id="edt-old-level" class="form-control">
+            <option value="">-- เลือก --</option>
+            <option value="ชั้นประถมศึกษาปีที่ 6">ประถมศึกษาปีที่ 6</option>
+            <option value="ชั้นมัธยมศึกษาปีที่ 3">มัธยมศึกษาปีที่ 3</option>
+            <option value="กำลังศึกษา">กำลังศึกษาอยู่</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="form-group">
+          <label>เกรดเฉลี่ย (GPA)</label>
+          <input type="number" id="edt-gpa" class="form-control" min="0" max="4" step="0.01"
+            placeholder="0.00 – 4.00">
+        </div>
+        <div class="form-group">
+          <label>ความสามารถพิเศษ</label>
+          <input type="text" id="edt-special" class="form-control" placeholder="เช่น กีฬา ดนตรี ศิลปะ">
+        </div>
+      </div>
+      <div id="edt-study-plan-group" style="display:none">
+        <div class="grid-2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label>แผนการเรียนหลัก</label>
+            <select id="edt-study-plan" class="form-control">
+              <option value="">-- เลือก --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>แผนการเรียนสำรอง</label>
+            <select id="edt-study-plan-alt" class="form-control">
+              <option value="">-- ไม่มีสำรอง --</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:8px;
+        padding:10px 14px;font-size:12.5px;color:#92400e;margin-top:4px">
+        ⚠️ การแก้ไขจะบันทึกทับข้อมูลเดิมทันที — เลขประจำตัวประชาชนและวันเกิดไม่สามารถแก้ไขได้
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:14px 24px;border-top:1px solid #e2e8f0;display:flex;
+      gap:10px;justify-content:flex-end;flex-shrink:0;background:#fff;
+      border-radius:0 0 16px 16px">
+      <button onclick="closeEditModal()" style="
+        padding:9px 20px;border-radius:8px;border:1.5px solid #e2e8f0;
+        background:#fff;color:#64748b;font-size:13px;cursor:pointer">
+        ยกเลิก
+      </button>
+      <button id="btn-save-edit" onclick="saveStudentEdit()" style="
+        padding:9px 24px;border-radius:8px;border:none;
+        background:#059669;color:#fff;font-size:13px;font-weight:600;cursor:pointer">
+        💾 บันทึกการแก้ไข
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- REGISTER CHECKLIST MODAL -->
 <div id="modal-checklist" style="
   display:none;position:fixed;inset:0;z-index:9000;
@@ -2446,8 +2849,55 @@ window.addEventListener('load', function() {
     setTimeout(() => { if (_loadEl) _loadEl.classList.add('hide'); }, 250);
     // โหลด public stats เสมอ (ไม่ต้อง login)
     loadPublicStats();
+    // Init jquery.Thailand.js สำหรับ autocomplete ที่อยู่
+    initThailandAddress();
   });
 });
+
+/* ─── THAILAND ADDRESS AUTOCOMPLETE (jquery.Thailand.js) ─── */
+/* ใช้ทดแทนระบบ GAS GeoData + CDN fallback เดิม ครอบคลุมทุกจังหวัด */
+function initThailandAddress() {
+  var _thInit = function() {
+    if (typeof $ === 'undefined' || typeof $.Thailand === 'undefined') return;
+    var DB = 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json';
+    $.Thailand({
+      database: DB,
+      $district: $('#reg-tambon'),   // typeahead ตำบล/แขวง
+      $amphoe:   $('#reg-amphoe'),   // readonly อำเภอ/เขต
+      $province: $('#reg-province'), // readonly จังหวัด
+      $zipcode:  $('#reg-zip'),      // auto-fill รหัสไปรษณีย์
+      onDataFill: function() {
+        // ล้าง error state เมื่อ auto-fill สำเร็จ
+        showErr('err-tambon',   false);
+        showErr('err-amphoe',   false);
+        showErr('err-province', false);
+      }
+    });
+    // ล้าง error เมื่อผู้ใช้พิมพ์ใน tambon
+    var tEl = document.getElementById('reg-tambon');
+    if (tEl) tEl.addEventListener('input', function() {
+      showErr('err-tambon', false);
+    });
+  };
+
+  // ถ้า jQuery โหลดแล้ว → init ทันที; ถ้ายังไม่โหลด → รอ
+  if (typeof $ !== 'undefined' && typeof $.Thailand !== 'undefined') {
+    _thInit();
+  } else {
+    var _retry = 0;
+    var _wait  = setInterval(function() {
+      _retry++;
+      if (typeof $ !== 'undefined' && typeof $.Thailand !== 'undefined') {
+        clearInterval(_wait);
+        _thInit();
+      } else if (_retry > 50) { // timeout 5 วินาที
+        clearInterval(_wait);
+        console.warn('jquery.Thailand.js ไม่สามารถโหลดได้ — address autocomplete ปิดใช้งาน');
+      }
+    }, 100);
+  }
+}
+
 
 function previewLogo(url) {
   const img = document.getElementById('cfg-logo-preview');
@@ -2762,6 +3212,12 @@ function resetWizard() {
   document.getElementById('step1').classList.add('active');
   updateProgress(1);
   resetBirthdateDropdowns();
+  // ล้าง address fields
+  ['reg-address','reg-moo','reg-soi','reg-road',
+   'reg-tambon','reg-amphoe','reg-province','reg-zip'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
 }
 
 function startRegister(level) { showRegisterChecklist(level); }
@@ -2973,10 +3429,10 @@ function validateStep(s) {
   }
   if (s === 3) {
     let ok = true;
-    if (!val('reg-house-no').trim())     { showErr('err-house-no',    true); ok=false; }
-    if (!val('reg-subdistrict').trim())  { showErr('err-subdistrict', true); ok=false; }
-    if (!val('reg-district').trim())     { showErr('err-district',    true); ok=false; }
-    if (!val('reg-province').trim())     { showErr('err-province',    true); ok=false; }
+    if (!val('reg-address').trim())     { showErr('err-address',  true); ok=false; }
+    if (!val('reg-tambon').trim())      { showErr('err-tambon',   true); ok=false; }
+    if (!val('reg-amphoe').trim())      { showErr('err-amphoe',   true); ok=false; }
+    if (!val('reg-province').trim())    { showErr('err-province', true); ok=false; }
     // ผู้ปกครอง
     const gt = document.querySelector('input[name="reg-guardian-type"]:checked');
     if (!gt) { showErr('err-guardian-type', true); ok=false; }
@@ -3044,35 +3500,16 @@ function collectStep(s) {
     else                                guardianName = val('reg-guardian-name').trim();
 
     Object.assign(S.regData, {
-      // ── ที่อยู่ทะเบียนบ้าน ──
-      HOUSE_NO:    val('reg-house-no').trim(),
-      BUILDING:    val('reg-building').trim(),
-      MOO:         val('reg-moo').trim(),
-      SOI:         val('reg-soi').trim(),
-      ROAD:        val('reg-road').trim(),
-      SUBDISTRICT: val('reg-subdistrict').trim(),
-      DISTRICT:    val('reg-district').trim(),
-      PROVINCE:    val('reg-province').trim(),
-      ZIP:         val('reg-zip').trim(),
-      // ADDRESS รวม (ใช้สำหรับ admin display + พิมพ์ใบสมัคร)
-      ADDRESS: [
-        val('reg-house-no').trim(),
-        val('reg-moo')  ? 'หมู่ '+val('reg-moo')  : '',
-        val('reg-soi')  ? 'ซอย'+val('reg-soi')    : '',
-        val('reg-road') ? 'ถนน'+val('reg-road')   : '',
-        val('reg-building').trim()
+      ADDRESS:          [
+        val('reg-address').trim(),
+        val('reg-moo').trim()  ? 'หมู่ '  + val('reg-moo').trim()  : '',
+        val('reg-soi').trim()  ? 'ซอย '  + val('reg-soi').trim()  : '',
+        val('reg-road').trim() ? 'ถนน ' + val('reg-road').trim() : '',
       ].filter(Boolean).join(' '),
-      // ── ที่อยู่ที่ติดต่อได้ ──
-      CUR_SAME_AS_HOME: document.getElementById('cur-same-as-home').checked,
-      CUR_HOUSE_NO:    document.getElementById('cur-same-as-home').checked ? val('reg-house-no').trim()    : val('cur-house-no').trim(),
-      CUR_BUILDING:    document.getElementById('cur-same-as-home').checked ? val('reg-building').trim()    : val('cur-building').trim(),
-      CUR_MOO:         document.getElementById('cur-same-as-home').checked ? val('reg-moo').trim()         : val('cur-moo').trim(),
-      CUR_SOI:         document.getElementById('cur-same-as-home').checked ? val('reg-soi').trim()         : val('cur-soi').trim(),
-      CUR_ROAD:        document.getElementById('cur-same-as-home').checked ? val('reg-road').trim()        : val('cur-road').trim(),
-      CUR_SUBDISTRICT: document.getElementById('cur-same-as-home').checked ? val('reg-subdistrict').trim() : val('cur-subdistrict').trim(),
-      CUR_DISTRICT:    document.getElementById('cur-same-as-home').checked ? val('reg-district').trim()    : val('cur-district').trim(),
-      CUR_PROVINCE:    document.getElementById('cur-same-as-home').checked ? val('reg-province').trim()    : val('cur-province').trim(),
-      CUR_ZIP:         document.getElementById('cur-same-as-home').checked ? val('reg-zip').trim()         : val('cur-zip').trim(),
+      SUBDISTRICT:      val('reg-tambon').trim(),
+      DISTRICT:         val('reg-amphoe').trim(),
+      PROVINCE:         val('reg-province').trim(),
+      ZIP:              val('reg-zip').trim(),
       // บิดา
       FATHER_PREFIX:    val('reg-father-prefix'),
       FATHER_FNAME:     val('reg-father-fname').trim(),
@@ -3148,28 +3585,9 @@ function buildConfirm() {
       ['สัญชาติ', d.NATIONALITY],
       ['ศาสนา', d.RELIGION]
     ]},
-    { t:'ที่อยู่ทะเบียนบ้าน', f:[
-      ['เลขที่/อาคาร', [d.HOUSE_NO,d.BUILDING].filter(Boolean).join(' ')||'–'],
-      d.MOO  ? ['หมู่', d.MOO]   : null,
-      d.SOI  ? ['ซอย', d.SOI]   : null,
-      d.ROAD ? ['ถนน', d.ROAD]  : null,
-      ['ตำบล/แขวง', d.SUBDISTRICT||'–'],
-      ['อำเภอ/เขต', d.DISTRICT||'–'],
-      ['จังหวัด', d.PROVINCE||'–'],
-      ['รหัสไปรษณีย์', d.ZIP||'–'],
-    ].filter(Boolean)},
-    { t:'ที่อยู่ที่ติดต่อได้', f: d.CUR_SAME_AS_HOME ? [
-      ['หมายเหตุ', 'เหมือนที่อยู่ทะเบียนบ้าน']
-    ] : [
-      ['เลขที่/อาคาร', [d.CUR_HOUSE_NO,d.CUR_BUILDING].filter(Boolean).join(' ')||'–'],
-      d.CUR_MOO  ? ['หมู่', d.CUR_MOO]   : null,
-      d.CUR_SOI  ? ['ซอย', d.CUR_SOI]   : null,
-      d.CUR_ROAD ? ['ถนน', d.CUR_ROAD]  : null,
-      ['ตำบล/แขวง', d.CUR_SUBDISTRICT||'–'],
-      ['อำเภอ/เขต', d.CUR_DISTRICT||'–'],
-      ['จังหวัด', d.CUR_PROVINCE||'–'],
-      ['รหัสไปรษณีย์', d.CUR_ZIP||'–'],
-    ].filter(Boolean)},
+    { t:'ที่อยู่', f:[
+      ['ที่อยู่', [d.ADDRESS,d.SUBDISTRICT,d.DISTRICT,d.PROVINCE,d.ZIP].filter(Boolean).join(' ')]
+    ]},
     { t:'บิดา', f:[
       ['ชื่อ-สกุล', [d.FATHER_PREFIX,d.FATHER_FNAME,d.FATHER_LNAME].filter(Boolean).join(' ')||'–'],
       ['อาชีพ', d.FATHER_OCCUPATION||'–'],
@@ -3246,9 +3664,6 @@ function doSubmit() {
 }
 
 /* ─── THAI ID CARD VALIDATION ─── */
-/* ─── THAILAND ADDRESS — jquery.Thailand.js autocomplete (v1.8.0) ─── */
-// initProvinceDropdown / onProvinceChange / onDistrictChange /
-// onSubdistrictChange / _loadSubdistrictsFromCDN ถูกแทนที่โดย $.Thailand() ด้านล่าง
 
 /* ─── GUARDIAN TYPE ─── */
 function onGuardianTypeChange() {
@@ -3741,12 +4156,475 @@ function dupRegViewStatus() {
 function dupRegEdit() {
   const m = document.getElementById('modal-dup-reg');
   if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
-  const appId = _dupRegData ? _dupRegData.APP_ID : '';
-  toast('ติดต่อเจ้าหน้าที่เพื่อแก้ไขข้อมูล ใบสมัครเลขที่: '+appId, 'warning');
-  // ไปหน้าตรวจสอบ
-  showView('check');
-  const el = document.getElementById('check-idcard');
-  if (el && _dupRegData) { el.value = val('reg-idcard') || ''; doCheckStatus(); }
+  openVerifyEditModal();
+}
+
+/* ─── VERIFY EDIT IDENTITY ─── */
+var _verifyEditAttempts = 0;
+var _verifyEditMaxAttempts = 3;
+var _editVerifiedApp = null;
+var _editThailandInited = false;
+
+(function initVerifyBirthdateDropdowns() {
+  const currentBE = new Date().getFullYear() + 543;
+  const dSel = document.getElementById('verify-birth-day');
+  if (dSel) {
+    for (let d = 1; d <= 31; d++) {
+      const o = document.createElement('option');
+      o.value = String(d).padStart(2,'0'); o.textContent = String(d);
+      dSel.appendChild(o);
+    }
+  }
+  const ySel = document.getElementById('verify-birth-year');
+  if (ySel) {
+    for (let y = currentBE - 4; y >= currentBE - 25; y--) {
+      const o = document.createElement('option');
+      o.value = String(y); o.textContent = String(y);
+      ySel.appendChild(o);
+    }
+  }
+})();
+
+function openVerifyEditModal() {
+  // reset state
+  _verifyEditAttempts = 0;
+  document.getElementById('verify-birth-day').value   = '';
+  document.getElementById('verify-birth-month').value = '';
+  document.getElementById('verify-birth-year').value  = '';
+  document.getElementById('verify-birthdate').value   = '';
+  const attemptMsg  = document.getElementById('verify-attempt-msg');
+  const successMsg  = document.getElementById('verify-success-msg');
+  const verifyBtn   = document.getElementById('btn-do-verify-edit');
+  if (attemptMsg)  { attemptMsg.style.display  = 'none'; attemptMsg.textContent = ''; }
+  if (successMsg)  { successMsg.style.display  = 'none'; }
+  if (verifyBtn)   { verifyBtn.disabled = true; verifyBtn.style.opacity = '.4'; }
+
+  const m = document.getElementById('modal-verify-edit');
+  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+
+function closeVerifyEditModal() {
+  const m = document.getElementById('modal-verify-edit');
+  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+  // ถ้ายกเลิก → กลับไป dup reg modal
+  const dm = document.getElementById('modal-dup-reg');
+  if (dm && _dupRegData) dm.style.display = 'flex';
+}
+
+function onVerifyBirthdateChange() {
+  const day    = document.getElementById('verify-birth-day').value;
+  const month  = document.getElementById('verify-birth-month').value;
+  const yearBE = document.getElementById('verify-birth-year').value;
+  const hidEl  = document.getElementById('verify-birthdate');
+  const btn    = document.getElementById('btn-do-verify-edit');
+
+  if (hidEl) hidEl.value = '';
+  if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+
+  if (!day || !month || !yearBE) return;
+
+  const yearCE = parseInt(yearBE) - 543;
+  const mo     = parseInt(month) - 1;
+  const dy     = parseInt(day);
+  const testDate = new Date(yearCE, mo, dy);
+  const isValid  = (
+    testDate.getFullYear() === yearCE &&
+    testDate.getMonth()    === mo     &&
+    testDate.getDate()     === dy
+  );
+  if (!isValid) return;
+
+  const iso = yearCE + '-' + String(mo+1).padStart(2,'0') + '-' + String(dy).padStart(2,'0');
+  if (hidEl) hidEl.value = iso;
+  if (btn)   { btn.disabled = false; btn.style.opacity = '1'; }
+}
+
+function doVerifyEdit() {
+  if (!_dupRegData) return;
+  const idCard    = _dupRegData.ID_CARD || val('reg-idcard');
+  const birthdate = document.getElementById('verify-birthdate').value;
+
+  if (!idCard || !birthdate) {
+    toast('กรุณากรอกวันเดือนปีเกิดให้ครบ', 'warning'); return;
+  }
+
+  const btn = document.getElementById('btn-do-verify-edit');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังตรวจสอบ...'; }
+
+  run('verifyOwnerAndGetApp', [idCard, birthdate], function(res) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🔓 ยืนยันและแก้ไขข้อมูล';
+      btn.style.opacity = '1';
+    }
+
+    if (res && res.ok) {
+      // สำเร็จ
+      _editVerifiedApp = res.app;
+      const successMsg = document.getElementById('verify-success-msg');
+      if (successMsg) successMsg.style.display = '';
+      const attemptMsg = document.getElementById('verify-attempt-msg');
+      if (attemptMsg) attemptMsg.style.display = 'none';
+      if (btn) btn.disabled = true;
+
+      setTimeout(function() {
+        const m = document.getElementById('modal-verify-edit');
+        if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+        openEditModal(_editVerifiedApp);
+      }, 800);
+
+    } else {
+      // ไม่สำเร็จ
+      _verifyEditAttempts++;
+      const remaining = _verifyEditMaxAttempts - _verifyEditAttempts;
+      const attemptMsg = document.getElementById('verify-attempt-msg');
+
+      if (_verifyEditAttempts >= _verifyEditMaxAttempts) {
+        if (attemptMsg) {
+          attemptMsg.textContent = '❌ ยืนยันตัวตนไม่สำเร็จ ' + _verifyEditMaxAttempts + ' ครั้ง — กรุณาติดต่อเจ้าหน้าที่';
+          attemptMsg.style.display = '';
+        }
+        if (btn) { btn.disabled = true; btn.style.opacity = '.3'; }
+        return;
+      }
+
+      if (attemptMsg) {
+        attemptMsg.textContent = '❌ ' + (res && res.msg ? res.msg : 'วันเกิดไม่ถูกต้อง') +
+          ' — เหลืออีก ' + remaining + ' ครั้ง';
+        attemptMsg.style.display = '';
+      }
+      // ล้าง dropdowns ให้กรอกใหม่
+      document.getElementById('verify-birth-day').value   = '';
+      document.getElementById('verify-birth-month').value = '';
+      document.getElementById('verify-birth-year').value  = '';
+      document.getElementById('verify-birthdate').value   = '';
+      if (btn) { btn.disabled = true; btn.style.opacity = '.4'; }
+    }
+  });
+}
+
+/* ─── EDIT APP MODAL (student self-edit) ─── */
+function openEditModal(app) {
+  if (!app) return;
+  setText('edit-app-id-label',
+    'ใบสมัครเลขที่ ' + app.APP_ID + ' | ' + app.LEVEL + ' (' + app.APP_TYPE + ')');
+
+  // แสดง reference (ID_CARD เท่านั้นที่ห้ามแก้)
+  setEl('edit-readonly-info', app.ID_CARD || '–');
+
+  // ตรวจ LOCK: "รายงานตัวแล้ว" → ปิดทุก input + แสดง banner
+  const isLocked = app.STATUS === 'รายงานตัวแล้ว';
+  const banner   = document.getElementById('edit-locked-banner');
+  const body     = document.getElementById('edit-app-body');
+  const saveBtn  = document.getElementById('btn-save-edit');
+  if (banner) banner.style.display = isLocked ? 'flex' : 'none';
+  if (saveBtn) { saveBtn.disabled = isLocked; saveBtn.style.opacity = isLocked ? '.4' : '1'; }
+  if (body) {
+    body.querySelectorAll('input:not([readonly]),select,textarea,button').forEach(function(el) {
+      if (el.id === 'edt-photo-input') return; // handled separately
+      el.disabled = isLocked;
+    });
+    const photoBtns = body.querySelectorAll('button[onclick*="edt-photo"]');
+    photoBtns.forEach(function(b) { b.disabled = isLocked; });
+  }
+
+  // ── ① ข้อมูลส่วนตัว ──
+  setSelectVal('edt-prefix', app.PREFIX || '');
+  setInputVal('edt-fname',   app.FNAME  || '');
+  setInputVal('edt-lname',   app.LNAME  || '');
+  // สัญชาติ
+  var nat = app.NATIONALITY || 'ไทย';
+  var natSel = document.getElementById('edt-nationality');
+  var natTxt = document.getElementById('edt-nationality-other');
+  var knownNat = ['ไทย','กัมพูชา','ลาว','พม่า','เวียดนาม','จีน'];
+  if (natSel) {
+    if (knownNat.includes(nat)) { natSel.value = nat; if(natTxt) natTxt.style.display='none'; }
+    else { natSel.value = 'อื่นๆ'; if(natTxt){natTxt.style.display='';natTxt.value=nat;} }
+  }
+  // ศาสนา
+  var rel = app.RELIGION || 'พุทธ';
+  var relSel = document.getElementById('edt-religion');
+  var relTxt = document.getElementById('edt-religion-other');
+  var knownRel = ['พุทธ','คริสต์','อิสลาม','พราหมณ์-ฮินดู','ซิกข์'];
+  if (relSel) {
+    if (knownRel.includes(rel)) { relSel.value = rel; if(relTxt) relTxt.style.display='none'; }
+    else { relSel.value = 'อื่นๆ'; if(relTxt){relTxt.style.display='';relTxt.value=rel;} }
+  }
+
+  // ── ② รูปภาพ ──
+  document.getElementById('edt-photo-data').value = '';
+  var prevImg = document.getElementById('edt-photo-preview-img');
+  var prevPh  = document.getElementById('edt-photo-preview-placeholder');
+  var rmBtn   = document.getElementById('edt-btn-remove-photo');
+  var photoStatus = document.getElementById('edt-photo-status');
+  if (app.PHOTO_URL) {
+    if (prevImg)  { prevImg.src = app.PHOTO_URL; prevImg.style.display = ''; }
+    if (prevPh)   prevPh.style.display = 'none';
+    if (rmBtn)    rmBtn.style.display = '';
+    if (photoStatus) photoStatus.textContent = '✅ มีรูปภาพในระบบแล้ว — เลือกใหม่เพื่อเปลี่ยน';
+  } else {
+    if (prevImg)  { prevImg.src = ''; prevImg.style.display = 'none'; }
+    if (prevPh)   prevPh.style.display = '';
+    if (rmBtn)    rmBtn.style.display = 'none';
+    if (photoStatus) photoStatus.textContent = 'รองรับ JPG, PNG — ตัด 1×1.5 นิ้วอัตโนมัติ';
+  }
+
+  // ── ③ ที่อยู่ ──
+  setInputVal('edt-address',  app.ADDRESS    || '');
+  setInputVal('edt-moo',      '');
+  setInputVal('edt-soi',      '');
+  setInputVal('edt-road',     '');
+  setInputVal('edt-tambon',   app.SUBDISTRICT|| '');
+  setInputVal('edt-amphoe',   app.DISTRICT   || '');
+  setInputVal('edt-province', app.PROVINCE   || '');
+  setInputVal('edt-zip',      app.ZIP        || '');
+
+  // ── ④ เบอร์โทร ──
+  setInputVal('edt-phone', app.PHONE || '');
+
+  // ── ⑤ บิดา ──
+  setSelectVal('edt-father-prefix', app.FATHER_PREFIX || '');
+  setInputVal('edt-father-fname',   app.FATHER_FNAME  || '');
+  setInputVal('edt-father-lname',   app.FATHER_LNAME  || '');
+  setInputVal('edt-father-phone',   app.FATHER_PHONE  || '');
+  var fOcc = app.FATHER_OCCUPATION || '';
+  var fOccSel = document.getElementById('edt-father-occ');
+  var fOccOt  = document.getElementById('edt-father-occ-other');
+  var knownFOcc = ['เกษตรกร','รับจ้างทั่วไป','ค้าขาย','รับราชการ','พนักงานรัฐวิสาหกิจ',
+    'พนักงานบริษัทเอกชน','ธุรกิจส่วนตัว','แพทย์/พยาบาล','ครู/อาจารย์','ตำรวจ/ทหาร','ว่างงาน'];
+  if (fOccSel) {
+    if (knownFOcc.includes(fOcc)) { fOccSel.value = fOcc; if(fOccOt) fOccOt.style.display='none'; }
+    else if (fOcc) { fOccSel.value='อื่นๆ'; if(fOccOt){fOccOt.style.display='';fOccOt.value=fOcc;} }
+    else fOccSel.value = '';
+  }
+  var fInc = String(app.FATHER_INCOME||'');
+  setSelectVal('edt-father-income-range', fInc);
+  setInputVal('edt-father-income', fInc);
+
+  // ── ⑥ มารดา ──
+  setSelectVal('edt-mother-prefix', app.MOTHER_PREFIX || '');
+  setInputVal('edt-mother-fname',   app.MOTHER_FNAME  || '');
+  setInputVal('edt-mother-lname',   app.MOTHER_LNAME  || '');
+  setInputVal('edt-mother-phone',   app.MOTHER_PHONE  || '');
+  var mOcc = app.MOTHER_OCCUPATION || '';
+  var mOccSel = document.getElementById('edt-mother-occ');
+  var mOccOt  = document.getElementById('edt-mother-occ-other');
+  var knownMOcc = ['เกษตรกร','รับจ้างทั่วไป','ค้าขาย','รับราชการ','พนักงานรัฐวิสาหกิจ',
+    'พนักงานบริษัทเอกชน','ธุรกิจส่วนตัว','แพทย์/พยาบาล','ครู/อาจารย์','ตำรวจ/ทหาร','แม่บ้าน','ว่างงาน'];
+  if (mOccSel) {
+    if (knownMOcc.includes(mOcc)) { mOccSel.value = mOcc; if(mOccOt) mOccOt.style.display='none'; }
+    else if (mOcc) { mOccSel.value='อื่นๆ'; if(mOccOt){mOccOt.style.display='';mOccOt.value=mOcc;} }
+    else mOccSel.value = '';
+  }
+  var mInc = String(app.MOTHER_INCOME||'');
+  setSelectVal('edt-mother-income-range', mInc);
+  setInputVal('edt-mother-income', mInc);
+
+  // ── ⑦ ผู้ปกครอง ──
+  var gGroup = document.getElementById('edt-guardian-phone-group');
+  if (gGroup) gGroup.style.display = app.GUARDIAN_TYPE === 'อื่นๆ' ? '' : 'none';
+  setInputVal('edt-guardian-name',  app.GUARDIAN_NAME  || '');
+  setInputVal('edt-guardian-phone', app.GUARDIAN_PHONE || '');
+
+  // ── ⑧ การศึกษาเดิม ──
+  setInputVal('edt-old-school',    app.OLD_SCHOOL || '');
+  setSelectVal('edt-old-level',    app.OLD_LEVEL  || '');
+  setInputVal('edt-gpa',           app.GPA        || '');
+  setInputVal('edt-special',       app.SPECIAL_ABILITY || '');
+  // แผนการเรียน (เฉพาะ ม.4)
+  var spGroup = document.getElementById('edt-study-plan-group');
+  if (spGroup) {
+    var showPlan = (app.LEVEL === 'ม.4' || app.TRANSFER_LEVEL >= 'ม.4');
+    spGroup.style.display = showPlan ? '' : 'none';
+    if (showPlan && S.publicStats) {
+      var plans = S.publicStats.studyPlansHigh || [];
+      ['edt-study-plan','edt-study-plan-alt'].forEach(function(id, idx) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = (idx===0
+          ? '<option value="">-- เลือกแผนการเรียน --</option>'
+          : '<option value="">-- ไม่มีสำรอง --</option>'
+        ) + plans.map(function(p){return '<option value="'+p+'">'+p+'</option>';}).join('');
+      });
+    }
+  }
+  setSelectVal('edt-study-plan',    app.STUDY_PLAN     || '');
+  setSelectVal('edt-study-plan-alt',app.STUDY_PLAN_ALT || '');
+
+  // Init Thailand.js สำหรับ edit form (lazy, ครั้งเดียว)
+  _initEditThailand();
+
+  const m = document.getElementById('modal-edit-app');
+  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+
+function closeEditModal() {
+  const m = document.getElementById('modal-edit-app');
+  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+  _editVerifiedApp = null;
+}
+
+function _initEditThailand() {
+  if (_editThailandInited) return;
+  if (typeof $ === 'undefined' || typeof $.Thailand === 'undefined') return;
+  var DB = 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json';
+  $.Thailand({
+    database: DB,
+    $district: $('#edt-tambon'),
+    $amphoe:   $('#edt-amphoe'),
+    $province: $('#edt-province'),
+    $zipcode:  $('#edt-zip'),
+    onDataFill: function() { showErr('err-edt-tambon', false); }
+  });
+  _editThailandInited = true;
+}
+
+function syncEdtIncomeRange(parent) {
+  var r = document.getElementById('edt-'+parent+'-income-range');
+  var h = document.getElementById('edt-'+parent+'-income');
+  if (r && h) h.value = r.value;
+}
+
+/* ── PHOTO UPLOAD (edit modal) ── */
+function onEdtPhotoSelected(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('กรุณาเลือกไฟล์รูปภาพ (JPG, PNG)', 'error'); return; }
+  var statusEl = document.getElementById('edt-photo-status');
+  if (statusEl) { statusEl.textContent = '⏳ กำลัง resize...'; statusEl.style.color='var(--gray)'; }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas  = document.getElementById('edt-photo-canvas');
+      canvas.width  = PHOTO_W; canvas.height = PHOTO_H;
+      var ctx = canvas.getContext('2d');
+      var srcRatio = img.width / img.height;
+      var tgtRatio = PHOTO_W / PHOTO_H;
+      var sx, sy, sw, sh;
+      if (srcRatio > tgtRatio) {
+        sh = img.height; sw = img.height * tgtRatio; sy = 0; sx = (img.width - sw) / 2;
+      } else {
+        sw = img.width; sh = img.width / tgtRatio; sx = 0; sy = (img.height - sh) / 2;
+      }
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, PHOTO_W, PHOTO_H);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+      document.getElementById('edt-photo-data').value = dataUrl;
+      var prevImg = document.getElementById('edt-photo-preview-img');
+      var prevPh  = document.getElementById('edt-photo-preview-placeholder');
+      var rmBtn   = document.getElementById('edt-btn-remove-photo');
+      if (prevImg) { prevImg.src = dataUrl; prevImg.style.display = ''; }
+      if (prevPh)  prevPh.style.display = 'none';
+      if (rmBtn)   rmBtn.style.display = '';
+      if (statusEl) { statusEl.textContent = '✅ พร้อม upload รูปใหม่'; statusEl.style.color='var(--success)'; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeEdtPhoto() {
+  document.getElementById('edt-photo-data').value = '';
+  document.getElementById('edt-photo-input').value = '';
+  var prevImg = document.getElementById('edt-photo-preview-img');
+  var prevPh  = document.getElementById('edt-photo-preview-placeholder');
+  var rmBtn   = document.getElementById('edt-btn-remove-photo');
+  var statusEl= document.getElementById('edt-photo-status');
+  if (prevImg) { prevImg.src = ''; prevImg.style.display = 'none'; }
+  if (prevPh)  prevPh.style.display = '';
+  if (rmBtn)   rmBtn.style.display = 'none';
+  if (statusEl) { statusEl.textContent = 'ลบรูปแล้ว — เลือกรูปใหม่ได้เลย'; statusEl.style.color='var(--warning)'; }
+}
+
+function saveStudentEdit() {
+  if (!_editVerifiedApp) { toast('ข้อมูลการยืนยันหมดอายุ กรุณาเริ่มใหม่', 'error'); return; }
+  if (_editVerifiedApp.STATUS === 'รายงานตัวแล้ว') {
+    toast('ไม่สามารถแก้ไขได้ เนื่องจากยืนยันตัวรับเป็นนักเรียนแล้ว', 'error'); return;
+  }
+
+  if (!val('edt-fname').trim()) { showErr('err-edt-fname', true); return; }
+  if (!val('edt-lname').trim()) { showErr('err-edt-lname', true); return; }
+  if (!val('edt-address').trim()) { toast('กรุณากรอกบ้านเลขที่', 'warning'); return; }
+  if (!val('edt-tambon').trim()) { showErr('err-edt-tambon', true); return; }
+
+  const addrParts = [
+    val('edt-address').trim(),
+    val('edt-moo').trim()  ? 'หมู่ '  + val('edt-moo').trim()  : '',
+    val('edt-soi').trim()  ? 'ซอย '  + val('edt-soi').trim()  : '',
+    val('edt-road').trim() ? 'ถนน ' + val('edt-road').trim() : '',
+  ].filter(Boolean).join(' ');
+
+  const updates = {
+    PREFIX:             val('edt-prefix'),
+    FNAME:              val('edt-fname').trim(),
+    LNAME:              val('edt-lname').trim(),
+    NATIONALITY:        valOrOther('edt-nationality','edt-nationality-other'),
+    RELIGION:           valOrOther('edt-religion','edt-religion-other'),
+    ADDRESS:            addrParts,
+    SUBDISTRICT:        val('edt-tambon').trim(),
+    DISTRICT:           val('edt-amphoe').trim(),
+    PROVINCE:           val('edt-province').trim(),
+    ZIP:                val('edt-zip').trim(),
+    PHONE:              val('edt-phone').trim(),
+    FATHER_PREFIX:      val('edt-father-prefix'),
+    FATHER_FNAME:       val('edt-father-fname').trim(),
+    FATHER_LNAME:       val('edt-father-lname').trim(),
+    FATHER_PHONE:       val('edt-father-phone').trim(),
+    FATHER_OCCUPATION:  valOrOther('edt-father-occ','edt-father-occ-other'),
+    FATHER_INCOME:      val('edt-father-income'),
+    MOTHER_PREFIX:      val('edt-mother-prefix'),
+    MOTHER_FNAME:       val('edt-mother-fname').trim(),
+    MOTHER_LNAME:       val('edt-mother-lname').trim(),
+    MOTHER_PHONE:       val('edt-mother-phone').trim(),
+    MOTHER_OCCUPATION:  valOrOther('edt-mother-occ','edt-mother-occ-other'),
+    MOTHER_INCOME:      val('edt-mother-income'),
+    GUARDIAN_NAME:      val('edt-guardian-name').trim(),
+    GUARDIAN_PHONE:     val('edt-guardian-phone').trim(),
+    OLD_SCHOOL:         val('edt-old-school').trim(),
+    OLD_LEVEL:          val('edt-old-level'),
+    GPA:                val('edt-gpa'),
+    SPECIAL_ABILITY:    val('edt-special').trim(),
+    STUDY_PLAN:         val('edt-study-plan'),
+    STUDY_PLAN_ALT:     val('edt-study-plan-alt'),
+  };
+
+  const idCard    = _editVerifiedApp.ID_CARD;
+  const birthdate = document.getElementById('verify-birthdate').value;
+  const appId     = _editVerifiedApp.APP_ID;
+  const photoData = val('edt-photo-data');
+
+  const btn = document.getElementById('btn-save-edit');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; }
+
+  function _doSave(photoUrl) {
+    if (photoUrl) updates.PHOTO_URL = photoUrl;
+    run('updateApplicationByStudent', [idCard, birthdate, appId, updates], function(res) {
+      if (btn) { btn.disabled = false; btn.textContent = '💾 บันทึกการแก้ไข'; }
+      if (res && res.ok) {
+        closeEditModal();
+        toast('บันทึกการแก้ไขสำเร็จ ✅', 'success');
+        _dupRegData = null;
+      } else {
+        toast('เกิดข้อผิดพลาด: ' + ((res && res.msg) || 'ไม่สามารถบันทึกได้'), 'error');
+      }
+    });
+  }
+
+  // upload รูปก่อน (ถ้ามีรูปใหม่)
+  if (photoData) {
+    btn.textContent = '📤 กำลัง upload รูป...';
+    run('uploadPhoto', [photoData, appId], function(res) {
+      if (res && res.ok) {
+        _doSave(res.url);
+      } else {
+        toast('Upload รูปไม่สำเร็จ — บันทึกข้อมูลโดยไม่เปลี่ยนรูป', 'warning');
+        _doSave('');
+      }
+    });
+  } else {
+    _doSave('');
+  }
 }
 
 /* ─── CANCEL REGISTRATION ─── */
@@ -4078,28 +4956,7 @@ function openAppDetail(appId) {
         ${F('คำนำหน้า',a.PREFIX)}${F('ชื่อ',a.FNAME)}${F('นามสกุล',a.LNAME)}
         ${F('เลขบัตร ปชช.',a.ID_CARD)}${F('วันเกิด',fmtDateTH(a.BIRTHDATE))}
         ${F('สัญชาติ',a.NATIONALITY)}${F('ศาสนา',a.RELIGION)}${F('โทรศัพท์',a.PHONE)}
-        ${F('ที่อยู่ทะเบียนบ้าน', [
-          [a.HOUSE_NO,a.BUILDING].filter(Boolean).join(' '),
-          a.MOO  ? 'หมู่ '+a.MOO  : '',
-          a.SOI  ? 'ซอย'+a.SOI   : '',
-          a.ROAD ? 'ถนน'+a.ROAD  : '',
-          a.SUBDISTRICT ? 'ต.'+a.SUBDISTRICT : '',
-          a.DISTRICT    ? 'อ.'+a.DISTRICT    : '',
-          a.PROVINCE    ? 'จ.'+a.PROVINCE    : '',
-          a.ZIP||''
-        ].filter(Boolean).join(' ') || a.ADDRESS || '–')}
-        ${(a.CUR_SAME_AS_HOME===true||String(a.CUR_SAME_AS_HOME).toLowerCase()==='true')
-          ? F('ที่อยู่ติดต่อ','เหมือนทะเบียนบ้าน')
-          : F('ที่อยู่ติดต่อ', [
-            [a.CUR_HOUSE_NO,a.CUR_BUILDING].filter(Boolean).join(' '),
-            a.CUR_MOO  ? 'หมู่ '+a.CUR_MOO  : '',
-            a.CUR_SOI  ? 'ซอย'+a.CUR_SOI   : '',
-            a.CUR_ROAD ? 'ถนน'+a.CUR_ROAD  : '',
-            a.CUR_SUBDISTRICT ? 'ต.'+a.CUR_SUBDISTRICT : '',
-            a.CUR_DISTRICT    ? 'อ.'+a.CUR_DISTRICT    : '',
-            a.CUR_PROVINCE    ? 'จ.'+a.CUR_PROVINCE    : '',
-            a.CUR_ZIP||''
-          ].filter(Boolean).join(' ') || '–')}
+        ${F('ที่อยู่',[a.ADDRESS,a.SUBDISTRICT,a.DISTRICT,a.PROVINCE,a.ZIP].filter(Boolean).join(' '))}
         ${F('ผู้ปกครอง',(a.PARENT_NAME||'')+'  ('+a.PARENT_RELATION+')')}${F('โทร.ผู้ปกครอง',a.PARENT_PHONE)}
         ${F('โรงเรียนเดิม',a.OLD_SCHOOL)}${F('ระดับชั้นที่จบ',a.OLD_LEVEL)}
         ${F('GPA',a.GPA)}${F('ความสามารถพิเศษ',a.SPECIAL_ABILITY)}
@@ -4110,7 +4967,7 @@ function openAppDetail(appId) {
       <div class="grid-2">
         <div class="form-group"><label>สถานะ</label>
           <select id="edit-status" class="form-control">
-            ${['สมัครแล้ว','ชำระเงินแล้ว','มีสิทธิ์สอบ','ผ่าน','ไม่ผ่าน'].map(s=>`<option${a.STATUS===s?' selected':''}>${s}</option>`).join('')}
+            ${['สมัครแล้ว','ชำระเงินแล้ว','มีสิทธิ์สอบ','ผ่าน','ไม่ผ่าน','รายงานตัวแล้ว'].map(s=>`<option${a.STATUS===s?' selected':''}>${s}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label>เลขที่นั่งสอบ</label><input type="text" id="edit-exam-no" class="form-control" value="${a.EXAM_NO||''}"></div>
@@ -4746,25 +5603,59 @@ function showErr(id, show)  { const e = document.getElementById(id); if(e) e.cla
 function clearErrors()      { document.querySelectorAll('.form-error.show').forEach(e => e.classList.remove('show')); }
 
 function statusBadge(s) {
-  const map = { 'สมัครแล้ว':'badge-gray', 'ชำระเงินแล้ว':'badge-info', 'มีสิทธิ์สอบ':'badge-amber', 'ผ่าน':'badge-green', 'ไม่ผ่าน':'badge-red' };
+  const map = {
+    'สมัครแล้ว':   'badge-gray',
+    'ชำระเงินแล้ว':'badge-info',
+    'มีสิทธิ์สอบ': 'badge-amber',
+    'ผ่าน':        'badge-green',
+    'ไม่ผ่าน':     'badge-red',
+    'รายงานตัวแล้ว':'badge-purple',
+  };
   return `<span class="badge ${map[s]||'badge-gray'}">${s||'–'}</span>`;
 }
 
 function fmtDateTH(d) {
   if (!d) return '';
-  const dt = d instanceof Date ? d : new Date(d);
-  if (isNaN(dt)) return String(d).slice(0, 10);
-  const day   = dt.getDate();
-  const month = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][dt.getMonth()];
-  const year  = dt.getFullYear() + 543;
-  return day + ' ' + month + ' ' + year;
+  let day, month, year;
+  if (d instanceof Date) {
+    // Date object — ใช้ local time methods
+    if (isNaN(d)) return '';
+    day   = d.getDate();
+    month = d.getMonth();
+    year  = d.getFullYear();
+  } else {
+    const s = String(d).trim();
+    // "YYYY-MM-DD" หรือ "YYYY-MM-DDTHH:mm:ss" จาก GAS (timezone-safe แล้ว)
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      year  = parseInt(m[1]);
+      month = parseInt(m[2]) - 1;  // 0-based
+      day   = parseInt(m[3]);
+    } else {
+      // fallback: parse ด้วย Date แต่ใช้ local methods
+      const dt = new Date(s);
+      if (isNaN(dt)) return s.slice(0, 10);
+      day   = dt.getDate();
+      month = dt.getMonth();
+      year  = dt.getFullYear();
+    }
+  }
+  const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
+                  'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return day + ' ' + MONTHS[month] + ' ' + (year + 543);
 }
 function fmtDateTimeTH(d) {
   if (!d) return '';
-  const dt = d instanceof Date ? d : new Date(d);
-  if (isNaN(dt)) return String(d).slice(0, 16);
-  const hh = String(dt.getHours()).padStart(2,'0');
-  const mm = String(dt.getMinutes()).padStart(2,'0');
+  let hh = '00', mm = '00';
+  if (d instanceof Date) {
+    if (isNaN(d)) return '';
+    hh = String(d.getHours()).padStart(2,'0');
+    mm = String(d.getMinutes()).padStart(2,'0');
+  } else {
+    // "YYYY-MM-DDTHH:mm:ss" — ดึงเวลาจาก string โดยตรง ไม่ผ่าน Date constructor
+    const tMatch = String(d).match(/T(\d{2}):(\d{2})/);
+    if (tMatch) { hh = tMatch[1]; mm = tMatch[2]; }
+  }
   return fmtDateTH(d) + ' ' + hh + ':' + mm + ' น.';
 }
 
@@ -4795,83 +5686,6 @@ function doSyncSupabase() {
       toast('Sync ไม่สำเร็จ', 'error');
     }
   });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   jquery.Thailand.js — INIT (v1.8.0)
-   ═══════════════════════════════════════════════════════════════ */
-$(function() {
-  var DB = 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json';
-
-  // ── ที่อยู่ทะเบียนบ้าน ──
-  $.Thailand({
-    database:  DB,
-    $district: $('#reg-subdistrict'),
-    $amphoe:   $('#reg-district'),
-    $province: $('#reg-province'),
-    $zipcode:  $('#reg-zip'),
-    onDataFill: function() {
-      showErr('err-subdistrict', false);
-      showErr('err-district',    false);
-      showErr('err-province',    false);
-      // sync preview ถ้า checkbox ติ๊กอยู่
-      var cb = document.getElementById('cur-same-as-home');
-      if (cb && cb.checked) onCurSameAsHome(cb);
-    }
-  });
-
-  // ── ที่อยู่ที่ติดต่อได้ ──
-  $.Thailand({
-    database:  DB,
-    $district: $('#cur-subdistrict'),
-    $amphoe:   $('#cur-district'),
-    $province: $('#cur-province'),
-    $zipcode:  $('#cur-zip'),
-    onDataFill: function() {}
-  });
-});
-
-/* ── toggle "ใช้ที่อยู่เดียวกับทะเบียนบ้าน" ── */
-function onCurSameAsHome(cb) {
-  var fields  = document.getElementById('cur-addr-fields');
-  var preview = document.getElementById('cur-addr-copy-preview');
-  if (!cb) return;
-  if (cb.checked) {
-    if (fields) fields.style.display = 'none';
-    var parts = [];
-    var hn = val('reg-house-no'); if (hn) parts.push('เลขที่ '+hn);
-    var bl = val('reg-building'); if (bl) parts.push(bl);
-    var mo = val('reg-moo');      if (mo) parts.push('หมู่ '+mo);
-    var so = val('reg-soi');      if (so) parts.push('ซอย'+so);
-    var rd = val('reg-road');     if (rd) parts.push('ถนน'+rd);
-    var sd = val('reg-subdistrict'); if (sd) parts.push('ต.'+sd);
-    var di = val('reg-district');    if (di) parts.push('อ.'+di);
-    var pr = val('reg-province');    if (pr) parts.push('จ.'+pr);
-    var zp = val('reg-zip');         if (zp) parts.push(zp);
-    if (preview) {
-      preview.innerHTML = '📋 <strong>ใช้ที่อยู่เดียวกับทะเบียนบ้าน:</strong><br>'
-        + (parts.length ? parts.join(' ')
-           : '<em style="color:#6b7280">ยังไม่ได้กรอกที่อยู่ทะเบียนบ้าน — กรุณากรอกด้านบนก่อน</em>');
-      preview.style.display = '';
-    }
-  } else {
-    if (fields)  fields.style.display  = '';
-    if (preview) preview.style.display = 'none';
-  }
-}
-
-/* ── reset address fields เมื่อเริ่มกรอกใหม่ ── */
-function _resetAddressFields() {
-  ['reg-house-no','reg-building','reg-moo','reg-soi','reg-road',
-   'reg-subdistrict','reg-district','reg-province','reg-zip',
-   'cur-house-no','cur-building','cur-moo','cur-soi','cur-road',
-   'cur-subdistrict','cur-district','cur-province','cur-zip'
-  ].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  var cb = document.getElementById('cur-same-as-home');
-  if (cb) { cb.checked = false; onCurSameAsHome(cb); }
 }
 </script>
 </body>
