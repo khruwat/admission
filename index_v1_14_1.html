@@ -1,9 +1,46 @@
 <!DOCTYPE html>
 <!--
    ระบบรับสมัครนักเรียน โรงเรียนหนองนาคำวิทยาคม
-   Student Enrollment System  v1.8.0  (index.html)
+   Student Enrollment System  v1.14.0  (index.html)
    ──────────────────────────────────────────────────
    CHANGELOG
+   v1.14.1 – 2569-03-17 – Bugfix
+              saveAllExamConfig: reload หลัง save เพื่อ sync ข้อมูล
+              doExportCSV: ส่ง filters object ให้ถูกต้องตาม GAS v1.18+
+   v1.14.0 – 2569-03-17 – ระบบคะแนนสอบ + Export/Import Google Sheet
+              sidebar: เพิ่ม 🎯 ระบบคะแนนสอบ
+              ตั้งค่าวิชา: level+plan, วิชา/max/weight%, GPA weight%, เกณฑ์ผ่าน
+              ตารางคะแนน: แสดงผลคำนวณ GPA+สอบ พร้อม breakdown
+              Export Google Sheet: แชร์ให้ครูกรอกคะแนน
+              Import: ดึงคะแนนกลับ + ประมวลผล → อัปเดตสถานะ ผ่าน/ไม่ผ่าน
+   v1.13.0 – 2569-03-17 – Export รายชื่อ PDF + Excel มืออาชีพ
+              Backup page: filter panel (ระดับ/แผน/สถานะ/ประเภท)
+              Export Excel (CSV): header ภาษาไทย ครบทุก field
+              Export PDF ใบลงชื่อ/ประกาศ: A4 landscape
+                header โรงเรียน + ตาราง + ลายมือชื่อ + footer
+                เรียงตาม APP_ID (ลำดับการสมัคร)
+   v1.12.0 – 2569-03-17 – Redesign ใบสมัครแบบมืออาชีพ
+              layout A4 portrait มาตรฐานราชการไทย
+              header: โลโก้ + ชื่อโรงเรียน + เลขที่ใบสมัคร + รูปถ่าย
+              ข้อมูล 6 section: ผู้สมัคร/บิดา/มารดา/ผู้ปกครอง/การศึกษา/การรายงานตัว
+              กรอบลายน้ำเลขที่ใบสมัคร, ช่องลายมือชื่อ 4 ช่อง
+              ช่องรับรองการรายงานตัว (สำหรับเจ้าหน้าที่)
+   v1.11.0 – 2569-03-17 – รอบ 2 + ย้ายเข้าไม่มีวันปิด + ตารางตามช่วงจริง
+              แก้ "(filtered)" text → badge แยกสวยงาม
+              Settings: section รอบ 2 สำหรับ ม.1 และ ม.4
+              public home: แสดง badge รอบ 2 + timeline รอบ 2
+              fillSettings/saveSettings: รองรับ field รอบ 2
+   v1.10.0 – 2569-03-17 – Announcement Popup + Export PDF ตารางรายวัน
+              Popup แจ้งประกาศ: ครั้งแรกต่อ session (sessionStorage)
+                รองรับ text / รูปภาพ / ทั้งคู่
+                ตั้งค่าใน Settings: ข้อความ, URL รูป, เปิด/ปิด popup
+              Export PDF ตารางรายวัน: print-to-PDF อัตโนมัติ
+                popup window สำหรับพิมพ์ → ปิดอัตโนมัติหลัง print
+   v1.9.0 – 2569-03-17 – Dashboard filter panel + ตารางรายวัน + Export CSV
+              Filter bar: ระดับ / เพศ / แผนการเรียน / โรงเรียนเดิม / สถานะ
+              ตารางสถิติรายวัน 30 วัน (ม.1 ชาย/หญิง/ในเขต/นอกเขต,
+                ม.4 ชาย/หญิง/ม.3เดิม/ม.3อื่น, รวม)
+              Export CSV ตารางรายวัน (พร้อม BOM UTF-8)
    v1.8.0 – 2569-03-17 – ระบุเพศจากคำนำหน้าชื่อ + แก้พื้นที่ว่าง admin tablet
               แสดงเพศในหน้าตรวจสอบสถานะ (GENDER badge)
               แก้ .admin-content ลบ overflow-y:auto → ป้องกันพื้นที่ว่างบน tablet
@@ -385,6 +422,73 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
 .info-label{color:var(--gray)}
 .info-value{font-weight:500}
 
+/* ── EXAM SYSTEM ── */
+.exam-config-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;transition:border .2s}
+.exam-config-card:hover{border-color:var(--primary-l)}
+.exam-config-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.exam-config-title{font-size:14px;font-weight:600;color:#1e293b}
+.subject-row{display:grid;grid-template-columns:1fr 100px 90px;gap:8px;align-items:center;margin-bottom:6px}
+.subject-row input{padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--r);font-family:'Kanit',sans-serif;font-size:13px;background:#fff}
+.subject-row input:focus{border-color:var(--primary-l);outline:none}
+.weight-bar-wrap{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:4px}
+.weight-bar{height:100%;border-radius:3px;transition:width .4s}
+.score-table{width:100%;border-collapse:collapse;font-size:12px}
+.score-table th{background:#1e293b;color:#fff;padding:7px 10px;text-align:center;white-space:nowrap;font-size:11px;border:1px solid #334155}
+.score-table th.sub-h{background:#2563b0}
+.score-table td{padding:5px 8px;border:1px solid #e2e8f0;vertical-align:middle}
+.score-table tr:nth-child(even) td{background:#f8fafc}
+.score-table .td-name{font-weight:500}
+.score-table .td-c{text-align:center}
+.score-table .td-score{text-align:center;font-weight:700}
+.score-table .td-pass{background:#dcfce7;color:#166534;font-weight:700}
+.score-table .td-fail{background:#fee2e2;color:#991b1b;font-weight:700}
+.score-bar{height:8px;border-radius:4px;margin-top:2px}
+.pct-pill{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600}
+.pct-pill.pass{background:#dcfce7;color:#166534}
+.pct-pill.fail{background:#fee2e2;color:#991b1b}
+#announce-popup-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1200;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(3px);
+  animation:fadeIn .25s ease
+}
+#announce-popup-overlay.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#announce-popup-box{
+  background:var(--white);border-radius:var(--r-xl);
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  width:100%;max-width:540px;max-height:90dvh;
+  overflow:hidden;display:flex;flex-direction:column;
+  animation:slideUp .28s cubic-bezier(.4,0,.2,1)
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.ap-header{
+  background:linear-gradient(135deg,#1e40af,#3b82f6);
+  color:#fff;padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0
+}
+.ap-header h3{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.ap-close{
+  width:28px;height:28px;background:rgba(255,255,255,.2);border:none;
+  border-radius:6px;color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;flex-shrink:0
+}
+.ap-close:hover{background:rgba(255,255,255,.35)}
+.ap-body{padding:20px;overflow-y:auto;flex:1}
+.ap-img{width:100%;border-radius:var(--r-lg);display:block;margin-bottom:14px;object-fit:contain;max-height:320px}
+.ap-text{font-size:14px;color:#1e293b;line-height:1.8;white-space:pre-line}
+.ap-footer{
+  padding:12px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;background:#f8fafc
+}
+.ap-footer-note{font-size:12px;color:var(--gray)}
+@media(max-width:540px){
+  #announce-popup-box{max-width:100%;border-radius:var(--r-xl) var(--r-xl) 0 0;position:fixed;bottom:0;left:0;right:0}
+  #announce-popup-overlay{align-items:flex-end;padding:0}
+}
+/* ── ANNOUNCE bar (existing) ── */
 .announce-bar{max-width:1200px;margin:0 auto;padding:0 20px 20px}
 .announce-box{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-lg);padding:14px 20px;display:flex;align-items:flex-start;gap:10px}
 .announce-icon{font-size:20px;flex-shrink:0}
@@ -401,7 +505,34 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
 /* PUBLIC DASHBOARD */
 .pub-dash{max-width:1200px;margin:0 auto;padding:0 20px 36px}
 
-/* ── QUICK-NAV BAR ── */
+/* ── DASHBOARD FILTER PANEL ── */
+.dash-filter-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.dash-filter-bar select,.dash-filter-bar input{padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--r);font-family:'Kanit',sans-serif;font-size:13px;background:#fff;min-width:130px;max-width:200px}
+.dash-filter-bar select:focus,.dash-filter-bar input:focus{border-color:var(--primary-l);outline:none}
+.dash-filter-bar label{font-size:12px;color:var(--gray);font-weight:500;white-space:nowrap}
+.dash-filter-group{display:flex;flex-direction:column;gap:3px}
+.dash-filter-group label{font-size:12px;color:var(--gray);font-weight:500;white-space:nowrap}
+.dash-filter-reset{margin-left:auto;background:#f1f5f9;color:#475569;border:1.5px solid var(--border);border-radius:var(--r);padding:7px 14px;font-size:13px;cursor:pointer;font-family:'Kanit',sans-serif;transition:all .2s}
+.dash-filter-reset:hover{background:#e2e8f0}
+/* ── DAILY TABLE ── */
+.daily-table-wrap{overflow-x:auto;border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.daily-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--white)}
+.daily-table thead tr:first-child th{background:#1e293b;color:#fff;padding:9px 12px;text-align:center;font-weight:600;border:1px solid #334155;white-space:nowrap}
+.daily-table thead tr:nth-child(2) th{background:#334155;color:#cbd5e1;padding:7px 10px;text-align:center;font-size:12px;border:1px solid #475569;white-space:nowrap}
+.daily-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+.daily-table tbody tr:hover{background:#f8fafc}
+.daily-table tbody td{padding:8px 12px;text-align:center;border-right:1px solid var(--border)}
+.daily-table tbody td:first-child{text-align:left;font-weight:500;white-space:nowrap;color:#1e293b;background:#f8fafc;position:sticky;left:0;z-index:1}
+.daily-table tfoot td{background:#f1f5f9;font-weight:700;padding:9px 12px;text-align:center;border-top:2px solid var(--border);border-right:1px solid var(--border)}
+.daily-table tfoot td:first-child{text-align:left;background:#e2e8f0;position:sticky;left:0}
+.daily-table .col-m1{background:#eff6ff}
+.daily-table .col-m4{background:#f0fdf4}
+.daily-table .col-total{background:#fefce8;font-weight:700}
+.daily-table .zero{color:#cbd5e1}
+@media(max-width:768px){
+  .dash-filter-bar{gap:8px}
+  .dash-filter-bar select,.dash-filter-bar input{min-width:100px;font-size:12px}
+}
 .quick-nav{max-width:1200px;margin:0 auto;padding:0 20px 28px}
 .quick-nav-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .qn-btn{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-xl);padding:18px 12px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);font-family:'Kanit',sans-serif;text-decoration:none;width:100%}
@@ -1803,6 +1934,7 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
       <div class="sidebar-section">เมนูหลัก</div>
       <div class="sidebar-item active" id="si-dash" onclick="showAdminPage('dash')"><span class="si-icon">📊</span>แดชบอร์ด</div>
       <div class="sidebar-item" id="si-apps" onclick="showAdminPage('apps')"><span class="si-icon">📋</span>ข้อมูลการสมัคร</div>
+      <div class="sidebar-item" id="si-exam" onclick="showAdminPage('exam')"><span class="si-icon">🎯</span>ระบบคะแนนสอบ</div>
       <div class="sidebar-section">ระบบ</div>
       <div class="sidebar-item" id="si-settings" onclick="showAdminPage('settings')"><span class="si-icon">⚙️</span>ตั้งค่าระบบ</div>
       <div class="sidebar-item" id="si-backup" onclick="showAdminPage('backup')"><span class="si-icon">💾</span>สำรอง/ส่งออก</div>
@@ -1829,22 +1961,84 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
     <div id="admin-dash" class="admin-page active">
       <div class="admin-page-header">
         <h2>📊 แดชบอร์ด</h2>
-        <button class="btn btn-outline btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="exportDailyPDF()">📄 Export PDF</button>
+          <button class="btn btn-outline btn-sm" onclick="exportDailyCSV()">📥 Export CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
+        </div>
       </div>
-      <!-- Row 1: Summary cards -->
+
+      <!-- Filter Panel -->
+      <div class="dash-filter-bar">
+        <div class="dash-filter-group">
+          <label>ระดับชั้น</label>
+          <select id="df-level" onchange="applyDashFilter()">
+            <option value="">ทุกระดับ</option>
+            <option value="ม.1">ม.1</option>
+            <option value="ม.4">ม.4</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>เพศ</label>
+          <select id="df-gender" onchange="applyDashFilter()">
+            <option value="">ทุกเพศ</option>
+            <option value="ชาย">ชาย</option>
+            <option value="หญิง">หญิง</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>แผนการเรียน</label>
+          <select id="df-plan" onchange="applyDashFilter()">
+            <option value="">ทุกแผน</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>โรงเรียนเดิม</label>
+          <select id="df-school" onchange="applyDashFilter()">
+            <option value="">ทุกโรงเรียน</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>สถานะ</label>
+          <select id="df-status" onchange="applyDashFilter()">
+            <option value="">ทุกสถานะ</option>
+            <option>สมัครแล้ว</option><option>ชำระเงินแล้ว</option>
+            <option>มีสิทธิ์สอบ</option><option>ผ่าน</option>
+            <option>ไม่ผ่าน</option><option>รายงานตัวแล้ว</option>
+          </select>
+        </div>
+        <button class="dash-filter-reset" onclick="resetDashFilter()">✕ รีเซ็ต</button>
+        <span id="df-result-count" style="font-size:12px;color:var(--gray);white-space:nowrap"></span>
+      </div>
+
+      <!-- Row 1: Summary cards (filtered) -->
       <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
         <div class="stat-card blue"><div class="stat-label">สมัครทั้งหมด</div><div class="stat-value" id="s-total">–</div></div>
         <div class="stat-card green"><div class="stat-label">ม.1</div><div class="stat-value" id="s-m1">–</div><div class="stat-sub" id="s-m1-quota"></div></div>
         <div class="stat-card amber"><div class="stat-label">ม.4</div><div class="stat-value" id="s-m4">–</div><div class="stat-sub" id="s-m4-quota"></div></div>
-        <div class="stat-card red"><div class="stat-label">มีสิทธิ์สอบ</div><div class="stat-value" id="s-eligible">–</div></div>
+        <div class="stat-card" style="border-left:4px solid #ec4899"><div class="stat-label">ชาย / หญิง</div><div class="stat-value" id="s-gender">–</div></div>
         <div class="stat-card" style="border-left:4px solid #8b5cf6"><div class="stat-label">ในเขตพื้นที่</div><div class="stat-value" id="s-inzone">–</div><div class="stat-sub" id="s-outzone"></div></div>
       </div>
+
       <!-- Row 2: Quota fill + status -->
       <div class="dash-grid mt-16">
         <div class="card"><div class="card-header"><h2>📘 สถิติ ม.1</h2></div><div class="card-body" id="dash-m1-stats"></div></div>
         <div class="card"><div class="card-header"><h2>📗 สถิติ ม.4</h2></div><div class="card-body" id="dash-m4-stats"></div></div>
       </div>
-      <!-- Row 3: Trend + type -->
+
+      <!-- Row 3: Gender + Study Plan -->
+      <div class="dash-grid mt-16">
+        <div class="card">
+          <div class="card-header"><h2>👥 เพศ แยกระดับ</h2></div>
+          <div class="card-body" id="dash-by-gender"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2>📚 แผนการเรียน</h2></div>
+          <div class="card-body" id="dash-by-plan"></div>
+        </div>
+      </div>
+
+      <!-- Row 4: Trend + type -->
       <div class="dash-grid mt-16">
         <div class="card">
           <div class="card-header"><h2>📈 แนวโน้มการสมัคร 14 วัน</h2></div>
@@ -1857,7 +2051,8 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
           <div class="card-body" id="dash-by-type"></div>
         </div>
       </div>
-      <!-- Row 4: Top schools + province -->
+
+      <!-- Row 5: Top schools + province -->
       <div class="dash-grid mt-16">
         <div class="card">
           <div class="card-header"><h2>🏫 โรงเรียนเดิม (Top 10)</h2></div>
@@ -1866,6 +2061,43 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
         <div class="card">
           <div class="card-header"><h2>🗺 จังหวัด</h2></div>
           <div class="card-body" id="dash-by-province"></div>
+        </div>
+      </div>
+
+      <!-- Row 6: ตารางสถิติรายวัน 30 วัน -->
+      <div class="card mt-16">
+        <div class="card-header" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px"><h2>📅 สถิติรายวัน (30 วัน)</h2></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="exportDailyPDF()">📄 PDF</button>
+            <button class="btn btn-outline btn-sm" onclick="exportDailyCSV()">📥 CSV</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="daily-table-wrap">
+            <table class="daily-table" id="daily-table">
+              <thead>
+                <tr>
+                  <th rowspan="2">วันที่</th>
+                  <th colspan="5">มัธยมศึกษาปีที่ 1</th>
+                  <th colspan="5">มัธยมศึกษาปีที่ 4</th>
+                  <th rowspan="2" class="col-total">รวม<br>ทั้งหมด</th>
+                </tr>
+                <tr>
+                  <th class="col-m1">ชาย</th><th class="col-m1">หญิง</th>
+                  <th class="col-m1">ในเขต</th><th class="col-m1">นอกเขต</th>
+                  <th class="col-m1">รวม</th>
+                  <th class="col-m4">ชาย</th><th class="col-m4">หญิง</th>
+                  <th class="col-m4">ม.3 เดิม</th><th class="col-m4">ม.3 รร.อื่น</th>
+                  <th class="col-m4">รวม</th>
+                </tr>
+              </thead>
+              <tbody id="daily-tbody">
+                <tr><td colspan="12" style="padding:24px;text-align:center;color:var(--gray)">⏳ กำลังโหลด...</td></tr>
+              </tbody>
+              <tfoot id="daily-tfoot"></tfoot>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -2074,7 +2306,67 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
         </div>
       </div>
 
-      <!-- ── ทั่วไป ── -->
+      <!-- ── รอบ 2 ── -->
+      <div class="card mt-16">
+        <div class="card-header">🔄 <h2>การรับสมัครรอบ 2</h2></div>
+        <div class="card-body">
+          <div class="form-hint" style="margin-bottom:16px;font-size:13px;color:#475569">
+            ⚠️ รอบ 2 จะเปิดรับสมัครต่อเนื่องจากรอบ 1 อัตโนมัติ เมื่อรอบ 1 หมดเขตแล้ว
+            ระบบจะตรวจช่วงรอบ 2 ให้เองโดยไม่ต้องปิดสวิตช์รอบ 1 ก่อน
+          </div>
+          <!-- เวลาเปิด/ปิด รอบ 2 (ใช้ร่วมกัน ม.1+ม.4) -->
+          <div class="grid-2" style="max-width:400px;margin-bottom:16px">
+            <div class="form-group">
+              <label>เวลาเปิดรับสมัคร (รอบ 2)</label>
+              <input type="time" id="cfg-reg2-open-time" class="form-control" value="08:30">
+            </div>
+            <div class="form-group">
+              <label>เวลาปิดรับสมัคร (รอบ 2)</label>
+              <input type="time" id="cfg-reg2-close-time" class="form-control" value="16:30">
+            </div>
+          </div>
+          <!-- ม.1 รอบ 2 -->
+          <div style="background:#eff6ff;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;border:1px solid #bfdbfe">
+            <div style="font-size:13px;font-weight:600;color:#1e40af;margin-bottom:10px">📘 ม.1 รอบ 2</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer">
+                <input type="checkbox" id="cfg-reg2-open-m1" style="width:16px;height:16px;cursor:pointer">
+                เปิดรับสมัครรอบ 2 (ม.1)
+              </label>
+            </div>
+            <div class="grid-2" style="max-width:440px">
+              <div class="form-group" style="margin-bottom:0">
+                <label>วันเปิดรับสมัคร รอบ 2</label>
+                <input type="date" id="cfg-m1-reg2-start" class="form-control">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label>วันปิดรับสมัคร รอบ 2</label>
+                <input type="date" id="cfg-m1-reg2-end" class="form-control">
+              </div>
+            </div>
+          </div>
+          <!-- ม.4 รอบ 2 -->
+          <div style="background:#f0fdf4;border-radius:var(--r);padding:14px 16px;border:1px solid #bbf7d0">
+            <div style="font-size:13px;font-weight:600;color:#15803d;margin-bottom:10px">📗 ม.4 รอบ 2</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer">
+                <input type="checkbox" id="cfg-reg2-open-m4" style="width:16px;height:16px;cursor:pointer">
+                เปิดรับสมัครรอบ 2 (ม.4)
+              </label>
+            </div>
+            <div class="grid-2" style="max-width:440px">
+              <div class="form-group" style="margin-bottom:0">
+                <label>วันเปิดรับสมัคร รอบ 2</label>
+                <input type="date" id="cfg-m4-reg2-start" class="form-control">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label>วันปิดรับสมัคร รอบ 2</label>
+                <input type="date" id="cfg-m4-reg2-end" class="form-control">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="card mt-16">
         <div class="card-header">💰 <h2>ทั่วไป</h2></div>
         <div class="card-body">
@@ -2084,8 +2376,20 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
             <div class="form-hint">กรอก 0 หากไม่มีค่าสมัคร</div>
           </div>
           <div class="form-group">
-            <label>ประกาศ / ข่าวสาร (แสดงบนหน้าแรก)</label>
+            <label>ประกาศ / ข่าวสาร</label>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer">
+                <input type="checkbox" id="cfg-announce-popup" style="width:16px;height:16px;cursor:pointer">
+                แสดงเป็น Popup เมื่อเปิดระบบ (ครั้งแรกต่อ session)
+              </label>
+            </div>
             <textarea id="cfg-announce" class="form-control" rows="3" placeholder="ว่างไว้หากไม่ต้องการแสดงประกาศ"></textarea>
+            <div class="form-hint">ข้อความประกาศ (รองรับ line break)</div>
+            <div class="form-group" style="margin-top:10px;margin-bottom:0">
+              <label>URL รูปภาพประกาศ (ไม่บังคับ)</label>
+              <input type="url" id="cfg-announce-image" class="form-control" placeholder="https://drive.google.com/uc?id=...">
+              <div class="form-hint">วาง URL รูปจาก Google Drive หรือ URL รูปภาพใดก็ได้ — แสดงเหนือข้อความในป๊อปอัป</div>
+            </div>
           </div>
         </div>
       </div>
@@ -2322,24 +2626,233 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
     <!-- Backup -->
     <div id="admin-backup" class="admin-page">
       <div class="admin-page-header"><h2>💾 สำรองข้อมูล / ส่งออก</h2></div>
+
+      <!-- ── ส่งออกรายชื่อ (หลัก) ── -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header" style="background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border-radius:var(--r-lg) var(--r-lg) 0 0">
+          <h2 style="color:#fff">📋 ส่งออกรายชื่อผู้สมัคร</h2>
+        </div>
+        <div class="card-body">
+
+          <!-- Filter row -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
+            <div class="dash-filter-group">
+              <label>ระดับชั้น</label>
+              <select id="exp-level" class="form-control" onchange="onExpFilterChange()">
+                <option value="">ทุกระดับ</option>
+                <option value="ม.1">ม.1</option>
+                <option value="ม.4">ม.4</option>
+                <option value="ย้ายเข้า">ย้ายเข้า</option>
+              </select>
+            </div>
+            <div class="dash-filter-group">
+              <label>แผนการเรียน</label>
+              <select id="exp-plan" class="form-control">
+                <option value="">ทุกแผน</option>
+              </select>
+            </div>
+            <div class="dash-filter-group">
+              <label>สถานะ</label>
+              <select id="exp-status" class="form-control">
+                <option value="">ทุกสถานะ</option>
+                <option>สมัครแล้ว</option><option>ชำระเงินแล้ว</option>
+                <option>มีสิทธิ์สอบ</option><option>ผ่าน</option>
+                <option>ไม่ผ่าน</option><option>รายงานตัวแล้ว</option>
+              </select>
+            </div>
+            <div class="dash-filter-group">
+              <label>ประเภทการสมัคร</label>
+              <select id="exp-apptype" class="form-control">
+                <option value="">ทุกประเภท</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Document title preview -->
+          <div style="background:#f0f4fb;border:1px solid #c7d7f5;border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:13px">
+            <span style="color:#888;font-size:11px">ชื่อเอกสาร:</span><br>
+            <strong id="exp-doc-title" style="color:#1e3a8a">รายชื่อผู้สมัครเข้าเรียน — โหลดข้อมูล...</strong>
+          </div>
+
+          <!-- Export buttons -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <button class="btn btn-primary" style="gap:8px" onclick="doExportListPDF()">
+              <span style="font-size:16px">📄</span>
+              <div style="text-align:left">
+                <div style="font-size:13px;font-weight:600">Export PDF</div>
+                <div style="font-size:10px;opacity:.8">ใบลงชื่อ / ประกาศเลขที่นั่งสอบ</div>
+              </div>
+            </button>
+            <button class="btn btn-success" style="gap:8px" onclick="doExportListExcel()">
+              <span style="font-size:16px">📊</span>
+              <div style="text-align:left">
+                <div style="font-size:13px;font-weight:600">Export Excel</div>
+                <div style="font-size:10px;opacity:.8">CSV พร้อมเปิดใน Excel ทันที</div>
+              </div>
+            </button>
+            <div id="exp-count-badge" style="margin-left:auto;font-size:12px;color:var(--gray);background:#f1f5f9;padding:4px 12px;border-radius:12px;border:1px solid var(--border)">
+              — รายการ
+            </div>
+          </div>
+
+          <!-- Loading indicator -->
+          <div id="exp-loading" style="display:none;margin-top:12px;font-size:13px;color:var(--gray)">⏳ กำลังดึงข้อมูล...</div>
+        </div>
+      </div>
+
+      <!-- ── Backup + CSV เดิม (ย้ายไปด้านล่าง) ── -->
       <div class="dash-grid">
         <div class="card">
           <div class="card-header">🗂 <h2>สำรองข้อมูลทั้งหมด (Backup)</h2></div>
           <div class="card-body">
-            <p class="text-sm text-gray" style="margin-bottom:16px">ส่งออกข้อมูลทุก Sheet เป็นไฟล์ JSON สำหรับสำรองข้อมูลหรือ restore ในอนาคต</p>
+            <p class="text-sm text-gray" style="margin-bottom:16px">ส่งออกข้อมูลทุก Sheet เป็นไฟล์ JSON สำหรับสำรองข้อมูล</p>
             <button class="btn btn-primary" onclick="doBackup()">⬇️ ดาวน์โหลด Backup (JSON)</button>
             <div id="backup-status" class="mt-12"></div>
           </div>
         </div>
         <div class="card">
-          <div class="card-header">📊 <h2>ส่งออกใบสมัคร (Excel/CSV)</h2></div>
+          <div class="card-header">📊 <h2>ส่งออกข้อมูลดิบ (CSV ทุก field)</h2></div>
           <div class="card-body">
-            <p class="text-sm text-gray" style="margin-bottom:16px">ส่งออกรายชื่อผู้สมัครเป็นไฟล์ CSV เพื่อเปิดใน Excel</p>
+            <p class="text-sm text-gray" style="margin-bottom:16px">ส่งออกรายชื่อผู้สมัครพร้อมข้อมูลทุก field เป็น CSV</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn btn-success" onclick="doExportCSV('ม.1')">⬇️ ส่งออก ม.1 (CSV)</button>
-              <button class="btn btn-success" onclick="doExportCSV('ม.4')">⬇️ ส่งออก ม.4 (CSV)</button>
-              <button class="btn btn-outline" onclick="doExportCSV('')">⬇️ ส่งออกทั้งหมด</button>
+              <button class="btn btn-success btn-sm" onclick="doExportCSV('ม.1')">⬇️ ม.1 (CSV)</button>
+              <button class="btn btn-success btn-sm" onclick="doExportCSV('ม.4')">⬇️ ม.4 (CSV)</button>
+              <button class="btn btn-outline btn-sm"  onclick="doExportCSV('')">⬇️ ทั้งหมด</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXAM SYSTEM ── -->
+    <div id="admin-exam" class="admin-page">
+      <div class="admin-page-header">
+        <h2>🎯 ระบบคะแนนสอบ</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="loadExamPage()">🔄 รีเฟรช</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:0">
+        <button class="exam-tab active" id="exam-tab-config"  onclick="switchExamTab('config')"  style="padding:8px 18px;border:none;background:transparent;font-family:'Kanit',sans-serif;font-size:14px;cursor:pointer;border-bottom:3px solid var(--primary);color:var(--primary);font-weight:600;margin-bottom:-2px">⚙️ ตั้งค่าวิชาสอบ</button>
+        <button class="exam-tab"        id="exam-tab-scores" onclick="switchExamTab('scores')" style="padding:8px 18px;border:none;background:transparent;font-family:'Kanit',sans-serif;font-size:14px;cursor:pointer;border-bottom:3px solid transparent;color:var(--gray);margin-bottom:-2px">📊 ผลคะแนน</button>
+        <button class="exam-tab"        id="exam-tab-sheet"  onclick="switchExamTab('sheet')"  style="padding:8px 18px;border:none;background:transparent;font-family:'Kanit',sans-serif;font-size:14px;cursor:pointer;border-bottom:3px solid transparent;color:var(--gray);margin-bottom:-2px">🔗 Google Sheet</button>
+      </div>
+
+      <!-- TAB: ตั้งค่าวิชาสอบ -->
+      <div id="exam-pane-config" class="exam-pane">
+        <div class="card">
+          <div class="card-header" style="justify-content:space-between">
+            <h2>⚙️ ตั้งค่าวิชาสอบ ต่อ ระดับ/แผน</h2>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-outline btn-sm" onclick="addExamConfig()">+ เพิ่มชุดวิชา</button>
+              <button class="btn btn-primary btn-sm" onclick="saveAllExamConfig()">💾 บันทึกทั้งหมด</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:16px">
+              💡 <strong>วิธีใช้:</strong> กำหนด weight % ของแต่ละวิชา + GPA weight % ให้รวมกันได้ 100% พอดี
+              เกณฑ์ผ่าน = คะแนนรวม (%) ≥ เกณฑ์ที่กำหนด
+            </div>
+            <div id="exam-config-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: ผลคะแนน -->
+      <div id="exam-pane-scores" class="exam-pane" style="display:none">
+        <div class="card">
+          <div class="card-header" style="justify-content:space-between">
+            <h2>📊 ตารางคะแนนและผลการพิจารณา</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <select id="score-filter-level" class="form-control" style="max-width:120px" onchange="loadScoreTable()">
+                <option value="">ทุกระดับ</option>
+                <option value="ม.1">ม.1</option><option value="ม.4">ม.4</option>
+              </select>
+              <select id="score-filter-plan" class="form-control" style="max-width:160px" onchange="loadScoreTable()">
+                <option value="">ทุกแผน</option>
+              </select>
+              <button class="btn btn-warning btn-sm" onclick="doCalculateResults()">⚡ ประมวลผล + อัปเดตสถานะ</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0">
+            <div style="overflow-x:auto">
+              <table class="score-table" id="score-result-table">
+                <thead><tr><th colspan="10" style="text-align:center;padding:12px">กรุณาเลือก ระดับ และแผนการเรียน แล้วกด "ประมวลผล"</th></tr></thead>
+                <tbody id="score-result-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Google Sheet -->
+      <div id="exam-pane-sheet" class="exam-pane" style="display:none">
+        <div class="card">
+          <div class="card-header"><h2>🔗 Export / Import Google Sheet สำหรับครูกรอกคะแนน</h2></div>
+          <div class="card-body">
+
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--r);padding:12px 16px;margin-bottom:20px;font-size:13px">
+              <strong>ขั้นตอน:</strong><br>
+              1️⃣ เลือกระดับชั้นและแผนการเรียน → กด <strong>"สร้าง Google Sheet"</strong><br>
+              2️⃣ แชร์ link ให้ครูผู้ตรวจกรอกคะแนนในช่องสีเหลือง<br>
+              3️⃣ เมื่อครูกรอกครบ → วาง URL Sheet แล้วกด <strong>"นำเข้าคะแนน"</strong><br>
+              4️⃣ ไปที่ Tab ผลคะแนน → กด <strong>"ประมวลผล"</strong> เพื่ออัปเดตสถานะ
+            </div>
+
+            <div class="grid-2" style="margin-bottom:20px">
+              <!-- Export section -->
+              <div style="border:1.5px solid var(--border);border-radius:var(--r-lg);padding:16px">
+                <div style="font-size:14px;font-weight:600;margin-bottom:12px">📤 สร้าง Google Sheet ให้ครูกรอกคะแนน</div>
+                <div class="form-group">
+                  <label>ระดับชั้น <span class="req">*</span></label>
+                  <select id="sheet-exp-level" class="form-control" onchange="onSheetLevelChange()">
+                    <option value="">-- เลือกระดับ --</option>
+                    <option value="ม.1">ม.1</option><option value="ม.4">ม.4</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>แผนการเรียน (ถ้ามี)</label>
+                  <select id="sheet-exp-plan" class="form-control">
+                    <option value="">ทุกแผน / ไม่ระบุ</option>
+                  </select>
+                </div>
+                <div id="sheet-exp-preview" style="font-size:12px;color:var(--gray);margin-bottom:12px;min-height:18px"></div>
+                <button class="btn btn-success" onclick="doExportScoreSheet()">
+                  📊 สร้าง Google Sheet
+                </button>
+                <div id="sheet-exp-result" style="margin-top:10px;font-size:13px"></div>
+              </div>
+              <!-- Import section -->
+              <div style="border:1.5px solid var(--border);border-radius:var(--r-lg);padding:16px">
+                <div style="font-size:14px;font-weight:600;margin-bottom:12px">📥 นำเข้าคะแนนจาก Google Sheet</div>
+                <div class="form-group">
+                  <label>ระดับชั้น <span class="req">*</span></label>
+                  <select id="sheet-imp-level" class="form-control">
+                    <option value="">-- เลือกระดับ --</option>
+                    <option value="ม.1">ม.1</option><option value="ม.4">ม.4</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>แผนการเรียน (ถ้ามี)</label>
+                  <select id="sheet-imp-plan" class="form-control">
+                    <option value="">ทุกแผน / ไม่ระบุ</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>URL Google Sheet ที่ครูกรอกแล้ว <span class="req">*</span></label>
+                  <input type="url" id="sheet-imp-url" class="form-control" placeholder="https://docs.google.com/spreadsheets/d/...">
+                </div>
+                <button class="btn btn-primary" onclick="doImportScoreSheet()">
+                  📥 นำเข้าคะแนน
+                </button>
+                <div id="sheet-imp-result" style="margin-top:10px;font-size:13px"></div>
+              </div>
+            </div>
+
+            <!-- ประวัติ Sheet ที่สร้างไว้ -->
+            <div id="sheet-history" style="font-size:12px;color:var(--gray)"></div>
           </div>
         </div>
       </div>
@@ -2396,6 +2909,24 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
 </div>
 
 </main>
+
+<!-- ── ANNOUNCEMENT POPUP ── -->
+<div id="announce-popup-overlay">
+  <div id="announce-popup-box">
+    <div class="ap-header">
+      <h3>📢 <span id="ap-title">ประกาศ / ข่าวสาร</span></h3>
+      <button class="ap-close" onclick="closeAnnouncePopup()" title="ปิด">✕</button>
+    </div>
+    <div class="ap-body">
+      <img id="ap-img" class="ap-img" src="" alt="ประกาศ" style="display:none">
+      <div id="ap-text" class="ap-text"></div>
+    </div>
+    <div class="ap-footer">
+      <span class="ap-footer-note">💡 ประกาศจะแสดงครั้งแรกเมื่อเปิดระบบเท่านั้น</span>
+      <button class="btn btn-primary btn-sm" onclick="closeAnnouncePopup()">รับทราบ</button>
+    </div>
+  </div>
+</div>
 
 <!-- SITE FOOTER -->
 <footer id="site-footer" style="
@@ -3353,17 +3884,31 @@ function applySettings() {
   setText('m4-exam-date-text',   fmtDateTH(c.M4_EXAM_DATE)   || '–');
   setText('m1-result-date-text', fmtDateTH(c.M1_RESULT_DATE) || '–');
   setText('m4-result-date-text', fmtDateTH(c.M4_RESULT_DATE) || '–');
-  const m1o = String(c.REG_OPEN_M1) !== 'false';
-  const m4o = String(c.REG_OPEN_M4) !== 'false';
-  setEl('m1-open-badge', m1o ? '<span class="badge badge-green">เปิดรับสมัคร ✅</span>' : '<span class="badge badge-red">ปิดรับสมัคร ❌</span>');
-  setEl('m4-open-badge', m4o ? '<span class="badge badge-green">เปิดรับสมัคร ✅</span>' : '<span class="badge badge-red">ปิดรับสมัคร ❌</span>');
+  const m1o  = String(c.REG_OPEN_M1) !== 'false';
+  const m4o  = String(c.REG_OPEN_M4) !== 'false';
+  const m1o2 = String(c.REG2_OPEN_M1) === 'true';
+  const m4o2 = String(c.REG2_OPEN_M4) === 'true';
+  function _openBadge(open1, open2) {
+    if (open1) return '<span class="badge badge-green">เปิดรับสมัคร รอบ 1 ✅</span>';
+    if (open2) return '<span class="badge badge-amber">เปิดรับสมัคร รอบ 2 ✅</span>';
+    return '<span class="badge badge-red">ปิดรับสมัคร ❌</span>';
+  }
+  setEl('m1-open-badge', _openBadge(m1o, m1o2));
+  setEl('m4-open-badge', _openBadge(m4o, m4o2));
   const b1 = document.getElementById('btn-reg-m1');
   const b4 = document.getElementById('btn-reg-m4');
-  if (b1) b1.disabled = !m1o;
-  if (b4) b4.disabled = !m4o;
-  const ann = c.ANNOUNCEMENT || '';
+  if (b1) b1.disabled = !m1o && !m1o2;
+  if (b4) b4.disabled = !m4o && !m4o2;
+  const ann     = c.ANNOUNCEMENT  || '';
+  const annImg  = c.ANNOUNCE_IMAGE || '';
+  const annPop  = String(c.ANNOUNCE_POPUP) !== 'false';
+  // announce-bar (fallback เมื่อปิด popup)
   const annArea = document.getElementById('announce-area');
-  if (annArea) { annArea.style.display = ann ? '' : 'none'; if (ann) setText('announce-text', ann); }
+  if (annArea) { annArea.style.display = (!annPop && ann) ? '' : 'none'; if (!annPop && ann) setText('announce-text', ann); }
+  // popup — แสดงครั้งแรกต่อ session เท่านั้น
+  if (annPop && (ann || annImg) && !sessionStorage.getItem('ann_shown')) {
+    showAnnouncePopup(ann, annImg);
+  }
 
   // ── Footer ──
   setText('footer-school',      fn);
@@ -3544,7 +4089,7 @@ function showAdminPage(p) {
   if (si) si.classList.add('active');
   // อัปเดต mobile title bar
   const titleMap = {
-    dash:'📊 แดชบอร์ด', apps:'📋 ข้อมูลการสมัคร',
+    dash:'📊 แดชบอร์ด', apps:'📋 ข้อมูลการสมัคร', exam:'🎯 ระบบคะแนนสอบ',
     settings:'⚙️ ตั้งค่าระบบ', backup:'💾 สำรอง/ส่งออก',
     log:'📜 บันทึกการใช้งาน', users:'👥 จัดการผู้ใช้',
     changepwd:'🔑 เปลี่ยนรหัสผ่าน'
@@ -3558,7 +4103,8 @@ function showAdminPage(p) {
   if (p === 'log')      loadAuditLog();
   if (p === 'users')    loadUsers();
   if (p === 'settings') fillSettings();
-  if (p === 'backup')   {} // static page
+  if (p === 'backup')   onExpFilterChange();
+  if (p === 'exam')     loadExamPage();
 }
 
 function showNavAdmin(on) {
@@ -5246,10 +5792,14 @@ function loadPublicStats() {
       </div>`;
     }
     const items = [
-      tlItem('📝','เปิดรับสมัคร ม.1', s.m1RegStart, s.m1Open ? '✅ เปิดรับสมัครแล้ว' : ''),
-      tlItem('🚫','ปิดรับสมัคร ม.1',  s.m1RegEnd,   ''),
-      tlItem('📝','เปิดรับสมัคร ม.4', s.m4RegStart, s.m4Open ? '✅ เปิดรับสมัครแล้ว' : ''),
-      tlItem('🚫','ปิดรับสมัคร ม.4',  s.m4RegEnd,   ''),
+      tlItem('📝','เปิดรับสมัคร ม.1 (รอบ 1)', s.m1RegStart, s.m1Open ? '✅ เปิดอยู่' : ''),
+      tlItem('🚫','ปิดรับสมัคร ม.1 (รอบ 1)',  s.m1RegEnd,   ''),
+      tlItem('🔄','เปิดรับสมัคร ม.1 (รอบ 2)', s.m1Reg2Start, s.m1Open2 ? '✅ เปิดอยู่' : ''),
+      tlItem('🚫','ปิดรับสมัคร ม.1 (รอบ 2)',  s.m1Reg2End,  ''),
+      tlItem('📝','เปิดรับสมัคร ม.4 (รอบ 1)', s.m4RegStart, s.m4Open ? '✅ เปิดอยู่' : ''),
+      tlItem('🚫','ปิดรับสมัคร ม.4 (รอบ 1)',  s.m4RegEnd,   ''),
+      tlItem('🔄','เปิดรับสมัคร ม.4 (รอบ 2)', s.m4Reg2Start, s.m4Open2 ? '✅ เปิดอยู่' : ''),
+      tlItem('🚫','ปิดรับสมัคร ม.4 (รอบ 2)',  s.m4Reg2End,  ''),
       tlItem('✏️','วันสอบ ม.1',       s.m1ExamDate, s.m1ExamTime||''),
       tlItem('✏️','วันสอบ ม.4',       s.m4ExamDate, s.m4ExamTime||''),
       tlItem('📢','ประกาศผล ม.1',     s.m1ResultDate,''),
@@ -5262,74 +5812,275 @@ function loadPublicStats() {
 }
 
 /* ─── ADMIN DASHBOARD ─── */
+/* ─── DASHBOARD STATE ─── */
+var _dashStats = null; // เก็บ raw stats จาก GAS
+
 function loadDashboard() {
   run('getStats', S.token, function(s) {
     if (!s) return;
-    setText('s-total',   s.total);
-    setText('s-m1',      s.m1Total);
-    setText('s-m4',      s.m4Total);
-    setText('s-eligible',(s.byStatus['มีสิทธิ์สอบ']||0)+(s.byStatus['ผ่าน']||0));
-    setText('s-m1-quota','เป้าหมาย '+s.m1Quota+' คน');
-    setText('s-m4-quota','เป้าหมาย '+s.m4Quota+' คน');
-    if (s.inZone !== null) {
-      setText('s-inzone', s.inZone);
-      setText('s-outzone','นอกเขต '+(s.outZone||0)+' คน');
-    } else { setText('s-inzone','–'); setText('s-outzone','ยังไม่ตั้งค่าเขตพื้นที่'); }
-
-    const ST = ['สมัครแล้ว','ชำระเงินแล้ว','มีสิทธิ์สอบ','ผ่าน','ไม่ผ่าน'];
-    const CL = ['#94a3b8','#3b82f6','#f59e0b','#22c55e','#ef4444'];
-    function mkStats(bySt, quota) {
-      const filled = (bySt['มีสิทธิ์สอบ']||0)+(bySt['ผ่าน']||0);
-      const pct = quota ? Math.min(100,Math.round(filled/quota*100)) : 0;
-      return `<div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:4px">
-          <span>เต็มโควตา</span><span>${filled}/${quota} คน (${pct}%)</span></div>
-        <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${pct>=100?'#ef4444':'#22c55e'};border-radius:5px;transition:width .5s"></div>
-        </div></div>`
-      + ST.map((st,i) => {
-        const n = bySt[st]||0, p = quota ? Math.min(100,n/quota*100) : 0;
-        return `<div class="progress-row"><div class="progress-label"><span>${st}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${CL[i]}"></div></div></div>`;
-      }).join('');
-    }
-    setEl('dash-m1-stats', mkStats(s.m1ByStatus, s.m1Quota));
-    setEl('dash-m4-stats', mkStats(s.m4ByStatus, s.m4Quota));
-
-    // Trend 14 วัน
-    const trend = s.dailyTrend||{}, maxV = Math.max(...Object.values(trend),1);
-    setEl('dash-trend', Object.entries(trend).map(([d,n]) =>
-      `<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-        <div style="font-size:9px;font-weight:600;color:var(--primary)">${n||''}</div>
-        <div style="width:100%;background:var(--primary-l);border-radius:2px 2px 0 0;height:${n?Math.max(5,n/maxV*56):3}px;opacity:${n?1:.25}"></div>
-        <div style="font-size:8px;color:var(--gray)">${d.slice(5)}</div>
-      </div>`).join(''));
-
-    // By type
-    const byType = s.byType||{};
-    setEl('dash-by-type', Object.entries(byType).length
-      ? Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([t,n]) =>
-          `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${t}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill pf-blue" style="width:${s.total?Math.round(n/s.total*100):0}%"></div></div></div>`
-        ).join('')
-      : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
-
-    // Top schools
-    setEl('dash-top-schools', (s.topSchools||[]).length
-      ? `<div style="display:flex;flex-direction:column;gap:5px">${(s.topSchools||[]).map((sc,i) =>
-          `<div style="display:flex;align-items:center;gap:8px;font-size:13px">
-            <span style="width:20px;text-align:center;font-weight:600;color:var(--gray)">${i+1}</span>
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${sc.name}">${sc.name}</span>
-            <span class="badge badge-blue">${sc.count}</span>
-          </div>`).join('')}</div>`
-      : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
-
-    // By province
-    const byProv = s.byProvince||{};
-    setEl('dash-by-province', Object.entries(byProv).length
-      ? Object.entries(byProv).sort((a,b)=>b[1]-a[1]).map(([p,n]) =>
-          `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${p}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill" style="width:${s.total?Math.round(n/s.total*100):0}%;background:#8b5cf6"></div></div></div>`
-        ).join('')
-      : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
+    _dashStats = s;
+    // populate filter dropdowns
+    _fillDashFilterDropdowns(s);
+    // render ด้วยข้อมูลดิบ (ไม่มี filter)
+    _renderDashboard(s, {});
+    // ตารางรายวัน
+    _renderDailyTable(s.dailyDetailedTrend || {});
   });
+}
+
+function _fillDashFilterDropdowns(s) {
+  // แผนการเรียน
+  const planSel = document.getElementById('df-plan');
+  const curPlan = planSel ? planSel.value : '';
+  const plans = new Set();
+  Object.keys(s.m1ByStudyPlan||{}).forEach(p => plans.add(p));
+  Object.keys(s.m4ByStudyPlan||{}).forEach(p => plans.add(p));
+  if (planSel) {
+    planSel.innerHTML = '<option value="">ทุกแผน</option>' +
+      [...plans].sort().map(p => `<option value="${p}"${p===curPlan?' selected':''}>${p}</option>`).join('');
+  }
+  // โรงเรียนเดิม
+  const schSel = document.getElementById('df-school');
+  const curSch = schSel ? schSel.value : '';
+  if (schSel) {
+    schSel.innerHTML = '<option value="">ทุกโรงเรียน</option>' +
+      (s.allSchools||[]).map(sc => `<option value="${sc}"${sc===curSch?' selected':''}>${sc}</option>`).join('');
+  }
+}
+
+function applyDashFilter() {
+  if (!_dashStats) return;
+  const f = {
+    level:  document.getElementById('df-level')  ? document.getElementById('df-level').value  : '',
+    gender: document.getElementById('df-gender') ? document.getElementById('df-gender').value : '',
+    plan:   document.getElementById('df-plan')   ? document.getElementById('df-plan').value   : '',
+    school: document.getElementById('df-school') ? document.getElementById('df-school').value : '',
+    status: document.getElementById('df-status') ? document.getElementById('df-status').value : '',
+  };
+  _renderDashboard(_dashStats, f);
+}
+
+function resetDashFilter() {
+  ['df-level','df-gender','df-plan','df-school','df-status'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  applyDashFilter();
+}
+
+function _renderDashboard(s, f) {
+  // ─── Summary cards ───
+  // ใช้ข้อมูล pre-aggregated จาก GAS (filter client-side ไม่ได้มี raw rows)
+  // แสดง filtered count เฉพาะเมื่อไม่มี filter (full data) หรือแสดง note
+  const hasFilter = Object.values(f).some(v => v !== '');
+  const filterBadge = hasFilter
+    ? ' <span style="font-size:11px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-weight:500;vertical-align:middle">filtered</span>'
+    : '';
+
+  setText('s-total',   s.total);
+  const totalEl = document.getElementById('s-total');
+  if (totalEl && hasFilter) totalEl.innerHTML = s.total + filterBadge;
+  setText('s-m1',      s.m1Total);
+  setText('s-m4',      s.m4Total);
+  setText('s-m1-quota','เป้าหมาย '+s.m1Quota+' คน');
+  setText('s-m4-quota','เป้าหมาย '+s.m4Quota+' คน');
+
+  // Gender card
+  const gM1 = s.m1ByGender||{}, gM4 = s.m4ByGender||{};
+  const totalMale   = (gM1.ชาย||0)+(gM4.ชาย||0);
+  const totalFemale = (gM1.หญิง||0)+(gM4.หญิง||0);
+  setText('s-gender', totalMale + ' / ' + totalFemale);
+
+  if (s.inZone !== null) {
+    setText('s-inzone', s.inZone);
+    setText('s-outzone','นอกเขต '+(s.outZone||0)+' คน');
+  } else { setText('s-inzone','–'); setText('s-outzone','ยังไม่ตั้งค่าเขตพื้นที่'); }
+
+  // ─── filter result count note ───
+  const countEl = document.getElementById('df-result-count');
+  if (countEl) countEl.textContent = hasFilter ? '* สรุปภาพรวมยังคงแสดงข้อมูลทั้งหมด' : '';
+
+  const ST = ['สมัครแล้ว','ชำระเงินแล้ว','มีสิทธิ์สอบ','ผ่าน','ไม่ผ่าน'];
+  const CL = ['#94a3b8','#3b82f6','#f59e0b','#22c55e','#ef4444'];
+  function mkStats(bySt, quota) {
+    const filled = (bySt['มีสิทธิ์สอบ']||0)+(bySt['ผ่าน']||0);
+    const pct = quota ? Math.min(100,Math.round(filled/quota*100)) : 0;
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:4px">
+        <span>เต็มโควตา</span><span>${filled}/${quota} คน (${pct}%)</span></div>
+      <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${pct>=100?'#ef4444':'#22c55e'};border-radius:5px;transition:width .5s"></div>
+      </div></div>`
+    + ST.map((st,i) => {
+      const n = bySt[st]||0, p = quota ? Math.min(100,n/quota*100) : 0;
+      return `<div class="progress-row"><div class="progress-label"><span>${st}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${CL[i]}"></div></div></div>`;
+    }).join('');
+  }
+  setEl('dash-m1-stats', mkStats(s.m1ByStatus, s.m1Quota));
+  setEl('dash-m4-stats', mkStats(s.m4ByStatus, s.m4Quota));
+
+  // ─── Gender breakdown ───
+  function genderRow(label, male, female) {
+    const total = male + female;
+    const mp = total ? Math.round(male/total*100) : 0;
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;margin-bottom:4px">
+        <span>${label}</span>
+        <span style="color:var(--gray)">ชาย <strong style="color:#3b82f6">${male}</strong> · หญิง <strong style="color:#ec4899">${female}</strong> · รวม ${total}</span>
+      </div>
+      <div style="height:10px;border-radius:5px;overflow:hidden;display:flex">
+        <div style="width:${mp}%;background:#3b82f6;transition:width .5s"></div>
+        <div style="flex:1;background:#fce7f3"></div>
+      </div></div>`;
+  }
+  setEl('dash-by-gender',
+    genderRow('📘 ม.1', gM1.ชาย||0, gM1.หญิง||0) +
+    genderRow('📗 ม.4', gM4.ชาย||0, gM4.หญิง||0) +
+    genderRow('📊 รวม', totalMale, totalFemale)
+  );
+
+  // ─── Study Plan ───
+  function planList(byPlan, levelColor) {
+    const entries = Object.entries(byPlan||{}).sort((a,b)=>b[1]-a[1]);
+    if (!entries.length) return '<div class="text-center text-gray text-sm" style="padding:12px">ยังไม่มีข้อมูล</div>';
+    const total = entries.reduce((s,[,n])=>s+n,0);
+    return entries.map(([p,n]) => {
+      const pct = total ? Math.round(n/total*100) : 0;
+      return `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${p}</span><span>${n} คน (${pct}%)</span></div><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${levelColor}"></div></div></div>`;
+    }).join('');
+  }
+  // กรองตาม df-level
+  const lvFilter = f.level || '';
+  let planHTML = '';
+  if (!lvFilter || lvFilter === 'ม.1') planHTML += `<div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:6px;margin-top:4px">📘 ม.1</div>` + planList(s.m1ByStudyPlan, '#3b82f6');
+  if (!lvFilter || lvFilter === 'ม.4') planHTML += `<div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:6px;margin-top:12px">📗 ม.4</div>` + planList(s.m4ByStudyPlan, '#10b981');
+  setEl('dash-by-plan', planHTML);
+
+  // ─── Trend 14 วัน ───
+  const trend = s.dailyTrend||{}, maxV = Math.max(...Object.values(trend),1);
+  setEl('dash-trend', Object.entries(trend).map(([d,n]) =>
+    `<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="font-size:9px;font-weight:600;color:var(--primary)">${n||''}</div>
+      <div style="width:100%;background:var(--primary-l);border-radius:2px 2px 0 0;height:${n?Math.max(5,n/maxV*56):3}px;opacity:${n?1:.25}"></div>
+      <div style="font-size:8px;color:var(--gray)">${d.slice(5)}</div>
+    </div>`).join(''));
+
+  // ─── By Type ───
+  const byType = s.byType||{};
+  setEl('dash-by-type', Object.entries(byType).length
+    ? Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([t,n]) =>
+        `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${t}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill pf-blue" style="width:${s.total?Math.round(n/s.total*100):0}%"></div></div></div>`
+      ).join('')
+    : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
+
+  // ─── Top Schools ───
+  setEl('dash-top-schools', (s.topSchools||[]).length
+    ? `<div style="display:flex;flex-direction:column;gap:5px">${(s.topSchools||[]).map((sc,i) =>
+        `<div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="width:20px;text-align:center;font-weight:600;color:var(--gray)">${i+1}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${sc.name}">${sc.name}</span>
+          <span class="badge badge-blue">${sc.count}</span>
+        </div>`).join('')}</div>`
+    : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
+
+  // ─── By Province ───
+  const byProv = s.byProvince||{};
+  setEl('dash-by-province', Object.entries(byProv).length
+    ? Object.entries(byProv).sort((a,b)=>b[1]-a[1]).map(([p,n]) =>
+        `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${p}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill" style="width:${s.total?Math.round(n/s.total*100):0}%;background:#8b5cf6"></div></div></div>`
+      ).join('')
+    : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
+}
+
+/* ─── DAILY TABLE ─── */
+function _renderDailyTable(trend) {
+  const dates = Object.keys(trend).sort();
+  if (!dates.length) {
+    document.getElementById('daily-tbody').innerHTML =
+      '<tr><td colspan="12" style="padding:24px;text-align:center;color:var(--gray)">ยังไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  // totals
+  const tot = { m1c:0,m1h:0,m1in:0,m1out:0,m1r:0, m4c:0,m4h:0,m4old:0,m4oth:0,m4r:0, all:0 };
+
+  const rows = dates.map(d => {
+    const r  = trend[d];
+    const m1 = r.m1||{}, m4 = r.m4||{};
+    const m1c=m1.ชาย||0, m1h=m1.หญิง||0, m1in=m1.ในเขต||0, m1out=m1.นอกเขต||0, m1r=m1.รวม||0;
+    const m4c=m4.ชาย||0, m4h=m4.หญิง||0, m4old=m4.ม3เดิม||0, m4oth=m4.ม3อื่น||0, m4r=m4.รวม||0;
+    const all=r.total||0;
+    tot.m1c+=m1c; tot.m1h+=m1h; tot.m1in+=m1in; tot.m1out+=m1out; tot.m1r+=m1r;
+    tot.m4c+=m4c; tot.m4h+=m4h; tot.m4old+=m4old; tot.m4oth+=m4oth; tot.m4r+=m4r; tot.all+=all;
+    function c(n){ return n ? n : `<span class="zero">0</span>`; }
+    return `<tr>
+      <td>${fmtDateTH(d)}</td>
+      <td class="col-m1">${c(m1c)}</td><td class="col-m1">${c(m1h)}</td>
+      <td class="col-m1">${c(m1in)}</td><td class="col-m1">${c(m1out)}</td>
+      <td class="col-m1"><strong>${c(m1r)}</strong></td>
+      <td class="col-m4">${c(m4c)}</td><td class="col-m4">${c(m4h)}</td>
+      <td class="col-m4">${c(m4old)}</td><td class="col-m4">${c(m4oth)}</td>
+      <td class="col-m4"><strong>${c(m4r)}</strong></td>
+      <td class="col-total">${c(all)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('daily-tbody').innerHTML = rows;
+  document.getElementById('daily-tfoot').innerHTML = `<tr>
+    <td>รวมทั้งสิ้น</td>
+    <td class="col-m1">${tot.m1c}</td><td class="col-m1">${tot.m1h}</td>
+    <td class="col-m1">${tot.m1in}</td><td class="col-m1">${tot.m1out}</td>
+    <td class="col-m1">${tot.m1r}</td>
+    <td class="col-m4">${tot.m4c}</td><td class="col-m4">${tot.m4h}</td>
+    <td class="col-m4">${tot.m4old}</td><td class="col-m4">${tot.m4oth}</td>
+    <td class="col-m4">${tot.m4r}</td>
+    <td class="col-total">${tot.all}</td>
+  </tr>`;
+}
+
+/* ─── EXPORT DAILY CSV ─── */
+function exportDailyCSV() {
+  if (!_dashStats || !_dashStats.dailyDetailedTrend) {
+    toast('กรุณาโหลด Dashboard ก่อน Export', 'warning'); return;
+  }
+  const trend = _dashStats.dailyDetailedTrend;
+  const dates = Object.keys(trend).sort();
+  const school = (S.settings && S.settings.SCHOOL_FULLNAME) || 'โรงเรียน';
+  const year   = (S.settings && S.settings.ACADEMIC_YEAR)  || '';
+
+  const headers = [
+    'วันที่',
+    'ม.1 ชาย','ม.1 หญิง','ม.1 ในเขต','ม.1 นอกเขต','ม.1 รวม',
+    'ม.4 ชาย','ม.4 หญิง','ม.4 ม.3เดิม','ม.4 ม.3รร.อื่น','ม.4 รวม',
+    'รวมทั้งหมด'
+  ];
+
+  const tot = Array(11).fill(0);
+  const dataRows = dates.map(d => {
+    const r=trend[d], m1=r.m1||{}, m4=r.m4||{};
+    const vals = [
+      fmtDateTH(d),
+      m1.ชาย||0, m1.หญิง||0, m1.ในเขต||0, m1.นอกเขต||0, m1.รวม||0,
+      m4.ชาย||0, m4.หญิง||0, m4.ม3เดิม||0, m4.ม3อื่น||0, m4.รวม||0,
+      r.total||0
+    ];
+    for(let i=1;i<vals.length;i++) tot[i-1]+=vals[i];
+    return vals;
+  });
+  const totRow = ['รวมทั้งสิ้น', ...tot];
+
+  const titleRow  = [`สถิติการรับสมัครนักเรียน ${school} ปีการศึกษา ${year}`];
+  const csvRows   = [titleRow, [], headers, ...dataRows, [], totRow];
+  const csvStr    = '\uFEFF' + csvRows.map(row =>
+    row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+  ).join('\r\n');
+
+  const blob = new Blob([csvStr], { type:'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `สถิติรายวัน_${school}_${year}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast('Export CSV สำเร็จ', 'success');
 }
 
 /* ─── ADMIN APPLICATIONS ─── */
@@ -5459,6 +6210,9 @@ function fillSettings() {
   // ทั่วไป
   setInputVal('cfg-fee',                c.EXAM_FEE           || '0');
   setInputVal('cfg-announce',           c.ANNOUNCEMENT       || '');
+  setInputVal('cfg-announce-image',     c.ANNOUNCE_IMAGE     || '');
+  const popupChk = document.getElementById('cfg-announce-popup');
+  if (popupChk) popupChk.checked = (String(c.ANNOUNCE_POPUP) !== 'false');
   setInputVal('cfg-service-area-schools', c.SERVICE_AREA_SCHOOLS || '');
   setInputVal('cfg-study-plans-mid',  c.STUDY_PLANS_MID  || 'แผนการเรียนทั่วไป');
   setInputVal('cfg-study-plans-high', c.STUDY_PLANS_HIGH || 'วิทยาศาสตร์-คณิตศาสตร์\nศิลปะ-ภาษา\nศิลปะ-การงานอาชีพ');
@@ -5496,6 +6250,17 @@ function fillSettings() {
   previewLogo(c.LOGO_URL || '');
   setSelectVal('cfg-m1-open', c.REG_OPEN_M1 === 'false' ? 'false' : 'true');
   setSelectVal('cfg-m4-open', c.REG_OPEN_M4 === 'false' ? 'false' : 'true');
+  // รอบ 2
+  const r2m1 = document.getElementById('cfg-reg2-open-m1');
+  const r2m4 = document.getElementById('cfg-reg2-open-m4');
+  if (r2m1) r2m1.checked = String(c.REG2_OPEN_M1) === 'true';
+  if (r2m4) r2m4.checked = String(c.REG2_OPEN_M4) === 'true';
+  setInputVal('cfg-reg2-open-time',  c.REG2_OPEN_TIME  || '08:30');
+  setInputVal('cfg-reg2-close-time', c.REG2_CLOSE_TIME || '16:30');
+  setInputVal('cfg-m1-reg2-start',   c.M1_REG2_START   || '');
+  setInputVal('cfg-m1-reg2-end',     c.M1_REG2_END     || '');
+  setInputVal('cfg-m4-reg2-start',   c.M4_REG2_START   || '');
+  setInputVal('cfg-m4-reg2-end',     c.M4_REG2_END     || '');
 }
 
 function saveSettings() {
@@ -5530,6 +6295,17 @@ function saveSettings() {
     REG_OPEN_M4:           val('cfg-m4-open'),
     EXAM_FEE:              val('cfg-fee'),
     ANNOUNCEMENT:          val('cfg-announce'),
+    ANNOUNCE_IMAGE:        val('cfg-announce-image'),
+    ANNOUNCE_POPUP:        (document.getElementById('cfg-announce-popup') && document.getElementById('cfg-announce-popup').checked) ? 'true' : 'false',
+    // รอบ 2
+    REG2_OPEN_M1:          (document.getElementById('cfg-reg2-open-m1') && document.getElementById('cfg-reg2-open-m1').checked) ? 'true' : 'false',
+    REG2_OPEN_M4:          (document.getElementById('cfg-reg2-open-m4') && document.getElementById('cfg-reg2-open-m4').checked) ? 'true' : 'false',
+    REG2_OPEN_TIME:        val('cfg-reg2-open-time'),
+    REG2_CLOSE_TIME:       val('cfg-reg2-close-time'),
+    M1_REG2_START:         val('cfg-m1-reg2-start'),
+    M1_REG2_END:           val('cfg-m1-reg2-end'),
+    M4_REG2_START:         val('cfg-m4-reg2-start'),
+    M4_REG2_END:           val('cfg-m4-reg2-end'),
     SERVICE_AREA_SCHOOLS:  val('cfg-service-area-schools'),
     STUDY_PLANS_MID:       val('cfg-study-plans-mid'),
     STUDY_PLANS_HIGH:      val('cfg-study-plans-high'),
@@ -5689,22 +6465,23 @@ function doBackup() {
 }
 
 function doExportCSV(level) {
-  run('exportApplications', [S.token, level], function(res) {
+  const filters = level ? { level: level } : {};
+  run('exportApplications', [S.token, filters], function(res) {
     if (!res || !res.ok) { toast('เกิดข้อผิดพลาด','error'); return; }
-    const cols = res.cols || [];
+    const cols = (res.exportCols||[]).length ? res.exportCols : (res.cols||[]).map(function(c){return{key:c,label:c};});
     const rows = res.data || [];
-    const esc  = v => '"' + String(v === null || v === undefined ? '' : v).replace(/"/g,'""') + '"';
-    const csv  = [cols.join(',')]
-      .concat(rows.map(r => cols.map(c => esc(r[c]||'')).join(',')))
-      .join('\r\n');
-    const bom  = '\uFEFF'; // BOM สำหรับ Excel ภาษาไทย
-    const blob = new Blob([bom + csv], { type:'text/csv;charset=utf-8' });
+    const esc  = function(v){ return '"' + String(v === null || v === undefined ? '' : v).replace(/"/g,'""') + '"'; };
+    const hdr  = cols.map(function(c){ return esc(c.label||c.key); });
+    const csv  = '\uFEFF' + [hdr]
+      .concat(rows.map(function(r){ return cols.map(function(c){ return esc(r[c.key]||''); }); }))
+      .map(function(row){ return row.join(','); }).join('\r\n');
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href     = url;
     a.download = 'applications' + (level ? '_' + level.replace('.','') : '') + '_' + new Date().toISOString().slice(0,10) + '.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
     toast('ส่งออก CSV แล้ว (' + rows.length + ' รายการ)', 'success');
   });
 }
@@ -5720,245 +6497,578 @@ function doPrintExam(appId) {
 }
 
 function printApplication(a, cfg) {
-  const school   = cfg.SCHOOL_FULLNAME || 'โรงเรียนหนองนาคำวิทยาคม';
-  const addr     = [cfg.SCHOOL_SUBDISTRICT, cfg.SCHOOL_DISTRICT, cfg.SCHOOL_PROVINCE].filter(Boolean).join(' ');
-  const yr       = cfg.ACADEMIC_YEAR || '2568';
-  const logoUrl  = cfg.LOGO_URL || '';
+  const school    = cfg.SCHOOL_FULLNAME || 'โรงเรียนหนองนาคำวิทยาคม';
+  const schoolSub = cfg.SCHOOL_SUBDISTRICT || '';
+  const schoolDis = cfg.SCHOOL_DISTRICT    || '';
+  const schoolPrv = cfg.SCHOOL_PROVINCE    || '';
+  const schoolTel = cfg.SCHOOL_PHONE       || '';
+  const principal = cfg.PRINCIPAL_NAME     || '';
+  const principalTitle = cfg.PRINCIPAL_TITLE || 'ผู้อำนวยการโรงเรียน';
+  const yr        = cfg.ACADEMIC_YEAR || '2568';
+  const logoUrl   = cfg.LOGO_URL || '';
+  const printDate = fmtDateTH(new Date().toISOString().slice(0,10));
 
-  // ผู้ปกครอง
-  const gType  = a.GUARDIAN_TYPE || '';
-  let gName='', gRel='', gPhone='';
+  // ─── helpers ───
+  const _v  = v  => (v && String(v).trim()) ? String(v).trim() : '–';
+  const _vb = v  => (v && String(v).trim()) ? String(v).trim() : '';
+  const _name = (pfx, fn, ln) => [pfx,fn,ln].filter(Boolean).join(' ') || '–';
+  const _addr = (addr, sub, dis, prv, zip) =>
+    [addr, sub&&('ต.'+sub), dis&&('อ.'+dis), prv&&('จ.'+prv), zip].filter(Boolean).join(' ') || '–';
+  const _currAddr = (same, addr, sub, dis, prv, zip) =>
+    String(same) === 'true' ? '(ใช้ที่อยู่เดียวกับทะเบียนบ้าน)' :
+    [addr, sub&&('ต.'+sub), dis&&('อ.'+dis), prv&&('จ.'+prv), zip].filter(Boolean).join(' ') || '–';
+
+  // ─── computed ───
+  const fullRegAddr  = _addr(a.ADDRESS, a.SUBDISTRICT, a.DISTRICT, a.PROVINCE, a.ZIP);
+  const fullCurrAddr = _currAddr(a.CURR_SAME, a.CURR_ADDRESS, a.CURR_SUBDISTRICT, a.CURR_DISTRICT, a.CURR_PROVINCE, a.CURR_ZIP);
+  const fatherName   = _name(a.FATHER_PREFIX, a.FATHER_FNAME, a.FATHER_LNAME);
+  const motherName   = _name(a.MOTHER_PREFIX, a.MOTHER_FNAME, a.MOTHER_LNAME);
+
+  // ผู้ปกครองหลัก
+  let gName='–', gRel='–', gPhone='–', gId='–';
+  const gType = a.GUARDIAN_TYPE || '';
   if (gType === 'บิดา') {
-    gName  = [a.FATHER_PREFIX, a.FATHER_FNAME, a.FATHER_LNAME].filter(Boolean).join(' ');
-    gRel   = 'บิดา';
-    gPhone = a.FATHER_PHONE || '–';
+    gName=fatherName; gRel='บิดา'; gPhone=_v(a.FATHER_PHONE); gId=_v(a.FATHER_ID_CARD);
   } else if (gType === 'มารดา') {
-    gName  = [a.MOTHER_PREFIX, a.MOTHER_FNAME, a.MOTHER_LNAME].filter(Boolean).join(' ');
-    gRel   = 'มารดา';
-    gPhone = a.MOTHER_PHONE || '–';
+    gName=motherName; gRel='มารดา'; gPhone=_v(a.MOTHER_PHONE); gId=_v(a.MOTHER_ID_CARD);
   } else {
-    gName  = a.GUARDIAN_NAME  || '–';
-    gRel   = a.GUARDIAN_RELATION || '–';
-    gPhone = a.GUARDIAN_PHONE || '–';
+    gName=_v(a.GUARDIAN_NAME); gRel=_v(a.GUARDIAN_RELATION);
+    gPhone=_v(a.GUARDIAN_PHONE); gId=_v(a.GUARDIAN_ID_CARD);
   }
 
-  const fullAddr = [a.ADDRESS, a.SUBDISTRICT, a.DISTRICT, a.PROVINCE, a.ZIP].filter(Boolean).join(' ');
-
-  const photoSrc = a.PHOTO_URL
-    ? `<img src="${a.PHOTO_URL}" style="width:100%;height:100%;object-fit:cover">`
-    : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#aaa;font-size:10px;gap:3px"><span style="font-size:22px">📷</span><span>รูปถ่าย</span><span>1×1.5 นิ้ว</span></div>`;
-
+  const photoHtml = a.PHOTO_URL
+    ? `<img src="${a.PHOTO_URL}" style="width:100%;height:100%;object-fit:cover;display:block">`
+    : `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;
+         justify-content:center;color:#aaa;font-size:9px;gap:2px;background:#f9f9f9">
+         <span style="font-size:20px">📷</span><span>รูปถ่าย</span><span>หน้าตรง</span>
+         <span>1×1.5 นิ้ว</span></div>`;
   const logoHtml = logoUrl
-    ? `<img src="${logoUrl}" style="width:64px;height:64px;object-fit:contain;border-radius:4px">`
-    : `<div style="width:64px;height:64px;background:#e0f2fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px">🏫</div>`;
+    ? `<img src="${logoUrl}" style="width:72px;height:72px;object-fit:contain">`
+    : `<div style="width:72px;height:72px;background:#e8f0fe;border-radius:50%;
+         display:flex;align-items:center;justify-content:center;font-size:32px;border:2px solid #c7d7f5">🏫</div>`;
 
-  const F = (label, val, unit='') =>
-    `<tr><td class="lbl">${label}</td><td class="val">${val||'–'}${unit?'<span class="unit"> '+unit+'</span>':''}</td></tr>`;
+  // ─── row builders ───
+  const R = (l,v,cls='') =>
+    `<tr><td class="lbl">${l}</td><td class="val ${cls}">${_v(v)}</td></tr>`;
+  const R2 = (l1,v1,l2,v2) =>
+    `<tr><td class="lbl">${l1}</td><td class="val">${_v(v1)}</td>
+         <td class="lbl">${l2}</td><td class="val">${_v(v2)}</td></tr>`;
+  const idFormat = id => {
+    const s = String(id||'').replace(/\D/g,'');
+    if (s.length!==13) return _v(id);
+    return `${s[0]}-${s.slice(1,5)}-${s.slice(5,10)}-${s.slice(10,12)}-${s[12]}`;
+  };
 
-  const w = window.open('','_blank','width=900,height=1150');
+  // ─── income format ───
+  const inc = v => v && String(v)!=='0' ? Number(v).toLocaleString()+' บาท/เดือน' : '–';
+
+  const w = window.open('','_blank','width=960,height=1200');
+  if (!w) { toast('กรุณาอนุญาต Popup ในเบราว์เซอร์','warning'); return; }
   w.document.write(`<!DOCTYPE html><html lang="th"><head>
-<meta charset="UTF-8"><title>ใบสมัคร ${a.APP_ID}</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<title>ใบสมัคร ${a.APP_ID} — ${a.FNAME} ${a.LNAME}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
+/* ════════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════════ */
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Sarabun',sans-serif;color:#000;background:#f5f5f5;font-size:13px}
-.page{background:#fff;width:210mm;min-height:297mm;margin:0 auto;padding:12mm 14mm;position:relative}
-/* ─── HEADER ─── */
-.doc-header{display:flex;align-items:center;gap:14px;padding-bottom:10px;border-bottom:3px double #1a3a6b;margin-bottom:14px}
-.doc-header-text{flex:1;text-align:center}
-.doc-header-text .school-name{font-size:18px;font-weight:700;color:#1a3a6b;line-height:1.3}
-.doc-header-text .school-addr{font-size:11px;color:#666;margin-top:2px}
-.doc-title{text-align:center;margin:0 0 14px}
-.doc-title h2{font-size:15px;font-weight:700;letter-spacing:.5px;color:#000}
-.doc-title h3{font-size:12.5px;font-weight:500;color:#333;margin-top:2px}
-/* ─── APP META ─── */
-.app-meta-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.app-id-box{border:1.5px solid #1a3a6b;padding:6px 14px;border-radius:4px;text-align:center}
-.app-id-label{font-size:10px;color:#666;letter-spacing:.5px;text-transform:uppercase}
-.app-id-num{font-size:18px;font-weight:700;color:#1a3a6b;letter-spacing:1px;margin-top:1px}
-.status-box{border:1.5px solid #000;padding:3px 10px;border-radius:2px;font-size:11.5px;font-weight:600;text-align:center;margin-top:6px}
-.photo-box{width:82px;height:109px;border:1px solid #777;background:#fafafa;overflow:hidden;flex-shrink:0;font-size:10px;text-align:center}
-/* ─── SECTION ─── */
-.sec{margin-bottom:10px}
-.sec-title{font-size:11.5px;font-weight:700;background:#1a3a6b;color:#fff;padding:3px 10px;letter-spacing:.3px;margin-bottom:0}
-.data-table{width:100%;border-collapse:collapse}
-.data-table td{padding:3px 6px;border:1px solid #ccc;font-size:12px;vertical-align:top}
-.data-table .lbl{background:#f4f7fb;color:#444;font-weight:500;width:130px;white-space:nowrap}
-.data-table .val{font-weight:600;color:#000}
-.data-table .unit{font-weight:400;color:#666;font-size:11px}
-.col2 .lbl{width:105px}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
-/* ─── SIGNATURE ─── */
-.sig-section{margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center}
-.sig-block{}
-.sig-line{border-top:1px solid #333;padding-top:4px;margin-top:36px;font-size:11px}
-.sig-name{font-size:11px;margin-top:2px;color:#333}
-/* ─── FOOTER ─── */
-.doc-footer{margin-top:18px;border-top:1px solid #ccc;padding-top:6px;display:flex;justify-content:space-between;font-size:10px;color:#888}
-/* ─── PRINT ─── */
-.no-print{text-align:right;margin-bottom:8px}
-.no-print button{padding:7px 18px;background:#1a3a6b;color:#fff;border:none;border-radius:6px;font-family:Sarabun,sans-serif;font-size:13px;cursor:pointer}
-@media print{.no-print{display:none}body{background:#fff}.page{padding:8mm 10mm;box-shadow:none}@page{size:A4;margin:0}}
+html{font-size:13px}
+body{font-family:'Sarabun',sans-serif;color:#111;background:#e8e8e8;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* ════════════════════════════════════════════
+   PAGE
+════════════════════════════════════════════ */
+.page{
+  background:#fff;width:210mm;min-height:297mm;
+  margin:8mm auto;padding:12mm 14mm 14mm;
+  box-shadow:0 2px 16px rgba(0,0,0,.18);
+  position:relative;overflow:hidden
+}
+/* ลายน้ำเลขที่ใบสมัคร */
+.page::before{
+  content:"${a.APP_ID}";
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) rotate(-30deg);
+  font-size:72px;font-weight:700;color:rgba(30,58,107,.04);
+  white-space:nowrap;pointer-events:none;z-index:0;letter-spacing:4px
+}
+
+/* ════════════════════════════════════════════
+   HEADER
+════════════════════════════════════════════ */
+.doc-header{
+  display:flex;align-items:center;gap:14px;
+  padding-bottom:10px;margin-bottom:0;
+  border-bottom:4px solid #1a3a6b
+}
+.header-logo{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:80px}
+.header-center{flex:1;text-align:center}
+.school-name{font-size:19px;font-weight:700;color:#1a3a6b;line-height:1.3}
+.school-meta{font-size:10.5px;color:#555;margin-top:3px}
+.header-appid{flex-shrink:0;text-align:center;width:80px}
+.appid-label{font-size:9px;color:#888;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap}
+.appid-val{font-size:14px;font-weight:700;color:#1a3a6b;letter-spacing:.5px;margin-top:1px;white-space:nowrap}
+
+/* ════════════════════════════════════════════
+   TITLE BAND
+════════════════════════════════════════════ */
+.title-band{
+  background:linear-gradient(135deg,#1a3a6b 0%,#2563b0 100%);
+  color:#fff;text-align:center;
+  padding:8px 16px;margin:0 -14mm;
+  position:relative
+}
+.title-band h1{font-size:15px;font-weight:700;letter-spacing:1px}
+.title-band h2{font-size:12px;font-weight:400;opacity:.9;margin-top:2px}
+.title-band .appid-ribbon{
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+  padding:3px 10px;border-radius:3px;font-size:11px;font-weight:600;
+  letter-spacing:.5px
+}
+
+/* ════════════════════════════════════════════
+   TOP INFO BAR (photo + main info)
+════════════════════════════════════════════ */
+.top-info{display:flex;gap:14px;margin-top:10px;margin-bottom:8px;align-items:flex-start}
+.photo-wrap{flex-shrink:0;text-align:center}
+.photo-box{
+  width:90px;height:117px;border:1.5px solid #777;
+  overflow:hidden;background:#fafafa
+}
+.photo-caption{font-size:9px;color:#888;margin-top:2px}
+.main-info{flex:1}
+
+/* ════════════════════════════════════════════
+   SECTION
+════════════════════════════════════════════ */
+.sec{margin-bottom:6px;position:relative;z-index:1}
+.sec-title{
+  font-size:11.5px;font-weight:700;
+  background:#1a3a6b;color:#fff;
+  padding:3px 10px 3px 12px;
+  display:flex;align-items:center;gap:6px;
+  letter-spacing:.3px
+}
+.sec-title .sn{
+  background:rgba(255,255,255,.25);
+  width:18px;height:18px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0
+}
+
+/* ════════════════════════════════════════════
+   DATA TABLE
+════════════════════════════════════════════ */
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt td{padding:3.5px 8px;border:1px solid #d0d8e8;vertical-align:middle}
+.dt .lbl{
+  background:#f0f4fb;color:#334;font-weight:600;
+  width:130px;white-space:nowrap;font-size:11.5px
+}
+.dt .lbl2{
+  background:#f0f4fb;color:#334;font-weight:600;
+  width:115px;white-space:nowrap;font-size:11.5px
+}
+.dt .val{color:#111;font-weight:500}
+.dt .val.id{font-family:'Courier New',monospace;letter-spacing:1px;font-size:12px}
+.dt .val.hl{color:#1a3a6b;font-weight:700}
+.dt .val.gpa{font-size:14px;font-weight:700;color:#16a34a}
+.dt .sub{font-size:10px;color:#888;font-weight:400}
+
+/* ════════════════════════════════════════════
+   SPECIAL BOXES
+════════════════════════════════════════════ */
+.info-pills{display:flex;gap:8px;flex-wrap:wrap;padding:6px 8px;background:#f8faff;border:1px solid #d0d8e8;border-top:none}
+.info-pill{background:#1a3a6b;color:#fff;font-size:10.5px;font-weight:600;padding:2px 10px;border-radius:10px}
+.info-pill.green{background:#16a34a}
+.info-pill.amber{background:#d97706}
+.status-badge{
+  display:inline-block;padding:2px 10px;border-radius:3px;
+  font-size:10.5px;font-weight:700;border:1.5px solid #1a3a6b;color:#1a3a6b
+}
+.declaration-box{
+  border:1px solid #ccc;border-left:4px solid #1a3a6b;
+  padding:7px 12px;font-size:11px;color:#333;
+  margin:8px 0;background:#fffef5;line-height:1.7;
+  position:relative;z-index:1
+}
+
+/* ════════════════════════════════════════════
+   SIGNATURE SECTION
+════════════════════════════════════════════ */
+.sig-wrap{
+  margin-top:10px;
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:10px;position:relative;z-index:1
+}
+.sig-box{border:1px solid #bbb;border-radius:3px;overflow:hidden}
+.sig-box-title{
+  background:#1a3a6b;color:#fff;
+  font-size:10px;font-weight:700;padding:3px 8px;text-align:center
+}
+.sig-body{padding:6px 8px 4px;text-align:center}
+.sig-line{border-top:1px dashed #888;margin:28px 10px 4px;position:relative}
+.sig-name{font-size:10px;color:#333;min-height:14px}
+.sig-date{font-size:9.5px;color:#888;margin-top:3px}
+
+/* ════════════════════════════════════════════
+   REPORT IN BOX (รายงานตัว)
+════════════════════════════════════════════ */
+.report-box{
+  border:2px solid #1a3a6b;border-radius:4px;
+  margin-top:10px;overflow:hidden;position:relative;z-index:1
+}
+.report-box-title{
+  background:#1a3a6b;color:#fff;
+  font-size:11px;font-weight:700;
+  padding:4px 12px;display:flex;align-items:center;gap:6px
+}
+.report-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0
+}
+.report-cell{padding:6px 12px;border-right:1px solid #d0d8e8;border-bottom:1px solid #d0d8e8}
+.report-cell:nth-child(even){border-right:none}
+.report-label{font-size:9.5px;color:#888;margin-bottom:2px}
+.report-value{font-size:11px;font-weight:600;min-height:16px;border-bottom:1px dashed #ccc;padding-bottom:1px}
+.report-sig{padding:6px 12px;text-align:center;grid-column:1/-1}
+.report-sig-line{border-top:1px dashed #888;margin:28px 40px 4px;font-size:10px;color:#333}
+
+/* ════════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════════ */
+.doc-footer{
+  margin-top:10px;border-top:1px solid #ddd;
+  padding-top:5px;display:flex;
+  justify-content:space-between;font-size:9.5px;color:#999;
+  position:relative;z-index:1
+}
+
+/* ════════════════════════════════════════════
+   NO-PRINT TOOLBAR
+════════════════════════════════════════════ */
+.no-print{
+  position:fixed;top:0;left:0;right:0;
+  background:#1a3a6b;color:#fff;
+  padding:8px 20px;display:flex;align-items:center;
+  gap:10px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.3)
+}
+.no-print button{
+  padding:6px 16px;border:1.5px solid rgba(255,255,255,.6);
+  border-radius:5px;color:#fff;background:transparent;
+  font-family:Sarabun,sans-serif;font-size:13px;cursor:pointer;
+  transition:background .2s
+}
+.no-print button:hover{background:rgba(255,255,255,.15)}
+.no-print button.primary{background:rgba(255,255,255,.2);border-color:#fff}
+.no-print .spacer{flex:1}
+.no-print .info{font-size:11px;opacity:.7}
+.page-spacer{height:46px}
+
+/* ════════════════════════════════════════════
+   PRINT OVERRIDES
+════════════════════════════════════════════ */
+@media print{
+  body{background:#fff}
+  .no-print,.page-spacer{display:none}
+  .page{margin:0;padding:10mm 12mm 12mm;box-shadow:none;min-height:unset}
+  @page{size:A4 portrait;margin:0}
+}
 </style></head><body>
+
+<!-- TOOLBAR (no-print) -->
 <div class="no-print">
-  <button onclick="window.print()">🖨 พิมพ์ใบสมัคร</button>
+  <button class="primary" onclick="window.print()">🖨&nbsp; พิมพ์ / บันทึก PDF</button>
+  <button onclick="window.close()">✕ ปิด</button>
+  <div class="spacer"></div>
+  <span class="info">ใบสมัคร ${a.APP_ID} · ${a.FNAME} ${a.LNAME} · ${school} ปีการศึกษา ${yr}</span>
 </div>
+<div class="page-spacer"></div>
+
+<!-- ══════════════════════════════════════════
+     PAGE
+══════════════════════════════════════════ -->
 <div class="page">
 
   <!-- HEADER -->
   <div class="doc-header">
-    ${logoHtml}
-    <div class="doc-header-text">
+    <div class="header-logo">${logoHtml}</div>
+    <div class="header-center">
       <div class="school-name">${school}</div>
-      <div class="school-addr">${addr}${cfg.SCHOOL_PHONE ? ' โทร. '+cfg.SCHOOL_PHONE : ''}</div>
-    </div>
-    <div style="width:64px"></div><!-- spacer สมมาตร -->
-  </div>
-
-  <div class="doc-title">
-    <h2>ใบสมัครเข้าเรียน</h2>
-    <h3>ปีการศึกษา ${yr} ระดับชั้น${a.LEVEL} ประเภท: ${a.APP_TYPE||'–'}</h3>
-  </div>
-
-  <!-- APP META + PHOTO -->
-  <div class="app-meta-bar">
-    <div>
-      <div class="app-id-box">
-        <div class="app-id-label">เลขที่ใบสมัคร</div>
-        <div class="app-id-num">${a.APP_ID}</div>
+      <div class="school-meta">
+        ${[schoolSub&&('ต.'+schoolSub), schoolDis&&('อ.'+schoolDis), schoolPrv&&('จ.'+schoolPrv)].filter(Boolean).join(' ')}
+        ${schoolTel ? '&nbsp;|&nbsp;โทร. '+schoolTel : ''}
       </div>
-      <div class="status-box" style="margin-top:6px">สถานะ: ${a.STATUS||'สมัครแล้ว'}</div>
-      ${a.EXAM_NO ? `<div class="status-box" style="margin-top:4px;border-color:#1a3a6b;color:#1a3a6b">เลขนั่งสอบ: ${a.EXAM_NO}</div>` : ''}
     </div>
-    <div style="text-align:center">
-      <div class="photo-box">${photoSrc}</div>
-      <div style="font-size:9px;color:#888;margin-top:2px">รูปถ่าย 1×1.5 นิ้ว</div>
+    <div class="header-appid">
+      <div class="appid-label">เลขที่ใบสมัคร</div>
+      <div class="appid-val">${a.APP_ID}</div>
+      <div style="margin-top:4px"><span class="status-badge">${a.STATUS||'สมัครแล้ว'}</span></div>
     </div>
   </div>
 
-  <!-- ข้อมูลส่วนตัว -->
+  <!-- TITLE BAND -->
+  <div class="title-band">
+    <h1>ใบสมัครเข้าเรียน</h1>
+    <h2>ปีการศึกษา ${yr} &nbsp;|&nbsp; ระดับชั้น ${a.LEVEL} &nbsp;|&nbsp; ประเภท: ${a.APP_TYPE||'–'}</h2>
+    ${a.EXAM_NO ? `<div class="appid-ribbon">เลขนั่งสอบ: ${a.EXAM_NO}</div>` : ''}
+  </div>
+
+  <!-- INFO PILLS -->
+  <div class="info-pills">
+    ${a.STUDY_PLAN    ? `<span class="info-pill">📚 ${a.STUDY_PLAN}</span>` : ''}
+    ${a.STUDY_PLAN_ALT ? `<span class="info-pill amber">📚 สำรอง: ${a.STUDY_PLAN_ALT}</span>` : ''}
+    ${a.GENDER        ? `<span class="info-pill ${a.GENDER==='ชาย'?'':'green'}">👤 ${a.GENDER}</span>` : ''}
+    ${a.SPECIAL_ABILITY ? `<span class="info-pill amber">⭐ ${a.SPECIAL_ABILITY}</span>` : ''}
+    <span style="margin-left:auto;font-size:10px;color:#888">วันที่พิมพ์: ${printDate}</span>
+  </div>
+
+  <!-- TOP INFO: photo + student data -->
+  <div class="top-info" style="margin-top:8px">
+    <div class="photo-wrap">
+      <div class="photo-box">${photoHtml}</div>
+      <div class="photo-caption">รูปถ่ายหน้าตรง<br>1×1.5 นิ้ว</div>
+    </div>
+    <div class="main-info">
+
+      <!-- ๑. ข้อมูลผู้สมัคร -->
+      <div class="sec">
+        <div class="sec-title"><span class="sn">๑</span> ข้อมูลผู้สมัคร</div>
+        <table class="dt">
+          <tr>
+            <td class="lbl">คำนำหน้า–ชื่อ–นามสกุล</td>
+            <td class="val hl" colspan="3">${_name(a.PREFIX,a.FNAME,a.LNAME)}</td>
+          </tr>
+          <tr>
+            <td class="lbl">เลขประจำตัวประชาชน</td>
+            <td class="val id">${idFormat(a.ID_CARD)}</td>
+            <td class="lbl2">เพศ</td>
+            <td class="val">${_v(a.GENDER)}</td>
+          </tr>
+          <tr>
+            <td class="lbl">วันเดือนปีเกิด</td>
+            <td class="val">${fmtDateTH(a.BIRTHDATE)||'–'}</td>
+            <td class="lbl2">โทรศัพท์</td>
+            <td class="val">${_v(a.PHONE)}</td>
+          </tr>
+          <tr>
+            <td class="lbl">สัญชาติ</td>
+            <td class="val">${_v(a.NATIONALITY||'ไทย')}</td>
+            <td class="lbl2">ศาสนา</td>
+            <td class="val">${_v(a.RELIGION||'พุทธ')}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ที่อยู่ -->
+      <div class="sec" style="margin-top:4px">
+        <div class="sec-title" style="background:#2a4a8b"><span class="sn" style="background:rgba(255,255,255,.2)">📍</span> ที่อยู่</div>
+        <table class="dt">
+          <tr>
+            <td class="lbl">ที่อยู่ตามทะเบียนบ้าน</td>
+            <td class="val">${fullRegAddr}${_vb(a.HOUSE_CODE)?'&nbsp;<span class="sub">(รหัสบ้าน: '+a.HOUSE_CODE+')</span>':''}</td>
+          </tr>
+          <tr>
+            <td class="lbl">ที่อยู่ปัจจุบัน</td>
+            <td class="val">${fullCurrAddr}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ๒. บิดา -->
   <div class="sec">
-    <div class="sec-title">๑. ข้อมูลส่วนตัวนักเรียน</div>
-    <table class="data-table">
-      ${F('คำนำหน้า-ชื่อ-นามสกุล', (a.PREFIX||'')+' '+a.FNAME+' '+a.LNAME)}
-      <tr><td class="lbl">เลขประจำตัวประชาชน</td><td class="val" style="font-family:monospace;letter-spacing:1.5px">${a.ID_CARD}</td></tr>
+    <div class="sec-title"><span class="sn">๒</span> ข้อมูลบิดา</div>
+    <table class="dt">
       <tr>
-        <td class="lbl">วันเดือนปีเกิด</td><td class="val">${fmtDateTH(a.BIRTHDATE)||'–'}</td>
+        <td class="lbl">คำนำหน้า–ชื่อ–นามสกุล</td>
+        <td class="val" colspan="3">${fatherName}</td>
+      </tr>
+      <tr>
+        <td class="lbl">เลขประจำตัวประชาชน</td>
+        <td class="val id">${idFormat(a.FATHER_ID_CARD)}</td>
+        <td class="lbl2">สถานภาพ</td>
+        <td class="val">${_v(a.FATHER_STATUS||'มีชีวิต')}</td>
+      </tr>
+      <tr>
+        <td class="lbl">อาชีพ</td>
+        <td class="val">${_v(a.FATHER_OCCUPATION)}</td>
+        <td class="lbl2">รายได้/เดือน</td>
+        <td class="val">${inc(a.FATHER_INCOME)}</td>
+      </tr>
+      <tr>
+        <td class="lbl">โทรศัพท์</td>
+        <td class="val" colspan="3">${_v(a.FATHER_PHONE)}</td>
       </tr>
     </table>
-    <div class="two-col">
-      <table class="data-table col2">
-        ${F('สัญชาติ', a.NATIONALITY||'ไทย')}
-        ${F('ศาสนา', a.RELIGION||'พุทธ')}
-        ${F('โทรศัพท์', a.PHONE||'–')}
-      </table>
-      <table class="data-table col2">
-        ${F('ระดับชั้นที่สมัคร', a.LEVEL)}
-        ${a.STUDY_PLAN ? F('แผนการเรียน', a.STUDY_PLAN) : ''}
-        ${a.STUDY_PLAN_ALT ? F('แผนสำรอง', a.STUDY_PLAN_ALT) : ''}
-      </table>
-    </div>
-    <table class="data-table">
-      ${F('ที่อยู่ปัจจุบัน', fullAddr)}
+  </div>
+
+  <!-- ๓. มารดา -->
+  <div class="sec">
+    <div class="sec-title"><span class="sn">๓</span> ข้อมูลมารดา</div>
+    <table class="dt">
+      <tr>
+        <td class="lbl">คำนำหน้า–ชื่อ–นามสกุล</td>
+        <td class="val" colspan="3">${motherName}</td>
+      </tr>
+      <tr>
+        <td class="lbl">เลขประจำตัวประชาชน</td>
+        <td class="val id">${idFormat(a.MOTHER_ID_CARD)}</td>
+        <td class="lbl2">สถานภาพ</td>
+        <td class="val">${_v(a.MOTHER_STATUS||'มีชีวิต')}</td>
+      </tr>
+      <tr>
+        <td class="lbl">อาชีพ</td>
+        <td class="val">${_v(a.MOTHER_OCCUPATION)}</td>
+        <td class="lbl2">รายได้/เดือน</td>
+        <td class="val">${inc(a.MOTHER_INCOME)}</td>
+      </tr>
+      <tr>
+        <td class="lbl">โทรศัพท์</td>
+        <td class="val">${_v(a.MOTHER_PHONE)}</td>
+        <td class="lbl2">ความสัมพันธ์</td>
+        <td class="val">${_v(a.PARENT_COUPLE_RELATION)}</td>
+      </tr>
     </table>
   </div>
 
-  <!-- บิดา -->
+  <!-- ๔. ผู้ปกครอง -->
   <div class="sec">
-    <div class="sec-title">๒. ข้อมูลบิดา</div>
-    <div class="two-col">
-      <table class="data-table col2">
-        ${F('คำนำหน้า-ชื่อ-นามสกุล', [a.FATHER_PREFIX,a.FATHER_FNAME,a.FATHER_LNAME].filter(Boolean).join(' '))}
-        ${F('เลขบัตรประชาชน', a.FATHER_ID_CARD)}
-        ${F('อาชีพ', a.FATHER_OCCUPATION)}
-      </table>
-      <table class="data-table col2">
-        ${F('สถานภาพ', a.FATHER_STATUS||'มีชีวิต')}
-        ${F('รายได้/เดือน', a.FATHER_INCOME ? Number(a.FATHER_INCOME).toLocaleString() : '–', 'บาท')}
-        ${F('โทรศัพท์', a.FATHER_PHONE)}
-      </table>
-    </div>
+    <div class="sec-title"><span class="sn">๔</span> ข้อมูลผู้ปกครอง</div>
+    <table class="dt">
+      <tr>
+        <td class="lbl">ชื่อ–นามสกุล</td>
+        <td class="val" colspan="3">${gName}</td>
+      </tr>
+      <tr>
+        <td class="lbl">ความสัมพันธ์</td>
+        <td class="val">${gRel}</td>
+        <td class="lbl2">เลขบัตรประชาชน</td>
+        <td class="val id">${idFormat(gId)}</td>
+      </tr>
+      <tr>
+        <td class="lbl">โทรศัพท์</td>
+        <td class="val" colspan="3">${gPhone}</td>
+      </tr>
+    </table>
   </div>
 
-  <!-- มารดา -->
+  <!-- ๕. การศึกษาเดิม -->
   <div class="sec">
-    <div class="sec-title">๓. ข้อมูลมารดา</div>
-    <div class="two-col">
-      <table class="data-table col2">
-        ${F('คำนำหน้า-ชื่อ-นามสกุล', [a.MOTHER_PREFIX,a.MOTHER_FNAME,a.MOTHER_LNAME].filter(Boolean).join(' '))}
-        ${F('เลขบัตรประชาชน', a.MOTHER_ID_CARD)}
-        ${F('อาชีพ', a.MOTHER_OCCUPATION)}
-      </table>
-      <table class="data-table col2">
-        ${F('สถานภาพ', a.MOTHER_STATUS||'มีชีวิต')}
-        ${F('รายได้/เดือน', a.MOTHER_INCOME ? Number(a.MOTHER_INCOME).toLocaleString() : '–', 'บาท')}
-        ${F('โทรศัพท์', a.MOTHER_PHONE)}
-      </table>
-    </div>
-    ${a.PARENT_COUPLE_RELATION ? `<table class="data-table" style="margin-top:0">${F('ความสัมพันธ์บิดา-มารดา', a.PARENT_COUPLE_RELATION)}</table>` : ''}
-  </div>
-
-  <!-- ผู้ปกครอง -->
-  <div class="sec">
-    <div class="sec-title">๔. ข้อมูลผู้ปกครอง</div>
-    <div class="two-col">
-      <table class="data-table col2">
-        ${F('ชื่อ-นามสกุล', gName)}
-        ${F('ความสัมพันธ์', gRel)}
-      </table>
-      <table class="data-table col2">
-        ${F('เลขบัตรประชาชน', a.GUARDIAN_ID_CARD||'–')}
-        ${F('โทรศัพท์', gPhone)}
-      </table>
-    </div>
-  </div>
-
-  <!-- การศึกษาเดิม -->
-  <div class="sec">
-    <div class="sec-title">๕. ข้อมูลการศึกษาเดิม</div>
-    <div class="two-col">
-      <table class="data-table col2">
-        ${F('โรงเรียนเดิม', a.OLD_SCHOOL)}
-        ${a.OLD_STUDENT_ID ? F('เลขประจำตัวนักเรียนเดิม', a.OLD_STUDENT_ID) : ''}
-      </table>
-      <table class="data-table col2">
-        ${F('ระดับชั้นที่จบ', a.OLD_LEVEL)}
-        ${F('เกรดเฉลี่ยสะสม (GPA)', a.GPA)}
-      </table>
-    </div>
-    ${a.REMARK ? `<table class="data-table" style="margin-top:0">${F('หมายเหตุ', a.REMARK)}</table>` : ''}
+    <div class="sec-title"><span class="sn">๕</span> ข้อมูลการศึกษาเดิม</div>
+    <table class="dt">
+      <tr>
+        <td class="lbl">โรงเรียนเดิม</td>
+        <td class="val" colspan="3">${_v(a.OLD_SCHOOL)}</td>
+      </tr>
+      <tr>
+        <td class="lbl">ระดับชั้นที่จบ</td>
+        <td class="val">${_v(a.OLD_LEVEL)}</td>
+        <td class="lbl2">เกรดเฉลี่ยสะสม</td>
+        <td class="val gpa">${_v(a.GPA)}</td>
+      </tr>
+      ${_vb(a.OLD_STUDENT_ID) ? `<tr><td class="lbl">เลขประจำตัวนักเรียนเดิม</td><td class="val" colspan="3">${a.OLD_STUDENT_ID}</td></tr>` : ''}
+      ${_vb(a.SPECIAL_ABILITY) ? `<tr><td class="lbl">ความสามารถพิเศษ</td><td class="val" colspan="3">${a.SPECIAL_ABILITY}</td></tr>` : ''}
+      ${_vb(a.REMARK) ? `<tr><td class="lbl">หมายเหตุ</td><td class="val" colspan="3">${a.REMARK}</td></tr>` : ''}
+    </table>
   </div>
 
   <!-- คำรับรอง -->
-  <div style="border:1px solid #ccc;padding:7px 12px;font-size:11.5px;color:#333;margin-bottom:14px;background:#fffef5">
+  <div class="declaration-box">
+    <strong>คำรับรองของผู้สมัคร</strong>&nbsp;
     ข้าพเจ้าขอรับรองว่าข้อมูลในใบสมัครฉบับนี้เป็นความจริงทุกประการ
-    หากปรากฏภายหลังว่าข้อมูลไม่ถูกต้อง ข้าพเจ้ายินยอมให้ยกเลิกสิทธิ์การสมัครได้ทันที
+    และข้าพเจ้ายินยอมปฏิบัติตามระเบียบของโรงเรียน${school}ทุกประการ
+    หากข้อมูลไม่ถูกต้อง ข้าพเจ้ายินยอมให้ยกเลิกสิทธิ์ได้ทันที
   </div>
 
-  <!-- ลายมือชื่อ -->
-  <div class="sig-section">
-    <div class="sig-block">
-      <div class="sig-line">ลายมือชื่อผู้สมัคร</div>
-      <div class="sig-name">( ${a.PREFIX||''} ${a.FNAME} ${a.LNAME} )</div>
+  <!-- ลายมือชื่อ 4 ช่อง -->
+  <div class="sig-wrap">
+    <!-- ผู้สมัคร -->
+    <div class="sig-box">
+      <div class="sig-box-title">ลายมือชื่อผู้สมัคร</div>
+      <div class="sig-body">
+        <div class="sig-line"></div>
+        <div class="sig-name">( ${_name(a.PREFIX,a.FNAME,a.LNAME)} )</div>
+        <div class="sig-date">วันที่ ......../........../............</div>
+      </div>
     </div>
-    <div class="sig-block">
-      <div class="sig-line">ลายมือชื่อผู้ปกครอง</div>
-      <div class="sig-name">( ${gName !== '–' ? gName : '............................................'} )</div>
+    <!-- ผู้ปกครอง -->
+    <div class="sig-box">
+      <div class="sig-box-title">ลายมือชื่อผู้ปกครอง</div>
+      <div class="sig-body">
+        <div class="sig-line"></div>
+        <div class="sig-name">( ${gName !== '–' ? gName : '......................................'} )</div>
+        <div class="sig-date">วันที่ ......../........../............</div>
+      </div>
     </div>
-    <div class="sig-block">
-      <div class="sig-line">เจ้าหน้าที่รับสมัคร</div>
-      <div class="sig-name">( ................................................ )</div>
-      <div style="font-size:10px;color:#888;margin-top:3px">วันที่รับ ........./........./...........</div>
+    <!-- เจ้าหน้าที่รับสมัคร -->
+    <div class="sig-box">
+      <div class="sig-box-title">เจ้าหน้าที่รับสมัคร</div>
+      <div class="sig-body">
+        <div class="sig-line"></div>
+        <div class="sig-name">( ........................................... )</div>
+        <div class="sig-date">วันที่รับ ......../........../............</div>
+      </div>
+    </div>
+    <!-- ผู้อำนวยการ -->
+    <div class="sig-box">
+      <div class="sig-box-title">ผู้อำนวยการ</div>
+      <div class="sig-body">
+        <div class="sig-line"></div>
+        <div class="sig-name">( ${principal || '..........................................'} )</div>
+        <div class="sig-date">${principalTitle}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ๖. ช่องรายงานตัว (สำหรับเจ้าหน้าที่) -->
+  <div class="report-box">
+    <div class="report-box-title">
+      <span>🏁</span> ๖. บันทึกการรายงานตัว &nbsp;<span style="font-weight:400;font-size:10px;opacity:.8">(สำหรับเจ้าหน้าที่เท่านั้น)</span>
+    </div>
+    <div class="report-grid">
+      <div class="report-cell">
+        <div class="report-label">วันที่รายงานตัว</div>
+        <div class="report-value">&nbsp;</div>
+      </div>
+      <div class="report-cell">
+        <div class="report-label">ห้องเรียน / กลุ่ม</div>
+        <div class="report-value">&nbsp;</div>
+      </div>
+      <div class="report-cell">
+        <div class="report-label">เลขที่นักเรียน</div>
+        <div class="report-value">&nbsp;</div>
+      </div>
+      <div class="report-cell">
+        <div class="report-label">หมายเหตุ</div>
+        <div class="report-value">&nbsp;</div>
+      </div>
+      <div class="report-sig" style="border-top:1px solid #d0d8e8">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+          <div style="text-align:center;padding:4px 8px">
+            <div class="report-sig-line">ลายมือชื่อผู้รายงานตัว</div>
+            <div style="font-size:9.5px;color:#888">วันที่ ......../........../............</div>
+          </div>
+          <div style="text-align:center;padding:4px 8px;border-left:1px solid #d0d8e8">
+            <div class="report-sig-line">ลายมือชื่อเจ้าหน้าที่รับรายงานตัว</div>
+            <div style="font-size:9.5px;color:#888">วันที่ ......../........../............</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- FOOTER -->
   <div class="doc-footer">
-    <span>พิมพ์จากระบบรับสมัครนักเรียนออนไลน์ ${school}</span>
-    <span>เลขที่ใบสมัคร: ${a.APP_ID} | ปีการศึกษา ${yr}</span>
+    <span>พิมพ์จากระบบรับสมัครนักเรียนออนไลน์ · ${school} · ปีการศึกษา ${yr}</span>
+    <span>เลขที่ใบสมัคร: <strong>${a.APP_ID}</strong> · พิมพ์เมื่อ ${printDate}</span>
   </div>
 
-</div></body></html>`);
+</div><!-- /page -->
+</body></html>`);
   w.document.close();
 }
 
@@ -6110,6 +7220,756 @@ function run(fn, args, cb) {
   if      (args === null || args === undefined) call = google.script.run.withSuccessHandler(cb).withFailureHandler(e => { toast(e.message,'error'); cb && cb(null); })[fn]();
   else if (Array.isArray(args))                 call = google.script.run.withSuccessHandler(cb).withFailureHandler(e => { toast(e.message,'error'); cb && cb(null); })[fn](...args);
   else                                          call = google.script.run.withSuccessHandler(cb).withFailureHandler(e => { toast(e.message,'error'); cb && cb(null); })[fn](args);
+}
+
+/* ─── ANNOUNCEMENT POPUP ─── */
+function showAnnouncePopup(text, imgUrl) {
+  const imgEl  = document.getElementById('ap-img');
+  const textEl = document.getElementById('ap-text');
+  if (imgEl)  { imgEl.src = imgUrl || ''; imgEl.style.display = imgUrl ? '' : 'none'; }
+  if (textEl) textEl.textContent = text || '';
+  const ov = document.getElementById('announce-popup-overlay');
+  if (ov) ov.classList.add('show');
+}
+function closeAnnouncePopup() {
+  const ov = document.getElementById('announce-popup-overlay');
+  if (ov) ov.classList.remove('show');
+  sessionStorage.setItem('ann_shown', '1');
+}
+// ปิดเมื่อ click นอก popup box
+document.addEventListener('click', function(e) {
+  const ov = document.getElementById('announce-popup-overlay');
+  if (ov && ov.classList.contains('show') && e.target === ov) closeAnnouncePopup();
+});
+
+/* ─── EXPORT DAILY PDF ─── */
+function exportDailyPDF() {
+  if (!_dashStats || !_dashStats.dailyDetailedTrend) {
+    toast('กรุณาโหลด Dashboard ก่อน Export', 'warning'); return;
+  }
+  const trend   = _dashStats.dailyDetailedTrend;
+  const dates   = Object.keys(trend).sort();
+  const school  = (S.settings && S.settings.SCHOOL_FULLNAME) || 'โรงเรียน';
+  const year    = (S.settings && S.settings.ACADEMIC_YEAR)   || '';
+  const today   = fmtDateTH(new Date().toISOString().slice(0,10));
+
+  const tot = Array(11).fill(0);
+  const bodyRows = dates.map(d => {
+    const r=trend[d], m1=r.m1||{}, m4=r.m4||{};
+    const v = [m1.ชาย||0,m1.หญิง||0,m1.ในเขต||0,m1.นอกเขต||0,m1.รวม||0,
+               m4.ชาย||0,m4.หญิง||0,m4.ม3เดิม||0,m4.ม3อื่น||0,m4.รวม||0,r.total||0];
+    v.forEach((n,i)=>tot[i]+=n);
+    const cells = v.map((n,i)=>`<td class="${i<5?'c1':''}${i>=5&&i<10?'c4':''}${i===10?'ct':''}">${n||'<span class="z">0</span>'}</td>`).join('');
+    return `<tr><td class="cd">${fmtDateTH(d)}</td>${cells}</tr>`;
+  }).join('');
+  const footCells = tot.map((n,i)=>`<td class="${i<5?'c1':''}${i>=5&&i<10?'c4':''}${i===10?'ct':''}">${n}</td>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="th"><head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
+  @page{size:A4 landscape;margin:12mm 10mm}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Kanit',sans-serif;font-size:11px;color:#1e293b}
+  .title-block{text-align:center;margin-bottom:10px}
+  .title-block h1{font-size:14px;font-weight:600}
+  .title-block p{font-size:11px;color:#475569;margin-top:2px}
+  table{width:100%;border-collapse:collapse}
+  thead tr:first-child th{background:#1e293b;color:#fff;padding:6px 8px;font-size:10px;text-align:center;border:1px solid #334155}
+  thead tr:nth-child(2) th{background:#334155;color:#e2e8f0;padding:5px 6px;font-size:9px;text-align:center;border:1px solid #475569}
+  tbody tr:nth-child(even){background:#f8fafc}
+  tbody td,tfoot td{padding:5px 7px;border:1px solid #e2e8f0;text-align:center;font-size:10px}
+  td.cd{text-align:left;font-weight:500;white-space:nowrap;background:#f8fafc}
+  td.c1{background:#eff6ff}
+  td.c4{background:#f0fdf4}
+  td.ct{background:#fefce8;font-weight:700}
+  .z{color:#cbd5e1}
+  tfoot td{background:#f1f5f9;font-weight:700;border-top:2px solid #94a3b8}
+  tfoot td:first-child{background:#e2e8f0;text-align:left}
+  .print-date{text-align:right;font-size:9px;color:#94a3b8;margin-bottom:6px}
+</style>
+</head><body>
+<div class="print-date">พิมพ์เมื่อ ${today}</div>
+<div class="title-block">
+  <h1>สถิติการรับสมัครนักเรียนโรงเรียน${school} ปีการศึกษา ${year}</h1>
+  <p>(สำหรับรายงานเข้าระบบการรับนักเรียน สพฐ.)</p>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">วันที่</th>
+      <th colspan="5">มัธยมศึกษาปีที่ 1</th>
+      <th colspan="5">มัธยมศึกษาปีที่ 4</th>
+      <th rowspan="2">รวม</th>
+    </tr>
+    <tr>
+      <th>ชาย</th><th>หญิง</th><th>ในเขต</th><th>นอกเขต</th><th>รวม</th>
+      <th>ชาย</th><th>หญิง</th><th>ม.3 เดิม</th><th>ม.3 รร.อื่น</th><th>รวม</th>
+    </tr>
+  </thead>
+  <tbody>${bodyRows}</tbody>
+  <tfoot><tr><td>รวมทั้งสิ้น</td>${footCells}</tr></tfoot>
+</table>
+</body></html>`;
+
+  const w = window.open('', '_blank', 'width=1050,height=700');
+  if (!w) { toast('กรุณาอนุญาต Popup ในเบราว์เซอร์', 'warning'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+  w.onload = function() {
+    w.focus();
+    w.print();
+    w.addEventListener('afterprint', function() { w.close(); });
+  };
+  toast('กำลังเปิดหน้าต่าง PDF...', 'success');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EXAM SYSTEM
+═══════════════════════════════════════════════════════════ */
+var _examConfigs = []; // cache
+
+function loadExamPage() {
+  run('getExamConfig', S.token, function(res) {
+    if (!res || !res.ok) return;
+    _examConfigs = res.configs || [];
+    renderExamConfigList();
+    _populateExamPlanDropdowns();
+  });
+}
+
+function switchExamTab(tab) {
+  ['config','scores','sheet'].forEach(function(t) {
+    const pane = document.getElementById('exam-pane-'+t);
+    const btn  = document.getElementById('exam-tab-'+t);
+    if (pane) pane.style.display = t===tab ? '' : 'none';
+    if (btn) {
+      btn.style.borderBottomColor = t===tab ? 'var(--primary)' : 'transparent';
+      btn.style.color = t===tab ? 'var(--primary)' : 'var(--gray)';
+      btn.style.fontWeight = t===tab ? '600' : '400';
+    }
+  });
+  if (tab === 'scores') loadScoreTable();
+}
+
+/* ─── CONFIG: render ─── */
+function renderExamConfigList() {
+  const container = document.getElementById('exam-config-list');
+  if (!container) return;
+  if (!_examConfigs.length) {
+    container.innerHTML = `<div class="empty-state"><div class="es-icon">📋</div>
+      <h3>ยังไม่มีชุดวิชาสอบ</h3><p>กด "+ เพิ่มชุดวิชา" เพื่อเริ่มต้น</p></div>`;
+    return;
+  }
+  container.innerHTML = _examConfigs.map(function(cfg, ci) {
+    const totalW = (parseFloat(cfg.gpaWeightPct)||0) +
+      (cfg.subjects||[]).reduce(function(s,x){return s+(parseFloat(x.weightPct)||0);}, 0);
+    const wOk = Math.abs(totalW - 100) < 0.01;
+    return `<div class="exam-config-card" id="eccard-${ci}">
+      <div class="exam-config-header">
+        <div>
+          <div class="exam-config-title">
+            ${cfg.level||'<em style="color:var(--gray)">ทุกระดับ</em>'}
+            ${cfg.studyPlan ? ' — แผน' + cfg.studyPlan : ''}
+          </div>
+          <div style="font-size:11px;color:var(--gray);margin-top:2px">
+            เกณฑ์ผ่าน: <strong>${cfg.passScore||60}%</strong> |
+            GPA weight: <strong>${cfg.gpaWeightPct||0}%</strong> |
+            <span style="color:${wOk?'var(--success)':'var(--danger)'}">
+              รวม weight: ${totalW.toFixed(1)}% ${wOk?'✅':'⚠️ ต้องรวมได้ 100%'}
+            </span>
+          </div>
+        </div>
+        <button class="btn btn-danger btn-xs" onclick="removeExamConfig(${ci})">ลบ</button>
+      </div>
+      <!-- เงื่อนไขหลัก -->
+      <div class="grid-3" style="gap:10px;margin-bottom:12px">
+        <div class="form-group" style="margin:0">
+          <label>ระดับชั้น</label>
+          <select class="form-control" onchange="updateExamConfig(${ci},'level',this.value)">
+            <option value="">ทุกระดับ</option>
+            <option value="ม.1" ${cfg.level==='ม.1'?'selected':''}>ม.1</option>
+            <option value="ม.4" ${cfg.level==='ม.4'?'selected':''}>ม.4</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>แผนการเรียน (ว่าง = ทุกแผน)</label>
+          <input type="text" class="form-control" value="${cfg.studyPlan||''}"
+            placeholder="เช่น วิทยาศาสตร์-คณิตศาสตร์"
+            oninput="updateExamConfig(${ci},'studyPlan',this.value)">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>เกณฑ์ผ่าน (%)</label>
+          <input type="number" class="form-control" value="${cfg.passScore||60}" min="0" max="100"
+            oninput="updateExamConfig(${ci},'passScore',this.value)">
+        </div>
+      </div>
+      <!-- GPA weight -->
+      <div style="margin-bottom:10px;padding:10px 12px;background:#f0f9ff;border-radius:var(--r);border:1px solid #bae6fd">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <label style="font-size:13px;font-weight:600;min-width:100px">📚 GPA weight %</label>
+          <input type="number" class="form-control" style="max-width:90px"
+            value="${cfg.gpaWeightPct||0}" min="0" max="100" step="5"
+            oninput="updateExamConfig(${ci},'gpaWeightPct',this.value)">
+          <span style="font-size:12px;color:var(--gray)">GPA (0–4) → คะแนน % × weight นี้</span>
+        </div>
+        <div class="weight-bar-wrap">
+          <div class="weight-bar" style="width:${Math.min(parseFloat(cfg.gpaWeightPct)||0,100)}%;background:#0ea5e9"></div>
+        </div>
+      </div>
+      <!-- วิชาสอบ -->
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:#1e293b">📝 วิชาสอบ</div>
+      <div style="display:grid;grid-template-columns:1fr 90px 90px 36px;gap:6px;margin-bottom:4px">
+        <div style="font-size:11px;color:var(--gray);font-weight:600">ชื่อวิชา</div>
+        <div style="font-size:11px;color:var(--gray);font-weight:600;text-align:center">คะแนนเต็ม</div>
+        <div style="font-size:11px;color:var(--gray);font-weight:600;text-align:center">Weight %</div>
+        <div></div>
+      </div>
+      ${(cfg.subjects||[]).map(function(s,si){
+        return `<div style="display:grid;grid-template-columns:1fr 90px 90px 36px;gap:6px;margin-bottom:4px">
+          <input type="text" class="form-control" value="${s.name||''}" placeholder="ชื่อวิชา"
+            oninput="updateSubject(${ci},${si},'name',this.value)">
+          <input type="number" class="form-control" style="text-align:center" value="${s.maxScore||100}" min="1"
+            oninput="updateSubject(${ci},${si},'maxScore',this.value)">
+          <input type="number" class="form-control" style="text-align:center" value="${s.weightPct||0}" min="0" max="100" step="5"
+            oninput="updateSubject(${ci},${si},'weightPct',this.value)">
+          <button class="btn btn-gray btn-xs" style="padding:4px 8px" onclick="removeSubject(${ci},${si})">✕</button>
+        </div>`;
+      }).join('')}
+      <button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="addSubject(${ci})">+ เพิ่มวิชา</button>
+    </div>`;
+  }).join('');
+}
+
+function addExamConfig() {
+  _examConfigs.push({ level:'ม.1', studyPlan:'', gpaWeightPct:30, passScore:60, subjects:[
+    { name:'วิทยาศาสตร์', maxScore:100, weightPct:35 },
+    { name:'คณิตศาสตร์',  maxScore:100, weightPct:35 },
+  ]});
+  renderExamConfigList();
+}
+function removeExamConfig(ci) {
+  if (!confirm('ลบชุดวิชานี้?')) return;
+  _examConfigs.splice(ci, 1);
+  renderExamConfigList();
+}
+function updateExamConfig(ci, key, val) {
+  if (!_examConfigs[ci]) return;
+  _examConfigs[ci][key] = key === 'passScore' || key === 'gpaWeightPct' ? parseFloat(val)||0 : val;
+  // re-render weight bar only (ไม่ full re-render เพื่อไม่ทำให้ focus หลุด)
+}
+function addSubject(ci) {
+  if (!_examConfigs[ci]) return;
+  _examConfigs[ci].subjects = _examConfigs[ci].subjects || [];
+  _examConfigs[ci].subjects.push({ name:'', maxScore:100, weightPct:0 });
+  renderExamConfigList();
+}
+function removeSubject(ci, si) {
+  if (!_examConfigs[ci]) return;
+  _examConfigs[ci].subjects.splice(si, 1);
+  renderExamConfigList();
+}
+function updateSubject(ci, si, key, val) {
+  if (!_examConfigs[ci] || !_examConfigs[ci].subjects[si]) return;
+  _examConfigs[ci].subjects[si][key] = key === 'name' ? val : parseFloat(val)||0;
+}
+
+function saveAllExamConfig() {
+  // sync ค่าจาก DOM ก่อน save — อ่าน input/select ทุกตัวใน card
+  _examConfigs.forEach(function(cfg, ci) {
+    const card = document.getElementById('eccard-'+ci);
+    if (!card) return;
+    // level
+    const lvSel = card.querySelector('select');
+    if (lvSel) cfg.level = lvSel.value;
+    // studyPlan
+    const planIn = card.querySelectorAll('input[type=text]')[0];
+    if (planIn) cfg.studyPlan = planIn.value;
+    // passScore
+    const passIn = card.querySelectorAll('input[type=number]')[0];
+    if (passIn) cfg.passScore = parseFloat(passIn.value)||60;
+    // gpaWeightPct
+    const gpaIn = card.querySelector('.form-control[type=number]');
+    // ใช้ค่าจาก _examConfigs ที่ bind ไว้แล้วผ่าน oninput (ถูกต้องแล้ว)
+    // subjects — อ่านจาก DOM rows
+    const subRows = card.querySelectorAll('.exam-pane .form-group');
+    // ใช้ค่าใน _examConfigs แทน เพราะ updateSubject ทำงาน oninput แล้ว
+  });
+  const btn = document.querySelector('#admin-exam .btn-primary');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ กำลังบันทึก...'; }
+  run('saveExamConfig', [S.token, _examConfigs], function(res) {
+    if (btn) { btn.disabled=false; btn.textContent='💾 บันทึกทั้งหมด'; }
+    if (res && res.ok) {
+      toast('บันทึกการตั้งค่าวิชาสอบแล้ว','success');
+      loadExamPage(); // reload เพื่อ sync ข้อมูลล่าสุด
+    } else toast('เกิดข้อผิดพลาด','error');
+  });
+}
+
+function _populateExamPlanDropdowns() {
+  const plans = [...new Set(_examConfigs.map(function(c){return c.studyPlan||'';}).filter(Boolean))];
+  ['score-filter-plan','sheet-exp-plan','sheet-imp-plan'].forEach(function(id) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">ทุกแผน / ไม่ระบุ</option>' +
+      plans.map(function(p){return `<option value="${p}"${p===cur?' selected':''}>${p}</option>`;}).join('');
+  });
+}
+
+/* ─── SCORE TABLE ─── */
+function loadScoreTable() {
+  const level = document.getElementById('score-filter-level') ? document.getElementById('score-filter-level').value : '';
+  const plan  = document.getElementById('score-filter-plan')  ? document.getElementById('score-filter-plan').value  : '';
+  const tbody = document.getElementById('score-result-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:20px;color:var(--gray)">⏳ กำลังดึงข้อมูล...</td></tr>';
+  run('calculateResults', [S.token, level, plan], function(res) {
+    if (!res || !res.ok) { tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--danger);padding:16px">เกิดข้อผิดพลาด</td></tr>'; return; }
+    const results = res.results || [];
+    if (!results.length) { tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:24px;color:var(--gray)">ไม่พบข้อมูล (ตรวจสอบว่ามีผู้สมัครสถานะ "มีสิทธิ์สอบ" และตั้งค่าวิชาแล้ว)</td></tr>'; return; }
+
+    // สร้าง header แบบ dynamic จาก subjects
+    const allSubs = [];
+    results.forEach(function(r){(r.subjects||[]).forEach(function(s){if(!allSubs.includes(s.name))allSubs.push(s.name);});});
+
+    const thead = document.querySelector('#score-result-table thead');
+    if (thead) thead.innerHTML = `<tr>
+      <th>#</th><th>เลขที่ใบสมัคร</th><th>ชื่อ-นามสกุล</th>
+      <th>ระดับ</th><th>แผน</th>
+      <th class="sub-h">GPA<br><small>(${results[0]?results[0].gpaWeight:0}%)</small></th>
+      ${allSubs.map(function(s){
+        const sub0 = (results[0]&&results[0].subjects||[]).find(function(x){return x.name===s;});
+        return `<th class="sub-h">${s}<br><small>(${sub0?sub0.weight:0}%)</small></th>`;
+      }).join('')}
+      <th>คะแนนรวม</th><th>เกณฑ์</th><th>ผล</th>
+    </tr>`;
+
+    tbody.innerHTML = results.map(function(r, i) {
+      const subCells = allSubs.map(function(sn) {
+        const s = (r.subjects||[]).find(function(x){return x.name===sn;});
+        if (!s || s.pct === null) return '<td class="td-c" style="color:#ccc">–</td>';
+        const color = s.pct >= 60 ? '#16a34a' : s.pct >= 40 ? '#d97706' : '#dc2626';
+        return `<td class="td-c"><div style="font-weight:600;color:${color}">${s.score}</div><div style="font-size:9px;color:#888">/${s.maxScore} (${s.pct}%)</div></td>`;
+      }).join('');
+      const scoreColor = r.totalScore >= r.passScore ? '#16a34a' : '#dc2626';
+      return `<tr>
+        <td class="td-c" style="color:var(--gray);font-size:11px">${i+1}</td>
+        <td style="font-weight:600;color:var(--primary);font-size:11px">${r.appId}</td>
+        <td class="td-name">${r.name}</td>
+        <td class="td-c">${r.level}</td>
+        <td style="font-size:11px">${r.studyPlan||'–'}</td>
+        <td class="td-c"><div style="font-weight:600">${r.gpa}</div><div style="font-size:9px;color:#888">${r.gpaScore}%</div></td>
+        ${subCells}
+        <td class="td-score" style="color:${scoreColor};font-size:14px">${r.totalScore}%</td>
+        <td class="td-c" style="font-size:11px;color:var(--gray)">${r.passScore}%</td>
+        <td class="${r.passed?'td-pass':'td-fail'}"><span class="pct-pill ${r.passed?'pass':'fail'}">${r.passed?'✅ ผ่าน':'❌ ไม่ผ่าน'}</span></td>
+      </tr>`;
+    }).join('');
+  });
+}
+
+function doCalculateResults() {
+  const level = document.getElementById('score-filter-level') ? document.getElementById('score-filter-level').value : '';
+  const plan  = document.getElementById('score-filter-plan')  ? document.getElementById('score-filter-plan').value  : '';
+  if (!confirm('ประมวลผลและอัปเดตสถานะ ผ่าน/ไม่ผ่าน ในระบบ?\n(เฉพาะผู้สมัครที่มีสถานะ "มีสิทธิ์สอบ" เท่านั้น)')) return;
+  run('calculateResults', [S.token, level, plan], function(res) {
+    if (res && res.ok) {
+      toast('ประมวลผลสำเร็จ อัปเดต '+res.updated+' ราย','success');
+      loadScoreTable();
+    } else toast('เกิดข้อผิดพลาด','error');
+  });
+}
+
+/* ─── SHEET EXPORT/IMPORT ─── */
+function onSheetLevelChange() {
+  // filter plan dropdown ตาม level ที่เลือก
+  const level = document.getElementById('sheet-exp-level') ? document.getElementById('sheet-exp-level').value : '';
+  const plans = _examConfigs.filter(function(c){return !level||c.level===level;}).map(function(c){return c.studyPlan||'';}).filter(Boolean);
+  const planSel = document.getElementById('sheet-exp-plan');
+  if (planSel) {
+    planSel.innerHTML = '<option value="">ทุกแผน / ไม่ระบุ</option>' +
+      [...new Set(plans)].map(function(p){return `<option value="${p}">${p}</option>`;}).join('');
+  }
+  const prev = document.getElementById('sheet-exp-preview');
+  const cfg = _examConfigs.find(function(c){return c.level===level;});
+  if (prev && cfg) {
+    prev.textContent = '📝 วิชาสอบ: ' + (cfg.subjects||[]).map(function(s){return s.name+'('+s.maxScore+'คะแนน,'+s.weightPct+'%)';}).join(', ') +
+      ' | GPA '+cfg.gpaWeightPct+'%';
+  } else if (prev) prev.textContent = '';
+}
+
+function doExportScoreSheet() {
+  const level = document.getElementById('sheet-exp-level') ? document.getElementById('sheet-exp-level').value : '';
+  const plan  = document.getElementById('sheet-exp-plan')  ? document.getElementById('sheet-exp-plan').value  : '';
+  if (!level) { toast('กรุณาเลือกระดับชั้นก่อน','warning'); return; }
+  const btn = document.querySelector('#exam-pane-sheet .btn-success');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ กำลังสร้าง Sheet...'; }
+  const resEl = document.getElementById('sheet-exp-result');
+  if (resEl) resEl.innerHTML = '⏳ กำลังสร้าง Google Sheet...';
+  run('exportScoreSheetUrl', [S.token, level, plan], function(res) {
+    if (btn) { btn.disabled=false; btn.textContent='📊 สร้าง Google Sheet'; }
+    if (res && res.ok) {
+      if (resEl) resEl.innerHTML =
+        `✅ สร้างสำเร็จ (${res.count} ราย)<br>
+         <a href="${res.url}" target="_blank" style="color:var(--primary);font-weight:600">
+           🔗 เปิด Google Sheet</a><br>
+         <span style="font-size:11px;color:var(--gray)">แชร์ link นี้ให้ครูผู้ตรวจกรอกคะแนนในช่องสีเหลือง</span>`;
+      // auto-fill import URL
+      const impUrl = document.getElementById('sheet-imp-url');
+      if (impUrl) impUrl.value = res.url;
+      const impLevel = document.getElementById('sheet-imp-level');
+      if (impLevel) impLevel.value = level;
+      toast('สร้าง Google Sheet สำเร็จ','success');
+    } else {
+      if (resEl) resEl.innerHTML = '❌ '+(res&&res.msg?res.msg:'เกิดข้อผิดพลาด');
+      toast(res&&res.msg?res.msg:'เกิดข้อผิดพลาด','error');
+    }
+  });
+}
+
+function doImportScoreSheet() {
+  const url   = document.getElementById('sheet-imp-url')   ? document.getElementById('sheet-imp-url').value   : '';
+  const level = document.getElementById('sheet-imp-level') ? document.getElementById('sheet-imp-level').value : '';
+  const plan  = document.getElementById('sheet-imp-plan')  ? document.getElementById('sheet-imp-plan').value  : '';
+  if (!url || !level) { toast('กรุณากรอก URL และเลือกระดับชั้น','warning'); return; }
+  const btn = document.querySelector('#exam-pane-sheet .btn-primary');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ กำลังนำเข้า...'; }
+  const resEl = document.getElementById('sheet-imp-result');
+  if (resEl) resEl.innerHTML = '⏳ กำลังดึงคะแนนจาก Google Sheet...';
+  run('importScoreSheet', [S.token, url, level, plan], function(res) {
+    if (btn) { btn.disabled=false; btn.textContent='📥 นำเข้าคะแนน'; }
+    if (res && res.ok) {
+      if (resEl) resEl.innerHTML = '✅ '+res.msg;
+      toast(res.msg,'success');
+      switchExamTab('scores');
+      loadScoreTable();
+    } else {
+      if (resEl) resEl.innerHTML = '❌ '+(res&&res.msg?res.msg:'เกิดข้อผิดพลาด');
+      toast(res&&res.msg?res.msg:'เกิดข้อผิดพลาด','error');
+    }
+  });
+}
+
+/* ─── EXPORT LIST: filter helpers ─── */
+var _expCache = null; // cache ข้อมูลล่าสุด
+
+function _getExpFilters() {
+  return {
+    level:   document.getElementById('exp-level')   ? document.getElementById('exp-level').value   : '',
+    studyPlan:document.getElementById('exp-plan')   ? document.getElementById('exp-plan').value    : '',
+    status:  document.getElementById('exp-status')  ? document.getElementById('exp-status').value  : '',
+    appType: document.getElementById('exp-apptype') ? document.getElementById('exp-apptype').value : '',
+  };
+}
+
+function _expDocTitle(meta, total) {
+  const school = (S.settings && S.settings.SCHOOL_FULLNAME) || 'โรงเรียน';
+  const year   = (S.settings && S.settings.ACADEMIC_YEAR)  || '';
+  const parts  = ['รายชื่อผู้สมัครเข้าเรียน'];
+  if (meta.school) parts[0] = 'รายชื่อผู้สมัครเข้าเรียน ' + meta.school;
+  if (year) parts.push('ปีการศึกษา ' + year);
+  if (meta.level) parts.push('ระดับชั้น' + meta.level);
+  if (meta.studyPlan) parts.push('แผน' + meta.studyPlan);
+  if (meta.status) parts.push('(' + meta.status + ')');
+  return { title: parts.join(' — '), count: total };
+}
+
+function onExpFilterChange() {
+  // รีเซ็ต cache เมื่อ filter เปลี่ยน
+  _expCache = null;
+  const level = document.getElementById('exp-level') ? document.getElementById('exp-level').value : '';
+  // โหลดแผนการเรียนที่มีตาม level
+  const planSel = document.getElementById('exp-plan');
+  if (planSel && _dashStats) {
+    const plans = new Set();
+    if (!level || level === 'ม.1') Object.keys(_dashStats.m1ByStudyPlan||{}).forEach(p=>plans.add(p));
+    if (!level || level === 'ม.4') Object.keys(_dashStats.m4ByStudyPlan||{}).forEach(p=>plans.add(p));
+    const cur = planSel.value;
+    planSel.innerHTML = '<option value="">ทุกแผน</option>' +
+      [...plans].sort().map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  }
+  // preview title
+  const title = _expDocTitle({ level, studyPlan:'', status:'', appType:'' }, '?');
+  const el = document.getElementById('exp-doc-title');
+  if (el) el.textContent = title.title;
+}
+
+function _fetchExpData(cb) {
+  const f = _getExpFilters();
+  const loadEl = document.getElementById('exp-loading');
+  if (loadEl) loadEl.style.display = '';
+  run('exportApplications', [S.token, f], function(res) {
+    if (loadEl) loadEl.style.display = 'none';
+    if (!res || !res.ok) { toast('เกิดข้อผิดพลาด','error'); return; }
+    _expCache = res;
+    // update count badge + title
+    const info = _expDocTitle(res.meta, res.total);
+    const countEl = document.getElementById('exp-count-badge');
+    if (countEl) countEl.textContent = res.total + ' รายการ';
+    const titleEl = document.getElementById('exp-doc-title');
+    if (titleEl) titleEl.textContent = info.title;
+    // populate apptype dropdown
+    const typeSel = document.getElementById('exp-apptype');
+    if (typeSel) {
+      const types = [...new Set((res.data||[]).map(a=>a.APP_TYPE||'').filter(Boolean))].sort();
+      const cur = typeSel.value;
+      typeSel.innerHTML = '<option value="">ทุกประเภท</option>' +
+        types.map(t=>`<option value="${t}"${t===cur?' selected':''}>${t}</option>`).join('');
+    }
+    cb(res);
+  });
+}
+
+/* ─── EXPORT LIST EXCEL ─── */
+function doExportListExcel() {
+  _fetchExpData(function(res) {
+    const school = (S.settings&&S.settings.SCHOOL_FULLNAME)||'';
+    const year   = (S.settings&&S.settings.ACADEMIC_YEAR)||'';
+    const cols   = res.exportCols || [];
+    const rows   = res.data || [];
+    const esc    = v => '"' + String(v===null||v===undefined?'':v).replace(/"/g,'""') + '"';
+
+    // Title rows
+    const titleRow = [esc(_expDocTitle(res.meta, res.total).title)];
+    const infoRow  = [esc('พิมพ์เมื่อ: '+fmtDateTH(new Date().toISOString().slice(0,10))+' | จำนวน: '+rows.length+' รายการ')];
+    const hdrRow   = cols.map(c => esc(c.label));
+    const dataRows = rows.map((r,i) => {
+      return cols.map(c => {
+        if (c.key === 'BIRTHDATE') return esc(fmtDateTH(r[c.key])||'');
+        if (c.key === 'CREATED_AT') return esc(fmtDateTimeTH(r[c.key])||'');
+        return esc(r[c.key]||'');
+      });
+    });
+
+    const csv = '\uFEFF' + [titleRow, infoRow, [], hdrRow, ...dataRows]
+      .map(row => row.join(',')).join('\r\n');
+
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    const f = res.meta;
+    a.download = ['รายชื่อ', f.level||'ทุกระดับ', f.studyPlan||'', year,
+      new Date().toISOString().slice(0,10)].filter(Boolean).join('_') + '.csv';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast('Export Excel สำเร็จ ' + rows.length + ' รายการ', 'success');
+  });
+}
+
+/* ─── EXPORT LIST PDF ─── */
+function doExportListPDF() {
+  _fetchExpData(function(res) {
+    const rows   = res.data || [];
+    const meta   = res.meta || {};
+    const school = (S.settings&&S.settings.SCHOOL_FULLNAME) || meta.school || 'โรงเรียน';
+    const schoolSub = (S.settings&&S.settings.SCHOOL_SUBDISTRICT)||'';
+    const schoolDis = (S.settings&&S.settings.SCHOOL_DISTRICT)||'';
+    const schoolPrv = (S.settings&&S.settings.SCHOOL_PROVINCE)||'';
+    const schoolTel = (S.settings&&S.settings.SCHOOL_PHONE)||'';
+    const logoUrl   = (S.settings&&S.settings.LOGO_URL)||'';
+    const year   = (S.settings&&S.settings.ACADEMIC_YEAR) || meta.year || '';
+    const printDate = fmtDateTH(new Date().toISOString().slice(0,10));
+
+    const docTitle   = _expDocTitle(meta, rows.length).title;
+    const subTitle   = [meta.level&&('ระดับชั้น'+meta.level), meta.studyPlan&&('แผนการเรียน '+meta.studyPlan), meta.status].filter(Boolean).join(' | ');
+
+    const logoHtml = logoUrl
+      ? `<img src="${logoUrl}" style="width:56px;height:56px;object-fit:contain">`
+      : `<div style="width:56px;height:56px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid #c7d7f5">🏫</div>`;
+
+    const tableRows = rows.map((a, idx) => {
+      const hasExam = a.EXAM_NO && String(a.EXAM_NO).trim();
+      return `<tr class="${idx%2===0?'':'alt'}">
+        <td class="tc num">${idx+1}</td>
+        <td class="tc appid">${a.APP_ID||'–'}</td>
+        <td class="tc exam ${hasExam?'exam-filled':''}">${hasExam?a.EXAM_NO:'–'}</td>
+        <td class="tc room">${a.EXAM_ROOM||'–'}</td>
+        <td class="name">${(a.PREFIX||'')+' '+a.FNAME+' '+a.LNAME}</td>
+        <td class="tc gender">${a.GENDER||'–'}</td>
+        <td class="school">${a.OLD_SCHOOL||'–'}</td>
+        <td class="tc gpa">${a.GPA||'–'}</td>
+        <td class="plan">${a.STUDY_PLAN||'–'}</td>
+        <td class="tc status"><span class="sbadge ${_pdfStatusClass(a.STATUS)}">${a.STATUS||'–'}</span></td>
+        <td class="sig"></td>
+      </tr>`;
+    }).join('');
+
+    const w = window.open('','_blank','width=1200,height=800');
+    if (!w) { toast('กรุณาอนุญาต Popup','warning'); return; }
+    w.document.write(`<!DOCTYPE html><html lang="th"><head>
+<meta charset="UTF-8">
+<title>${docTitle}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Sarabun',sans-serif;color:#111;background:#ddd;font-size:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+/* TOOLBAR */
+.toolbar{position:fixed;top:0;left:0;right:0;background:#1a3a6b;color:#fff;padding:7px 20px;display:flex;align-items:center;gap:10px;z-index:9999;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.toolbar button{padding:5px 14px;border:1.5px solid rgba(255,255,255,.6);border-radius:4px;color:#fff;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;cursor:pointer}
+.toolbar button:hover{background:rgba(255,255,255,.15)}
+.toolbar button.primary{background:rgba(255,255,255,.2)}
+.toolbar .spacer{flex:1}
+.toolbar .info{font-size:11px;opacity:.7}
+.tb-spacer{height:40px}
+/* PAGE */
+.page{background:#fff;width:297mm;min-height:210mm;margin:6mm auto;padding:10mm 12mm;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+/* HEADER */
+.doc-header{display:flex;align-items:center;gap:12px;padding-bottom:8px;border-bottom:3px solid #1a3a6b;margin-bottom:4px}
+.hdr-logo{flex-shrink:0}
+.hdr-center{flex:1;text-align:center}
+.school-name{font-size:16px;font-weight:700;color:#1a3a6b}
+.school-meta{font-size:10px;color:#666;margin-top:2px}
+.hdr-right{text-align:right;font-size:10px;color:#888;flex-shrink:0;min-width:90px}
+/* TITLE BAND */
+.title-band{background:#1a3a6b;color:#fff;padding:6px 12px;text-align:center;margin:0 -12mm 0;padding-left:12mm;padding-right:12mm}
+.title-band h1{font-size:14px;font-weight:700;letter-spacing:.5px}
+.title-band h2{font-size:11px;font-weight:400;opacity:.88;margin-top:1px}
+/* META PILLS */
+.meta-pills{display:flex;gap:8px;flex-wrap:wrap;padding:5px 0;border-bottom:1px solid #e0e8f5;margin-bottom:6px}
+.meta-pill{background:#e8f0fe;color:#1a3a6b;font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px}
+.meta-pill.green{background:#dcfce7;color:#166534}
+.meta-pill.gray{background:#f1f5f9;color:#475569}
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead tr th{background:#1a3a6b;color:#fff;padding:5px 6px;text-align:center;font-size:10.5px;font-weight:600;white-space:nowrap;border:1px solid #2563b0}
+thead tr.sub-hdr th{background:#2563b0;color:#e8f0fe;font-size:10px;font-weight:500;padding:3px 5px}
+tbody tr td{padding:4px 6px;border:1px solid #dce4ef;vertical-align:middle}
+tbody tr.alt td{background:#f6f9ff}
+tbody tr:hover td{background:#eef3ff}
+td.tc{text-align:center}
+td.num{color:#888;font-size:10px;width:30px}
+td.appid{font-weight:600;color:#1a3a6b;font-size:10.5px;white-space:nowrap}
+td.exam{font-size:12px;font-weight:600;width:70px}
+td.exam.exam-filled{color:#166534;background:#dcfce7}
+td.room{width:55px}
+td.name{font-weight:500;min-width:140px}
+td.gender{width:40px;font-size:10px}
+td.school{font-size:10.5px;color:#444;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.gpa{width:45px;font-weight:600;color:#1d4ed8}
+td.plan{font-size:10.5px;max-width:90px}
+td.status{width:70px}
+td.sig{width:90px;min-height:28px}
+/* STATUS BADGE */
+.sbadge{display:inline-block;padding:1px 6px;border-radius:8px;font-size:9.5px;font-weight:600;white-space:nowrap}
+.sb-gray{background:#e2e8f0;color:#475569}
+.sb-blue{background:#dbeafe;color:#1e40af}
+.sb-amber{background:#fef3c7;color:#92400e}
+.sb-green{background:#dcfce7;color:#166534}
+.sb-red{background:#fee2e2;color:#991b1b}
+.sb-purple{background:#f3e8ff;color:#7c3aed}
+/* SIGNATURE SECTION */
+.sig-section{margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center}
+.sig-box{border:1px solid #ccc;border-radius:3px;padding:6px 10px 5px}
+.sig-box-title{font-size:10px;font-weight:700;color:#1a3a6b;margin-bottom:20px}
+.sig-line{border-top:1px dashed #888;padding-top:3px;font-size:10px;color:#333;margin-top:4px}
+/* FOOTER */
+.doc-footer{margin-top:8px;display:flex;justify-content:space-between;font-size:9px;color:#aaa;border-top:1px solid #e0e8f5;padding-top:4px}
+/* PRINT */
+@media print{
+  body{background:#fff}
+  .toolbar,.tb-spacer{display:none}
+  .page{margin:0;padding:8mm 10mm;box-shadow:none;width:100%;min-height:unset}
+  @page{size:A4 landscape;margin:0}
+}
+</style></head><body>
+
+<div class="toolbar">
+  <button class="primary" onclick="window.print()">🖨&nbsp; พิมพ์ / บันทึก PDF</button>
+  <button onclick="window.close()">✕ ปิด</button>
+  <div class="spacer"></div>
+  <span class="info">${docTitle} | ${rows.length} รายการ | พิมพ์เมื่อ ${printDate}</span>
+</div>
+<div class="tb-spacer"></div>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="hdr-logo">${logoHtml}</div>
+    <div class="hdr-center">
+      <div class="school-name">${school}</div>
+      <div class="school-meta">
+        ${[schoolSub&&('ต.'+schoolSub),schoolDis&&('อ.'+schoolDis),schoolPrv&&('จ.'+schoolPrv)].filter(Boolean).join(' ')}
+        ${schoolTel?'| โทร. '+schoolTel:''}
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div>จำนวน <strong>${rows.length}</strong> ราย</div>
+      <div style="margin-top:2px">พิมพ์เมื่อ ${printDate}</div>
+    </div>
+  </div>
+
+  <!-- TITLE BAND -->
+  <div class="title-band">
+    <h1>${docTitle}</h1>
+    ${subTitle ? `<h2>${subTitle}</h2>` : ''}
+  </div>
+
+  <!-- META PILLS -->
+  <div class="meta-pills">
+    ${meta.level     ? `<span class="meta-pill">📘 ${meta.level}</span>` : '<span class="meta-pill gray">ทุกระดับ</span>'}
+    ${meta.studyPlan ? `<span class="meta-pill green">📚 แผน${meta.studyPlan}</span>` : ''}
+    ${meta.status    ? `<span class="meta-pill">สถานะ: ${meta.status}</span>` : ''}
+    ${meta.appType   ? `<span class="meta-pill">ประเภท: ${meta.appType}</span>` : ''}
+    <span class="meta-pill gray">ปีการศึกษา ${year}</span>
+    <span class="meta-pill gray">เรียงตามลำดับการสมัคร</span>
+  </div>
+
+  <!-- TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th rowspan="2">#</th>
+        <th rowspan="2">เลขที่<br>ใบสมัคร</th>
+        <th rowspan="2">เลขที่<br>นั่งสอบ</th>
+        <th rowspan="2">ห้องสอบ</th>
+        <th rowspan="2">ชื่อ–นามสกุล</th>
+        <th rowspan="2">เพศ</th>
+        <th rowspan="2">โรงเรียนเดิม</th>
+        <th rowspan="2">GPA</th>
+        <th rowspan="2">แผนการเรียน</th>
+        <th rowspan="2">สถานะ</th>
+        <th rowspan="2" style="min-width:90px">ลายมือชื่อ<br>ผู้สมัคร</th>
+      </tr>
+    </thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+
+  <!-- SIGNATURE SECTION -->
+  <div class="sig-section">
+    <div class="sig-box">
+      <div class="sig-box-title">ลงชื่อเจ้าหน้าที่ผู้จัดทำ</div>
+      <div class="sig-line">( ...................................... )</div>
+      <div style="font-size:9.5px;color:#888;margin-top:2px">วันที่ ......../........../............</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-box-title">ลงชื่อผู้ตรวจสอบ</div>
+      <div class="sig-line">( ...................................... )</div>
+      <div style="font-size:9.5px;color:#888;margin-top:2px">วันที่ ......../........../............</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-box-title">ลงชื่อผู้อนุมัติ / ผู้อำนวยการ</div>
+      <div class="sig-line">( ...................................... )</div>
+      <div style="font-size:9.5px;color:#888;margin-top:2px">วันที่ ......../........../............</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <span>พิมพ์จากระบบรับสมัครนักเรียนออนไลน์ · ${school} · ปีการศึกษา ${year}</span>
+    <span>${docTitle} | ${rows.length} รายการ</span>
+  </div>
+
+</div></body></html>`);
+    w.document.close();
+    toast('เปิดหน้าต่าง PDF แล้ว', 'success');
+  });
+}
+
+function _pdfStatusClass(s) {
+  const m = {'สมัครแล้ว':'sb-gray','ชำระเงินแล้ว':'sb-blue','มีสิทธิ์สอบ':'sb-amber','ผ่าน':'sb-green','ไม่ผ่าน':'sb-red','รายงานตัวแล้ว':'sb-purple'};
+  return m[s] || 'sb-gray';
 }
 
 /* ─── SUPABASE SYNC ─── */

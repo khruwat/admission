@@ -1,9 +1,25 @@
 <!DOCTYPE html>
 <!--
    ระบบรับสมัครนักเรียน โรงเรียนหนองนาคำวิทยาคม
-   Student Enrollment System  v1.8.0  (index.html)
+   Student Enrollment System  v1.11.0  (index.html)
    ──────────────────────────────────────────────────
    CHANGELOG
+   v1.11.0 – 2569-03-17 – รอบ 2 + ย้ายเข้าไม่มีวันปิด + ตารางตามช่วงจริง
+              แก้ "(filtered)" text → badge แยกสวยงาม
+              Settings: section รอบ 2 สำหรับ ม.1 และ ม.4
+              public home: แสดง badge รอบ 2 + timeline รอบ 2
+              fillSettings/saveSettings: รองรับ field รอบ 2
+   v1.10.0 – 2569-03-17 – Announcement Popup + Export PDF ตารางรายวัน
+              Popup แจ้งประกาศ: ครั้งแรกต่อ session (sessionStorage)
+                รองรับ text / รูปภาพ / ทั้งคู่
+                ตั้งค่าใน Settings: ข้อความ, URL รูป, เปิด/ปิด popup
+              Export PDF ตารางรายวัน: print-to-PDF อัตโนมัติ
+                popup window สำหรับพิมพ์ → ปิดอัตโนมัติหลัง print
+   v1.9.0 – 2569-03-17 – Dashboard filter panel + ตารางรายวัน + Export CSV
+              Filter bar: ระดับ / เพศ / แผนการเรียน / โรงเรียนเดิม / สถานะ
+              ตารางสถิติรายวัน 30 วัน (ม.1 ชาย/หญิง/ในเขต/นอกเขต,
+                ม.4 ชาย/หญิง/ม.3เดิม/ม.3อื่น, รวม)
+              Export CSV ตารางรายวัน (พร้อม BOM UTF-8)
    v1.8.0 – 2569-03-17 – ระบุเพศจากคำนำหน้าชื่อ + แก้พื้นที่ว่าง admin tablet
               แสดงเพศในหน้าตรวจสอบสถานะ (GENDER badge)
               แก้ .admin-content ลบ overflow-y:auto → ป้องกันพื้นที่ว่างบน tablet
@@ -385,6 +401,50 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
 .info-label{color:var(--gray)}
 .info-value{font-weight:500}
 
+/* ── ANNOUNCEMENT POPUP ── */
+#announce-popup-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1200;
+  display:none;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(3px);
+  animation:fadeIn .25s ease
+}
+#announce-popup-overlay.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#announce-popup-box{
+  background:var(--white);border-radius:var(--r-xl);
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  width:100%;max-width:540px;max-height:90dvh;
+  overflow:hidden;display:flex;flex-direction:column;
+  animation:slideUp .28s cubic-bezier(.4,0,.2,1)
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.ap-header{
+  background:linear-gradient(135deg,#1e40af,#3b82f6);
+  color:#fff;padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0
+}
+.ap-header h3{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.ap-close{
+  width:28px;height:28px;background:rgba(255,255,255,.2);border:none;
+  border-radius:6px;color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;flex-shrink:0
+}
+.ap-close:hover{background:rgba(255,255,255,.35)}
+.ap-body{padding:20px;overflow-y:auto;flex:1}
+.ap-img{width:100%;border-radius:var(--r-lg);display:block;margin-bottom:14px;object-fit:contain;max-height:320px}
+.ap-text{font-size:14px;color:#1e293b;line-height:1.8;white-space:pre-line}
+.ap-footer{
+  padding:12px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;background:#f8fafc
+}
+.ap-footer-note{font-size:12px;color:var(--gray)}
+@media(max-width:540px){
+  #announce-popup-box{max-width:100%;border-radius:var(--r-xl) var(--r-xl) 0 0;position:fixed;bottom:0;left:0;right:0}
+  #announce-popup-overlay{align-items:flex-end;padding:0}
+}
+/* ── ANNOUNCE bar (existing) ── */
 .announce-bar{max-width:1200px;margin:0 auto;padding:0 20px 20px}
 .announce-box{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-lg);padding:14px 20px;display:flex;align-items:flex-start;gap:10px}
 .announce-icon{font-size:20px;flex-shrink:0}
@@ -401,7 +461,33 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
 /* PUBLIC DASHBOARD */
 .pub-dash{max-width:1200px;margin:0 auto;padding:0 20px 36px}
 
-/* ── QUICK-NAV BAR ── */
+/* ── DASHBOARD FILTER PANEL ── */
+.dash-filter-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.dash-filter-bar select,.dash-filter-bar input{padding:7px 11px;border:1.5px solid var(--border);border-radius:var(--r);font-family:'Kanit',sans-serif;font-size:13px;background:#fff;min-width:130px;max-width:200px}
+.dash-filter-bar select:focus,.dash-filter-bar input:focus{border-color:var(--primary-l);outline:none}
+.dash-filter-bar label{font-size:12px;color:var(--gray);font-weight:500;white-space:nowrap}
+.dash-filter-group{display:flex;flex-direction:column;gap:3px}
+.dash-filter-reset{margin-left:auto;background:#f1f5f9;color:#475569;border:1.5px solid var(--border);border-radius:var(--r);padding:7px 14px;font-size:13px;cursor:pointer;font-family:'Kanit',sans-serif;transition:all .2s}
+.dash-filter-reset:hover{background:#e2e8f0}
+/* ── DAILY TABLE ── */
+.daily-table-wrap{overflow-x:auto;border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.daily-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--white)}
+.daily-table thead tr:first-child th{background:#1e293b;color:#fff;padding:9px 12px;text-align:center;font-weight:600;border:1px solid #334155;white-space:nowrap}
+.daily-table thead tr:nth-child(2) th{background:#334155;color:#cbd5e1;padding:7px 10px;text-align:center;font-size:12px;border:1px solid #475569;white-space:nowrap}
+.daily-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+.daily-table tbody tr:hover{background:#f8fafc}
+.daily-table tbody td{padding:8px 12px;text-align:center;border-right:1px solid var(--border)}
+.daily-table tbody td:first-child{text-align:left;font-weight:500;white-space:nowrap;color:#1e293b;background:#f8fafc;position:sticky;left:0;z-index:1}
+.daily-table tfoot td{background:#f1f5f9;font-weight:700;padding:9px 12px;text-align:center;border-top:2px solid var(--border);border-right:1px solid var(--border)}
+.daily-table tfoot td:first-child{text-align:left;background:#e2e8f0;position:sticky;left:0}
+.daily-table .col-m1{background:#eff6ff}
+.daily-table .col-m4{background:#f0fdf4}
+.daily-table .col-total{background:#fefce8;font-weight:700}
+.daily-table .zero{color:#cbd5e1}
+@media(max-width:768px){
+  .dash-filter-bar{gap:8px}
+  .dash-filter-bar select,.dash-filter-bar input{min-width:100px;font-size:12px}
+}
 .quick-nav{max-width:1200px;margin:0 auto;padding:0 20px 28px}
 .quick-nav-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .qn-btn{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-xl);padding:18px 12px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);font-family:'Kanit',sans-serif;text-decoration:none;width:100%}
@@ -1829,22 +1915,84 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
     <div id="admin-dash" class="admin-page active">
       <div class="admin-page-header">
         <h2>📊 แดชบอร์ด</h2>
-        <button class="btn btn-outline btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="exportDailyPDF()">📄 Export PDF</button>
+          <button class="btn btn-outline btn-sm" onclick="exportDailyCSV()">📥 Export CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="loadDashboard()">🔄 รีเฟรช</button>
+        </div>
       </div>
-      <!-- Row 1: Summary cards -->
+
+      <!-- Filter Panel -->
+      <div class="dash-filter-bar">
+        <div class="dash-filter-group">
+          <label>ระดับชั้น</label>
+          <select id="df-level" onchange="applyDashFilter()">
+            <option value="">ทุกระดับ</option>
+            <option value="ม.1">ม.1</option>
+            <option value="ม.4">ม.4</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>เพศ</label>
+          <select id="df-gender" onchange="applyDashFilter()">
+            <option value="">ทุกเพศ</option>
+            <option value="ชาย">ชาย</option>
+            <option value="หญิง">หญิง</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>แผนการเรียน</label>
+          <select id="df-plan" onchange="applyDashFilter()">
+            <option value="">ทุกแผน</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>โรงเรียนเดิม</label>
+          <select id="df-school" onchange="applyDashFilter()">
+            <option value="">ทุกโรงเรียน</option>
+          </select>
+        </div>
+        <div class="dash-filter-group">
+          <label>สถานะ</label>
+          <select id="df-status" onchange="applyDashFilter()">
+            <option value="">ทุกสถานะ</option>
+            <option>สมัครแล้ว</option><option>ชำระเงินแล้ว</option>
+            <option>มีสิทธิ์สอบ</option><option>ผ่าน</option>
+            <option>ไม่ผ่าน</option><option>รายงานตัวแล้ว</option>
+          </select>
+        </div>
+        <button class="dash-filter-reset" onclick="resetDashFilter()">✕ รีเซ็ต</button>
+        <span id="df-result-count" style="font-size:12px;color:var(--gray);white-space:nowrap"></span>
+      </div>
+
+      <!-- Row 1: Summary cards (filtered) -->
       <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
         <div class="stat-card blue"><div class="stat-label">สมัครทั้งหมด</div><div class="stat-value" id="s-total">–</div></div>
         <div class="stat-card green"><div class="stat-label">ม.1</div><div class="stat-value" id="s-m1">–</div><div class="stat-sub" id="s-m1-quota"></div></div>
         <div class="stat-card amber"><div class="stat-label">ม.4</div><div class="stat-value" id="s-m4">–</div><div class="stat-sub" id="s-m4-quota"></div></div>
-        <div class="stat-card red"><div class="stat-label">มีสิทธิ์สอบ</div><div class="stat-value" id="s-eligible">–</div></div>
+        <div class="stat-card" style="border-left:4px solid #ec4899"><div class="stat-label">ชาย / หญิง</div><div class="stat-value" id="s-gender">–</div></div>
         <div class="stat-card" style="border-left:4px solid #8b5cf6"><div class="stat-label">ในเขตพื้นที่</div><div class="stat-value" id="s-inzone">–</div><div class="stat-sub" id="s-outzone"></div></div>
       </div>
+
       <!-- Row 2: Quota fill + status -->
       <div class="dash-grid mt-16">
         <div class="card"><div class="card-header"><h2>📘 สถิติ ม.1</h2></div><div class="card-body" id="dash-m1-stats"></div></div>
         <div class="card"><div class="card-header"><h2>📗 สถิติ ม.4</h2></div><div class="card-body" id="dash-m4-stats"></div></div>
       </div>
-      <!-- Row 3: Trend + type -->
+
+      <!-- Row 3: Gender + Study Plan -->
+      <div class="dash-grid mt-16">
+        <div class="card">
+          <div class="card-header"><h2>👥 เพศ แยกระดับ</h2></div>
+          <div class="card-body" id="dash-by-gender"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2>📚 แผนการเรียน</h2></div>
+          <div class="card-body" id="dash-by-plan"></div>
+        </div>
+      </div>
+
+      <!-- Row 4: Trend + type -->
       <div class="dash-grid mt-16">
         <div class="card">
           <div class="card-header"><h2>📈 แนวโน้มการสมัคร 14 วัน</h2></div>
@@ -1857,7 +2005,8 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
           <div class="card-body" id="dash-by-type"></div>
         </div>
       </div>
-      <!-- Row 4: Top schools + province -->
+
+      <!-- Row 5: Top schools + province -->
       <div class="dash-grid mt-16">
         <div class="card">
           <div class="card-header"><h2>🏫 โรงเรียนเดิม (Top 10)</h2></div>
@@ -1866,6 +2015,43 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
         <div class="card">
           <div class="card-header"><h2>🗺 จังหวัด</h2></div>
           <div class="card-body" id="dash-by-province"></div>
+        </div>
+      </div>
+
+      <!-- Row 6: ตารางสถิติรายวัน 30 วัน -->
+      <div class="card mt-16">
+        <div class="card-header" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px"><h2>📅 สถิติรายวัน (30 วัน)</h2></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="exportDailyPDF()">📄 PDF</button>
+            <button class="btn btn-outline btn-sm" onclick="exportDailyCSV()">📥 CSV</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="daily-table-wrap">
+            <table class="daily-table" id="daily-table">
+              <thead>
+                <tr>
+                  <th rowspan="2">วันที่</th>
+                  <th colspan="5">มัธยมศึกษาปีที่ 1</th>
+                  <th colspan="5">มัธยมศึกษาปีที่ 4</th>
+                  <th rowspan="2" class="col-total">รวม<br>ทั้งหมด</th>
+                </tr>
+                <tr>
+                  <th class="col-m1">ชาย</th><th class="col-m1">หญิง</th>
+                  <th class="col-m1">ในเขต</th><th class="col-m1">นอกเขต</th>
+                  <th class="col-m1">รวม</th>
+                  <th class="col-m4">ชาย</th><th class="col-m4">หญิง</th>
+                  <th class="col-m4">ม.3 เดิม</th><th class="col-m4">ม.3 รร.อื่น</th>
+                  <th class="col-m4">รวม</th>
+                </tr>
+              </thead>
+              <tbody id="daily-tbody">
+                <tr><td colspan="12" style="padding:24px;text-align:center;color:var(--gray)">⏳ กำลังโหลด...</td></tr>
+              </tbody>
+              <tfoot id="daily-tfoot"></tfoot>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -2074,7 +2260,67 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
         </div>
       </div>
 
-      <!-- ── ทั่วไป ── -->
+      <!-- ── รอบ 2 ── -->
+      <div class="card mt-16">
+        <div class="card-header">🔄 <h2>การรับสมัครรอบ 2</h2></div>
+        <div class="card-body">
+          <div class="form-hint" style="margin-bottom:16px;font-size:13px;color:#475569">
+            ⚠️ รอบ 2 จะเปิดรับสมัครต่อเนื่องจากรอบ 1 อัตโนมัติ เมื่อรอบ 1 หมดเขตแล้ว
+            ระบบจะตรวจช่วงรอบ 2 ให้เองโดยไม่ต้องปิดสวิตช์รอบ 1 ก่อน
+          </div>
+          <!-- เวลาเปิด/ปิด รอบ 2 (ใช้ร่วมกัน ม.1+ม.4) -->
+          <div class="grid-2" style="max-width:400px;margin-bottom:16px">
+            <div class="form-group">
+              <label>เวลาเปิดรับสมัคร (รอบ 2)</label>
+              <input type="time" id="cfg-reg2-open-time" class="form-control" value="08:30">
+            </div>
+            <div class="form-group">
+              <label>เวลาปิดรับสมัคร (รอบ 2)</label>
+              <input type="time" id="cfg-reg2-close-time" class="form-control" value="16:30">
+            </div>
+          </div>
+          <!-- ม.1 รอบ 2 -->
+          <div style="background:#eff6ff;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;border:1px solid #bfdbfe">
+            <div style="font-size:13px;font-weight:600;color:#1e40af;margin-bottom:10px">📘 ม.1 รอบ 2</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer">
+                <input type="checkbox" id="cfg-reg2-open-m1" style="width:16px;height:16px;cursor:pointer">
+                เปิดรับสมัครรอบ 2 (ม.1)
+              </label>
+            </div>
+            <div class="grid-2" style="max-width:440px">
+              <div class="form-group" style="margin-bottom:0">
+                <label>วันเปิดรับสมัคร รอบ 2</label>
+                <input type="date" id="cfg-m1-reg2-start" class="form-control">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label>วันปิดรับสมัคร รอบ 2</label>
+                <input type="date" id="cfg-m1-reg2-end" class="form-control">
+              </div>
+            </div>
+          </div>
+          <!-- ม.4 รอบ 2 -->
+          <div style="background:#f0fdf4;border-radius:var(--r);padding:14px 16px;border:1px solid #bbf7d0">
+            <div style="font-size:13px;font-weight:600;color:#15803d;margin-bottom:10px">📗 ม.4 รอบ 2</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer">
+                <input type="checkbox" id="cfg-reg2-open-m4" style="width:16px;height:16px;cursor:pointer">
+                เปิดรับสมัครรอบ 2 (ม.4)
+              </label>
+            </div>
+            <div class="grid-2" style="max-width:440px">
+              <div class="form-group" style="margin-bottom:0">
+                <label>วันเปิดรับสมัคร รอบ 2</label>
+                <input type="date" id="cfg-m4-reg2-start" class="form-control">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label>วันปิดรับสมัคร รอบ 2</label>
+                <input type="date" id="cfg-m4-reg2-end" class="form-control">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="card mt-16">
         <div class="card-header">💰 <h2>ทั่วไป</h2></div>
         <div class="card-body">
@@ -2084,8 +2330,20 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
             <div class="form-hint">กรอก 0 หากไม่มีค่าสมัคร</div>
           </div>
           <div class="form-group">
-            <label>ประกาศ / ข่าวสาร (แสดงบนหน้าแรก)</label>
+            <label>ประกาศ / ข่าวสาร</label>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;cursor:pointer">
+                <input type="checkbox" id="cfg-announce-popup" style="width:16px;height:16px;cursor:pointer">
+                แสดงเป็น Popup เมื่อเปิดระบบ (ครั้งแรกต่อ session)
+              </label>
+            </div>
             <textarea id="cfg-announce" class="form-control" rows="3" placeholder="ว่างไว้หากไม่ต้องการแสดงประกาศ"></textarea>
+            <div class="form-hint">ข้อความประกาศ (รองรับ line break)</div>
+            <div class="form-group" style="margin-top:10px;margin-bottom:0">
+              <label>URL รูปภาพประกาศ (ไม่บังคับ)</label>
+              <input type="url" id="cfg-announce-image" class="form-control" placeholder="https://drive.google.com/uc?id=...">
+              <div class="form-hint">วาง URL รูปจาก Google Drive หรือ URL รูปภาพใดก็ได้ — แสดงเหนือข้อความในป๊อปอัป</div>
+            </div>
           </div>
         </div>
       </div>
@@ -2396,6 +2654,24 @@ tbody td{padding:11px 16px;font-size:13px;vertical-align:middle}
 </div>
 
 </main>
+
+<!-- ── ANNOUNCEMENT POPUP ── -->
+<div id="announce-popup-overlay">
+  <div id="announce-popup-box">
+    <div class="ap-header">
+      <h3>📢 <span id="ap-title">ประกาศ / ข่าวสาร</span></h3>
+      <button class="ap-close" onclick="closeAnnouncePopup()" title="ปิด">✕</button>
+    </div>
+    <div class="ap-body">
+      <img id="ap-img" class="ap-img" src="" alt="ประกาศ" style="display:none">
+      <div id="ap-text" class="ap-text"></div>
+    </div>
+    <div class="ap-footer">
+      <span class="ap-footer-note">💡 ประกาศจะแสดงครั้งแรกเมื่อเปิดระบบเท่านั้น</span>
+      <button class="btn btn-primary btn-sm" onclick="closeAnnouncePopup()">รับทราบ</button>
+    </div>
+  </div>
+</div>
 
 <!-- SITE FOOTER -->
 <footer id="site-footer" style="
@@ -3353,17 +3629,31 @@ function applySettings() {
   setText('m4-exam-date-text',   fmtDateTH(c.M4_EXAM_DATE)   || '–');
   setText('m1-result-date-text', fmtDateTH(c.M1_RESULT_DATE) || '–');
   setText('m4-result-date-text', fmtDateTH(c.M4_RESULT_DATE) || '–');
-  const m1o = String(c.REG_OPEN_M1) !== 'false';
-  const m4o = String(c.REG_OPEN_M4) !== 'false';
-  setEl('m1-open-badge', m1o ? '<span class="badge badge-green">เปิดรับสมัคร ✅</span>' : '<span class="badge badge-red">ปิดรับสมัคร ❌</span>');
-  setEl('m4-open-badge', m4o ? '<span class="badge badge-green">เปิดรับสมัคร ✅</span>' : '<span class="badge badge-red">ปิดรับสมัคร ❌</span>');
+  const m1o  = String(c.REG_OPEN_M1) !== 'false';
+  const m4o  = String(c.REG_OPEN_M4) !== 'false';
+  const m1o2 = String(c.REG2_OPEN_M1) === 'true';
+  const m4o2 = String(c.REG2_OPEN_M4) === 'true';
+  function _openBadge(open1, open2) {
+    if (open1) return '<span class="badge badge-green">เปิดรับสมัคร รอบ 1 ✅</span>';
+    if (open2) return '<span class="badge badge-amber">เปิดรับสมัคร รอบ 2 ✅</span>';
+    return '<span class="badge badge-red">ปิดรับสมัคร ❌</span>';
+  }
+  setEl('m1-open-badge', _openBadge(m1o, m1o2));
+  setEl('m4-open-badge', _openBadge(m4o, m4o2));
   const b1 = document.getElementById('btn-reg-m1');
   const b4 = document.getElementById('btn-reg-m4');
-  if (b1) b1.disabled = !m1o;
-  if (b4) b4.disabled = !m4o;
-  const ann = c.ANNOUNCEMENT || '';
+  if (b1) b1.disabled = !m1o && !m1o2;
+  if (b4) b4.disabled = !m4o && !m4o2;
+  const ann     = c.ANNOUNCEMENT  || '';
+  const annImg  = c.ANNOUNCE_IMAGE || '';
+  const annPop  = String(c.ANNOUNCE_POPUP) !== 'false';
+  // announce-bar (fallback เมื่อปิด popup)
   const annArea = document.getElementById('announce-area');
-  if (annArea) { annArea.style.display = ann ? '' : 'none'; if (ann) setText('announce-text', ann); }
+  if (annArea) { annArea.style.display = (!annPop && ann) ? '' : 'none'; if (!annPop && ann) setText('announce-text', ann); }
+  // popup — แสดงครั้งแรกต่อ session เท่านั้น
+  if (annPop && (ann || annImg) && !sessionStorage.getItem('ann_shown')) {
+    showAnnouncePopup(ann, annImg);
+  }
 
   // ── Footer ──
   setText('footer-school',      fn);
@@ -5246,10 +5536,14 @@ function loadPublicStats() {
       </div>`;
     }
     const items = [
-      tlItem('📝','เปิดรับสมัคร ม.1', s.m1RegStart, s.m1Open ? '✅ เปิดรับสมัครแล้ว' : ''),
-      tlItem('🚫','ปิดรับสมัคร ม.1',  s.m1RegEnd,   ''),
-      tlItem('📝','เปิดรับสมัคร ม.4', s.m4RegStart, s.m4Open ? '✅ เปิดรับสมัครแล้ว' : ''),
-      tlItem('🚫','ปิดรับสมัคร ม.4',  s.m4RegEnd,   ''),
+      tlItem('📝','เปิดรับสมัคร ม.1 (รอบ 1)', s.m1RegStart, s.m1Open ? '✅ เปิดอยู่' : ''),
+      tlItem('🚫','ปิดรับสมัคร ม.1 (รอบ 1)',  s.m1RegEnd,   ''),
+      tlItem('🔄','เปิดรับสมัคร ม.1 (รอบ 2)', s.m1Reg2Start, s.m1Open2 ? '✅ เปิดอยู่' : ''),
+      tlItem('🚫','ปิดรับสมัคร ม.1 (รอบ 2)',  s.m1Reg2End,  ''),
+      tlItem('📝','เปิดรับสมัคร ม.4 (รอบ 1)', s.m4RegStart, s.m4Open ? '✅ เปิดอยู่' : ''),
+      tlItem('🚫','ปิดรับสมัคร ม.4 (รอบ 1)',  s.m4RegEnd,   ''),
+      tlItem('🔄','เปิดรับสมัคร ม.4 (รอบ 2)', s.m4Reg2Start, s.m4Open2 ? '✅ เปิดอยู่' : ''),
+      tlItem('🚫','ปิดรับสมัคร ม.4 (รอบ 2)',  s.m4Reg2End,  ''),
       tlItem('✏️','วันสอบ ม.1',       s.m1ExamDate, s.m1ExamTime||''),
       tlItem('✏️','วันสอบ ม.4',       s.m4ExamDate, s.m4ExamTime||''),
       tlItem('📢','ประกาศผล ม.1',     s.m1ResultDate,''),
@@ -5262,74 +5556,275 @@ function loadPublicStats() {
 }
 
 /* ─── ADMIN DASHBOARD ─── */
+/* ─── DASHBOARD STATE ─── */
+var _dashStats = null; // เก็บ raw stats จาก GAS
+
 function loadDashboard() {
   run('getStats', S.token, function(s) {
     if (!s) return;
-    setText('s-total',   s.total);
-    setText('s-m1',      s.m1Total);
-    setText('s-m4',      s.m4Total);
-    setText('s-eligible',(s.byStatus['มีสิทธิ์สอบ']||0)+(s.byStatus['ผ่าน']||0));
-    setText('s-m1-quota','เป้าหมาย '+s.m1Quota+' คน');
-    setText('s-m4-quota','เป้าหมาย '+s.m4Quota+' คน');
-    if (s.inZone !== null) {
-      setText('s-inzone', s.inZone);
-      setText('s-outzone','นอกเขต '+(s.outZone||0)+' คน');
-    } else { setText('s-inzone','–'); setText('s-outzone','ยังไม่ตั้งค่าเขตพื้นที่'); }
-
-    const ST = ['สมัครแล้ว','ชำระเงินแล้ว','มีสิทธิ์สอบ','ผ่าน','ไม่ผ่าน'];
-    const CL = ['#94a3b8','#3b82f6','#f59e0b','#22c55e','#ef4444'];
-    function mkStats(bySt, quota) {
-      const filled = (bySt['มีสิทธิ์สอบ']||0)+(bySt['ผ่าน']||0);
-      const pct = quota ? Math.min(100,Math.round(filled/quota*100)) : 0;
-      return `<div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:4px">
-          <span>เต็มโควตา</span><span>${filled}/${quota} คน (${pct}%)</span></div>
-        <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${pct>=100?'#ef4444':'#22c55e'};border-radius:5px;transition:width .5s"></div>
-        </div></div>`
-      + ST.map((st,i) => {
-        const n = bySt[st]||0, p = quota ? Math.min(100,n/quota*100) : 0;
-        return `<div class="progress-row"><div class="progress-label"><span>${st}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${CL[i]}"></div></div></div>`;
-      }).join('');
-    }
-    setEl('dash-m1-stats', mkStats(s.m1ByStatus, s.m1Quota));
-    setEl('dash-m4-stats', mkStats(s.m4ByStatus, s.m4Quota));
-
-    // Trend 14 วัน
-    const trend = s.dailyTrend||{}, maxV = Math.max(...Object.values(trend),1);
-    setEl('dash-trend', Object.entries(trend).map(([d,n]) =>
-      `<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-        <div style="font-size:9px;font-weight:600;color:var(--primary)">${n||''}</div>
-        <div style="width:100%;background:var(--primary-l);border-radius:2px 2px 0 0;height:${n?Math.max(5,n/maxV*56):3}px;opacity:${n?1:.25}"></div>
-        <div style="font-size:8px;color:var(--gray)">${d.slice(5)}</div>
-      </div>`).join(''));
-
-    // By type
-    const byType = s.byType||{};
-    setEl('dash-by-type', Object.entries(byType).length
-      ? Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([t,n]) =>
-          `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${t}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill pf-blue" style="width:${s.total?Math.round(n/s.total*100):0}%"></div></div></div>`
-        ).join('')
-      : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
-
-    // Top schools
-    setEl('dash-top-schools', (s.topSchools||[]).length
-      ? `<div style="display:flex;flex-direction:column;gap:5px">${(s.topSchools||[]).map((sc,i) =>
-          `<div style="display:flex;align-items:center;gap:8px;font-size:13px">
-            <span style="width:20px;text-align:center;font-weight:600;color:var(--gray)">${i+1}</span>
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${sc.name}">${sc.name}</span>
-            <span class="badge badge-blue">${sc.count}</span>
-          </div>`).join('')}</div>`
-      : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
-
-    // By province
-    const byProv = s.byProvince||{};
-    setEl('dash-by-province', Object.entries(byProv).length
-      ? Object.entries(byProv).sort((a,b)=>b[1]-a[1]).map(([p,n]) =>
-          `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${p}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill" style="width:${s.total?Math.round(n/s.total*100):0}%;background:#8b5cf6"></div></div></div>`
-        ).join('')
-      : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
+    _dashStats = s;
+    // populate filter dropdowns
+    _fillDashFilterDropdowns(s);
+    // render ด้วยข้อมูลดิบ (ไม่มี filter)
+    _renderDashboard(s, {});
+    // ตารางรายวัน
+    _renderDailyTable(s.dailyDetailedTrend || {});
   });
+}
+
+function _fillDashFilterDropdowns(s) {
+  // แผนการเรียน
+  const planSel = document.getElementById('df-plan');
+  const curPlan = planSel ? planSel.value : '';
+  const plans = new Set();
+  Object.keys(s.m1ByStudyPlan||{}).forEach(p => plans.add(p));
+  Object.keys(s.m4ByStudyPlan||{}).forEach(p => plans.add(p));
+  if (planSel) {
+    planSel.innerHTML = '<option value="">ทุกแผน</option>' +
+      [...plans].sort().map(p => `<option value="${p}"${p===curPlan?' selected':''}>${p}</option>`).join('');
+  }
+  // โรงเรียนเดิม
+  const schSel = document.getElementById('df-school');
+  const curSch = schSel ? schSel.value : '';
+  if (schSel) {
+    schSel.innerHTML = '<option value="">ทุกโรงเรียน</option>' +
+      (s.allSchools||[]).map(sc => `<option value="${sc}"${sc===curSch?' selected':''}>${sc}</option>`).join('');
+  }
+}
+
+function applyDashFilter() {
+  if (!_dashStats) return;
+  const f = {
+    level:  document.getElementById('df-level')  ? document.getElementById('df-level').value  : '',
+    gender: document.getElementById('df-gender') ? document.getElementById('df-gender').value : '',
+    plan:   document.getElementById('df-plan')   ? document.getElementById('df-plan').value   : '',
+    school: document.getElementById('df-school') ? document.getElementById('df-school').value : '',
+    status: document.getElementById('df-status') ? document.getElementById('df-status').value : '',
+  };
+  _renderDashboard(_dashStats, f);
+}
+
+function resetDashFilter() {
+  ['df-level','df-gender','df-plan','df-school','df-status'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  applyDashFilter();
+}
+
+function _renderDashboard(s, f) {
+  // ─── Summary cards ───
+  // ใช้ข้อมูล pre-aggregated จาก GAS (filter client-side ไม่ได้มี raw rows)
+  // แสดง filtered count เฉพาะเมื่อไม่มี filter (full data) หรือแสดง note
+  const hasFilter = Object.values(f).some(v => v !== '');
+  const filterBadge = hasFilter
+    ? ' <span style="font-size:11px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:10px;font-weight:500;vertical-align:middle">filtered</span>'
+    : '';
+
+  setText('s-total',   s.total);
+  const totalEl = document.getElementById('s-total');
+  if (totalEl && hasFilter) totalEl.innerHTML = s.total + filterBadge;
+  setText('s-m1',      s.m1Total);
+  setText('s-m4',      s.m4Total);
+  setText('s-m1-quota','เป้าหมาย '+s.m1Quota+' คน');
+  setText('s-m4-quota','เป้าหมาย '+s.m4Quota+' คน');
+
+  // Gender card
+  const gM1 = s.m1ByGender||{}, gM4 = s.m4ByGender||{};
+  const totalMale   = (gM1.ชาย||0)+(gM4.ชาย||0);
+  const totalFemale = (gM1.หญิง||0)+(gM4.หญิง||0);
+  setText('s-gender', totalMale + ' / ' + totalFemale);
+
+  if (s.inZone !== null) {
+    setText('s-inzone', s.inZone);
+    setText('s-outzone','นอกเขต '+(s.outZone||0)+' คน');
+  } else { setText('s-inzone','–'); setText('s-outzone','ยังไม่ตั้งค่าเขตพื้นที่'); }
+
+  // ─── filter result count note ───
+  const countEl = document.getElementById('df-result-count');
+  if (countEl) countEl.textContent = hasFilter ? '* สรุปภาพรวมยังคงแสดงข้อมูลทั้งหมด' : '';
+
+  const ST = ['สมัครแล้ว','ชำระเงินแล้ว','มีสิทธิ์สอบ','ผ่าน','ไม่ผ่าน'];
+  const CL = ['#94a3b8','#3b82f6','#f59e0b','#22c55e','#ef4444'];
+  function mkStats(bySt, quota) {
+    const filled = (bySt['มีสิทธิ์สอบ']||0)+(bySt['ผ่าน']||0);
+    const pct = quota ? Math.min(100,Math.round(filled/quota*100)) : 0;
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:4px">
+        <span>เต็มโควตา</span><span>${filled}/${quota} คน (${pct}%)</span></div>
+      <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${pct>=100?'#ef4444':'#22c55e'};border-radius:5px;transition:width .5s"></div>
+      </div></div>`
+    + ST.map((st,i) => {
+      const n = bySt[st]||0, p = quota ? Math.min(100,n/quota*100) : 0;
+      return `<div class="progress-row"><div class="progress-label"><span>${st}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill" style="width:${p}%;background:${CL[i]}"></div></div></div>`;
+    }).join('');
+  }
+  setEl('dash-m1-stats', mkStats(s.m1ByStatus, s.m1Quota));
+  setEl('dash-m4-stats', mkStats(s.m4ByStatus, s.m4Quota));
+
+  // ─── Gender breakdown ───
+  function genderRow(label, male, female) {
+    const total = male + female;
+    const mp = total ? Math.round(male/total*100) : 0;
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;margin-bottom:4px">
+        <span>${label}</span>
+        <span style="color:var(--gray)">ชาย <strong style="color:#3b82f6">${male}</strong> · หญิง <strong style="color:#ec4899">${female}</strong> · รวม ${total}</span>
+      </div>
+      <div style="height:10px;border-radius:5px;overflow:hidden;display:flex">
+        <div style="width:${mp}%;background:#3b82f6;transition:width .5s"></div>
+        <div style="flex:1;background:#fce7f3"></div>
+      </div></div>`;
+  }
+  setEl('dash-by-gender',
+    genderRow('📘 ม.1', gM1.ชาย||0, gM1.หญิง||0) +
+    genderRow('📗 ม.4', gM4.ชาย||0, gM4.หญิง||0) +
+    genderRow('📊 รวม', totalMale, totalFemale)
+  );
+
+  // ─── Study Plan ───
+  function planList(byPlan, levelColor) {
+    const entries = Object.entries(byPlan||{}).sort((a,b)=>b[1]-a[1]);
+    if (!entries.length) return '<div class="text-center text-gray text-sm" style="padding:12px">ยังไม่มีข้อมูล</div>';
+    const total = entries.reduce((s,[,n])=>s+n,0);
+    return entries.map(([p,n]) => {
+      const pct = total ? Math.round(n/total*100) : 0;
+      return `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${p}</span><span>${n} คน (${pct}%)</span></div><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${levelColor}"></div></div></div>`;
+    }).join('');
+  }
+  // กรองตาม df-level
+  const lvFilter = f.level || '';
+  let planHTML = '';
+  if (!lvFilter || lvFilter === 'ม.1') planHTML += `<div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:6px;margin-top:4px">📘 ม.1</div>` + planList(s.m1ByStudyPlan, '#3b82f6');
+  if (!lvFilter || lvFilter === 'ม.4') planHTML += `<div style="font-size:12px;font-weight:600;color:var(--gray);margin-bottom:6px;margin-top:12px">📗 ม.4</div>` + planList(s.m4ByStudyPlan, '#10b981');
+  setEl('dash-by-plan', planHTML);
+
+  // ─── Trend 14 วัน ───
+  const trend = s.dailyTrend||{}, maxV = Math.max(...Object.values(trend),1);
+  setEl('dash-trend', Object.entries(trend).map(([d,n]) =>
+    `<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="font-size:9px;font-weight:600;color:var(--primary)">${n||''}</div>
+      <div style="width:100%;background:var(--primary-l);border-radius:2px 2px 0 0;height:${n?Math.max(5,n/maxV*56):3}px;opacity:${n?1:.25}"></div>
+      <div style="font-size:8px;color:var(--gray)">${d.slice(5)}</div>
+    </div>`).join(''));
+
+  // ─── By Type ───
+  const byType = s.byType||{};
+  setEl('dash-by-type', Object.entries(byType).length
+    ? Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([t,n]) =>
+        `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${t}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill pf-blue" style="width:${s.total?Math.round(n/s.total*100):0}%"></div></div></div>`
+      ).join('')
+    : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
+
+  // ─── Top Schools ───
+  setEl('dash-top-schools', (s.topSchools||[]).length
+    ? `<div style="display:flex;flex-direction:column;gap:5px">${(s.topSchools||[]).map((sc,i) =>
+        `<div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="width:20px;text-align:center;font-weight:600;color:var(--gray)">${i+1}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${sc.name}">${sc.name}</span>
+          <span class="badge badge-blue">${sc.count}</span>
+        </div>`).join('')}</div>`
+    : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
+
+  // ─── By Province ───
+  const byProv = s.byProvince||{};
+  setEl('dash-by-province', Object.entries(byProv).length
+    ? Object.entries(byProv).sort((a,b)=>b[1]-a[1]).map(([p,n]) =>
+        `<div class="progress-row"><div class="progress-label"><span style="font-size:12px">${p}</span><span>${n} คน</span></div><div class="progress-track"><div class="progress-fill" style="width:${s.total?Math.round(n/s.total*100):0}%;background:#8b5cf6"></div></div></div>`
+      ).join('')
+    : '<div class="text-center text-gray text-sm" style="padding:20px">ยังไม่มีข้อมูล</div>');
+}
+
+/* ─── DAILY TABLE ─── */
+function _renderDailyTable(trend) {
+  const dates = Object.keys(trend).sort();
+  if (!dates.length) {
+    document.getElementById('daily-tbody').innerHTML =
+      '<tr><td colspan="12" style="padding:24px;text-align:center;color:var(--gray)">ยังไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  // totals
+  const tot = { m1c:0,m1h:0,m1in:0,m1out:0,m1r:0, m4c:0,m4h:0,m4old:0,m4oth:0,m4r:0, all:0 };
+
+  const rows = dates.map(d => {
+    const r  = trend[d];
+    const m1 = r.m1||{}, m4 = r.m4||{};
+    const m1c=m1.ชาย||0, m1h=m1.หญิง||0, m1in=m1.ในเขต||0, m1out=m1.นอกเขต||0, m1r=m1.รวม||0;
+    const m4c=m4.ชาย||0, m4h=m4.หญิง||0, m4old=m4.ม3เดิม||0, m4oth=m4.ม3อื่น||0, m4r=m4.รวม||0;
+    const all=r.total||0;
+    tot.m1c+=m1c; tot.m1h+=m1h; tot.m1in+=m1in; tot.m1out+=m1out; tot.m1r+=m1r;
+    tot.m4c+=m4c; tot.m4h+=m4h; tot.m4old+=m4old; tot.m4oth+=m4oth; tot.m4r+=m4r; tot.all+=all;
+    function c(n){ return n ? n : `<span class="zero">0</span>`; }
+    return `<tr>
+      <td>${fmtDateTH(d)}</td>
+      <td class="col-m1">${c(m1c)}</td><td class="col-m1">${c(m1h)}</td>
+      <td class="col-m1">${c(m1in)}</td><td class="col-m1">${c(m1out)}</td>
+      <td class="col-m1"><strong>${c(m1r)}</strong></td>
+      <td class="col-m4">${c(m4c)}</td><td class="col-m4">${c(m4h)}</td>
+      <td class="col-m4">${c(m4old)}</td><td class="col-m4">${c(m4oth)}</td>
+      <td class="col-m4"><strong>${c(m4r)}</strong></td>
+      <td class="col-total">${c(all)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('daily-tbody').innerHTML = rows;
+  document.getElementById('daily-tfoot').innerHTML = `<tr>
+    <td>รวมทั้งสิ้น</td>
+    <td class="col-m1">${tot.m1c}</td><td class="col-m1">${tot.m1h}</td>
+    <td class="col-m1">${tot.m1in}</td><td class="col-m1">${tot.m1out}</td>
+    <td class="col-m1">${tot.m1r}</td>
+    <td class="col-m4">${tot.m4c}</td><td class="col-m4">${tot.m4h}</td>
+    <td class="col-m4">${tot.m4old}</td><td class="col-m4">${tot.m4oth}</td>
+    <td class="col-m4">${tot.m4r}</td>
+    <td class="col-total">${tot.all}</td>
+  </tr>`;
+}
+
+/* ─── EXPORT DAILY CSV ─── */
+function exportDailyCSV() {
+  if (!_dashStats || !_dashStats.dailyDetailedTrend) {
+    toast('กรุณาโหลด Dashboard ก่อน Export', 'warning'); return;
+  }
+  const trend = _dashStats.dailyDetailedTrend;
+  const dates = Object.keys(trend).sort();
+  const school = (S.settings && S.settings.SCHOOL_FULLNAME) || 'โรงเรียน';
+  const year   = (S.settings && S.settings.ACADEMIC_YEAR)  || '';
+
+  const headers = [
+    'วันที่',
+    'ม.1 ชาย','ม.1 หญิง','ม.1 ในเขต','ม.1 นอกเขต','ม.1 รวม',
+    'ม.4 ชาย','ม.4 หญิง','ม.4 ม.3เดิม','ม.4 ม.3รร.อื่น','ม.4 รวม',
+    'รวมทั้งหมด'
+  ];
+
+  const tot = Array(11).fill(0);
+  const dataRows = dates.map(d => {
+    const r=trend[d], m1=r.m1||{}, m4=r.m4||{};
+    const vals = [
+      fmtDateTH(d),
+      m1.ชาย||0, m1.หญิง||0, m1.ในเขต||0, m1.นอกเขต||0, m1.รวม||0,
+      m4.ชาย||0, m4.หญิง||0, m4.ม3เดิม||0, m4.ม3อื่น||0, m4.รวม||0,
+      r.total||0
+    ];
+    for(let i=1;i<vals.length;i++) tot[i-1]+=vals[i];
+    return vals;
+  });
+  const totRow = ['รวมทั้งสิ้น', ...tot];
+
+  const titleRow  = [`สถิติการรับสมัครนักเรียน ${school} ปีการศึกษา ${year}`];
+  const csvRows   = [titleRow, [], headers, ...dataRows, [], totRow];
+  const csvStr    = '\uFEFF' + csvRows.map(row =>
+    row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')
+  ).join('\r\n');
+
+  const blob = new Blob([csvStr], { type:'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `สถิติรายวัน_${school}_${year}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast('Export CSV สำเร็จ', 'success');
 }
 
 /* ─── ADMIN APPLICATIONS ─── */
@@ -5459,6 +5954,9 @@ function fillSettings() {
   // ทั่วไป
   setInputVal('cfg-fee',                c.EXAM_FEE           || '0');
   setInputVal('cfg-announce',           c.ANNOUNCEMENT       || '');
+  setInputVal('cfg-announce-image',     c.ANNOUNCE_IMAGE     || '');
+  const popupChk = document.getElementById('cfg-announce-popup');
+  if (popupChk) popupChk.checked = (String(c.ANNOUNCE_POPUP) !== 'false');
   setInputVal('cfg-service-area-schools', c.SERVICE_AREA_SCHOOLS || '');
   setInputVal('cfg-study-plans-mid',  c.STUDY_PLANS_MID  || 'แผนการเรียนทั่วไป');
   setInputVal('cfg-study-plans-high', c.STUDY_PLANS_HIGH || 'วิทยาศาสตร์-คณิตศาสตร์\nศิลปะ-ภาษา\nศิลปะ-การงานอาชีพ');
@@ -5496,6 +5994,17 @@ function fillSettings() {
   previewLogo(c.LOGO_URL || '');
   setSelectVal('cfg-m1-open', c.REG_OPEN_M1 === 'false' ? 'false' : 'true');
   setSelectVal('cfg-m4-open', c.REG_OPEN_M4 === 'false' ? 'false' : 'true');
+  // รอบ 2
+  const r2m1 = document.getElementById('cfg-reg2-open-m1');
+  const r2m4 = document.getElementById('cfg-reg2-open-m4');
+  if (r2m1) r2m1.checked = String(c.REG2_OPEN_M1) === 'true';
+  if (r2m4) r2m4.checked = String(c.REG2_OPEN_M4) === 'true';
+  setInputVal('cfg-reg2-open-time',  c.REG2_OPEN_TIME  || '08:30');
+  setInputVal('cfg-reg2-close-time', c.REG2_CLOSE_TIME || '16:30');
+  setInputVal('cfg-m1-reg2-start',   c.M1_REG2_START   || '');
+  setInputVal('cfg-m1-reg2-end',     c.M1_REG2_END     || '');
+  setInputVal('cfg-m4-reg2-start',   c.M4_REG2_START   || '');
+  setInputVal('cfg-m4-reg2-end',     c.M4_REG2_END     || '');
 }
 
 function saveSettings() {
@@ -5530,6 +6039,17 @@ function saveSettings() {
     REG_OPEN_M4:           val('cfg-m4-open'),
     EXAM_FEE:              val('cfg-fee'),
     ANNOUNCEMENT:          val('cfg-announce'),
+    ANNOUNCE_IMAGE:        val('cfg-announce-image'),
+    ANNOUNCE_POPUP:        (document.getElementById('cfg-announce-popup') && document.getElementById('cfg-announce-popup').checked) ? 'true' : 'false',
+    // รอบ 2
+    REG2_OPEN_M1:          (document.getElementById('cfg-reg2-open-m1') && document.getElementById('cfg-reg2-open-m1').checked) ? 'true' : 'false',
+    REG2_OPEN_M4:          (document.getElementById('cfg-reg2-open-m4') && document.getElementById('cfg-reg2-open-m4').checked) ? 'true' : 'false',
+    REG2_OPEN_TIME:        val('cfg-reg2-open-time'),
+    REG2_CLOSE_TIME:       val('cfg-reg2-close-time'),
+    M1_REG2_START:         val('cfg-m1-reg2-start'),
+    M1_REG2_END:           val('cfg-m1-reg2-end'),
+    M4_REG2_START:         val('cfg-m4-reg2-start'),
+    M4_REG2_END:           val('cfg-m4-reg2-end'),
     SERVICE_AREA_SCHOOLS:  val('cfg-service-area-schools'),
     STUDY_PLANS_MID:       val('cfg-study-plans-mid'),
     STUDY_PLANS_HIGH:      val('cfg-study-plans-high'),
@@ -6110,6 +6630,107 @@ function run(fn, args, cb) {
   if      (args === null || args === undefined) call = google.script.run.withSuccessHandler(cb).withFailureHandler(e => { toast(e.message,'error'); cb && cb(null); })[fn]();
   else if (Array.isArray(args))                 call = google.script.run.withSuccessHandler(cb).withFailureHandler(e => { toast(e.message,'error'); cb && cb(null); })[fn](...args);
   else                                          call = google.script.run.withSuccessHandler(cb).withFailureHandler(e => { toast(e.message,'error'); cb && cb(null); })[fn](args);
+}
+
+/* ─── ANNOUNCEMENT POPUP ─── */
+function showAnnouncePopup(text, imgUrl) {
+  const imgEl  = document.getElementById('ap-img');
+  const textEl = document.getElementById('ap-text');
+  if (imgEl)  { imgEl.src = imgUrl || ''; imgEl.style.display = imgUrl ? '' : 'none'; }
+  if (textEl) textEl.textContent = text || '';
+  const ov = document.getElementById('announce-popup-overlay');
+  if (ov) ov.classList.add('show');
+}
+function closeAnnouncePopup() {
+  const ov = document.getElementById('announce-popup-overlay');
+  if (ov) ov.classList.remove('show');
+  sessionStorage.setItem('ann_shown', '1');
+}
+// ปิดเมื่อ click นอก popup box
+document.addEventListener('click', function(e) {
+  const ov = document.getElementById('announce-popup-overlay');
+  if (ov && ov.classList.contains('show') && e.target === ov) closeAnnouncePopup();
+});
+
+/* ─── EXPORT DAILY PDF ─── */
+function exportDailyPDF() {
+  if (!_dashStats || !_dashStats.dailyDetailedTrend) {
+    toast('กรุณาโหลด Dashboard ก่อน Export', 'warning'); return;
+  }
+  const trend   = _dashStats.dailyDetailedTrend;
+  const dates   = Object.keys(trend).sort();
+  const school  = (S.settings && S.settings.SCHOOL_FULLNAME) || 'โรงเรียน';
+  const year    = (S.settings && S.settings.ACADEMIC_YEAR)   || '';
+  const today   = fmtDateTH(new Date().toISOString().slice(0,10));
+
+  const tot = Array(11).fill(0);
+  const bodyRows = dates.map(d => {
+    const r=trend[d], m1=r.m1||{}, m4=r.m4||{};
+    const v = [m1.ชาย||0,m1.หญิง||0,m1.ในเขต||0,m1.นอกเขต||0,m1.รวม||0,
+               m4.ชาย||0,m4.หญิง||0,m4.ม3เดิม||0,m4.ม3อื่น||0,m4.รวม||0,r.total||0];
+    v.forEach((n,i)=>tot[i]+=n);
+    const cells = v.map((n,i)=>`<td class="${i<5?'c1':''}${i>=5&&i<10?'c4':''}${i===10?'ct':''}">${n||'<span class="z">0</span>'}</td>`).join('');
+    return `<tr><td class="cd">${fmtDateTH(d)}</td>${cells}</tr>`;
+  }).join('');
+  const footCells = tot.map((n,i)=>`<td class="${i<5?'c1':''}${i>=5&&i<10?'c4':''}${i===10?'ct':''}">${n}</td>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="th"><head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
+  @page{size:A4 landscape;margin:12mm 10mm}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Kanit',sans-serif;font-size:11px;color:#1e293b}
+  .title-block{text-align:center;margin-bottom:10px}
+  .title-block h1{font-size:14px;font-weight:600}
+  .title-block p{font-size:11px;color:#475569;margin-top:2px}
+  table{width:100%;border-collapse:collapse}
+  thead tr:first-child th{background:#1e293b;color:#fff;padding:6px 8px;font-size:10px;text-align:center;border:1px solid #334155}
+  thead tr:nth-child(2) th{background:#334155;color:#e2e8f0;padding:5px 6px;font-size:9px;text-align:center;border:1px solid #475569}
+  tbody tr:nth-child(even){background:#f8fafc}
+  tbody td,tfoot td{padding:5px 7px;border:1px solid #e2e8f0;text-align:center;font-size:10px}
+  td.cd{text-align:left;font-weight:500;white-space:nowrap;background:#f8fafc}
+  td.c1{background:#eff6ff}
+  td.c4{background:#f0fdf4}
+  td.ct{background:#fefce8;font-weight:700}
+  .z{color:#cbd5e1}
+  tfoot td{background:#f1f5f9;font-weight:700;border-top:2px solid #94a3b8}
+  tfoot td:first-child{background:#e2e8f0;text-align:left}
+  .print-date{text-align:right;font-size:9px;color:#94a3b8;margin-bottom:6px}
+</style>
+</head><body>
+<div class="print-date">พิมพ์เมื่อ ${today}</div>
+<div class="title-block">
+  <h1>สถิติการรับสมัครนักเรียนโรงเรียน${school} ปีการศึกษา ${year}</h1>
+  <p>(สำหรับรายงานเข้าระบบการรับนักเรียน สพฐ.)</p>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">วันที่</th>
+      <th colspan="5">มัธยมศึกษาปีที่ 1</th>
+      <th colspan="5">มัธยมศึกษาปีที่ 4</th>
+      <th rowspan="2">รวม</th>
+    </tr>
+    <tr>
+      <th>ชาย</th><th>หญิง</th><th>ในเขต</th><th>นอกเขต</th><th>รวม</th>
+      <th>ชาย</th><th>หญิง</th><th>ม.3 เดิม</th><th>ม.3 รร.อื่น</th><th>รวม</th>
+    </tr>
+  </thead>
+  <tbody>${bodyRows}</tbody>
+  <tfoot><tr><td>รวมทั้งสิ้น</td>${footCells}</tr></tfoot>
+</table>
+</body></html>`;
+
+  const w = window.open('', '_blank', 'width=1050,height=700');
+  if (!w) { toast('กรุณาอนุญาต Popup ในเบราว์เซอร์', 'warning'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+  w.onload = function() {
+    w.focus();
+    w.print();
+    w.addEventListener('afterprint', function() { w.close(); });
+  };
+  toast('กำลังเปิดหน้าต่าง PDF...', 'success');
 }
 
 /* ─── SUPABASE SYNC ─── */
