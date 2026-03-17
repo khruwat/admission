@@ -1,0 +1,1109 @@
+<!-- spinnerLoadingModal -->
+<div class="modal fade" id="spinnerLoadingModal" tabindex="-1" role="dialog" aria-labelledby="spinnerLoadingModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden"></span>
+        </div>
+        <p class="mt-3">Loading...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- regisAdviceModal -->
+<div class="modal fade bd-example-modal-lg" id="regisAdviceModal" tabindex="-1" role="dialog" aria-labelledby="regisAdviceModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="regisAdviceModalLabel">คำแนะนำในการสมัคร</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="text-center" id="regisAdviceImage"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- previewSlipModal -->
+<div class="modal fade bd-example-modal-md" id="previewSlipModal" tabindex="-1" role="dialog" aria-labelledby="previewSlipModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="regisAdviceModalLabel">ภาพตัวอย่างหลักฐานการชำระเงิน</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <center><img id="uploadSlipImagePreview" style="width:100%"></center>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- uploadNewSlipImageModal -->
+<div class="modal fade bd-example-modal-lg" id="uploadNewSlipImageModal" tabindex="-1" role="dialog" aria-labelledby="uploadNewSlipImageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadNewSlipImageModalLabel">อัปโหลดหลักฐานการชำระเงิน</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <form id="newSlipImageForm" onsubmit="submitNewSlipImage(this)">
+            <div class="mb-3">
+              <input class="form-control border-dark" type="file" id="newSlipImage" name="newSlipImage" required>
+            </div>
+            
+            <input type="hidden" name="citizenSlipModal" id="citizenSlipModal">
+
+            <div class="text-center mb-3">
+              <button type="submit" class="btn btn-success"><i class="fa-solid fa-arrow-up-from-bracket"></i> อัปโหลดไฟล์</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- uploadNewMoreDocument1FileModal -->
+<div class="modal fade bd-example-modal-lg" id="uploadNewMoreDocument1FileModal" tabindex="-1" role="dialog" aria-labelledby="uploadNewMoreDocument1FileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadNewMoreDocument1FileModalLabel"></h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          
+          <form id="newMoreDocument1FileForm" onsubmit="submitNewMoreDocument1File(this)">
+            <div class="mb-3">
+              <input class="form-control border-dark" type="file" id="newMoreDocument1File" name="newMoreDocument1File" required>
+            </div>
+            
+            <input type="hidden" name="citizenMoreDocument1File" id="citizenMoreDocument1File">
+
+            <div class="text-center mb-3">
+              <button type="submit" class="btn btn-success"><i class="fa-solid fa-arrow-up-from-bracket"></i> อัปโหลดไฟล์</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- uploadNewMoreDocument2FileModal -->
+<div class="modal fade bd-example-modal-lg" id="uploadNewMoreDocument2FileModal" tabindex="-1" role="dialog" aria-labelledby="uploadNewMoreDocument2FileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadNewMoreDocument2FileModalLabel"></h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          
+          <form id="newMoreDocument2FileForm" onsubmit="submitNewMoreDocument2File(this)">
+            <div class="mb-3">
+              <input class="form-control border-dark" type="file" id="newMoreDocument2File" name="newMoreDocument2File" required>
+            </div>
+            
+            <input type="hidden" name="citizenMoreDocument2File" id="citizenMoreDocument2File">
+
+            <div class="text-center mb-3">
+              <button type="submit" class="btn btn-success"><i class="fa-solid fa-arrow-up-from-bracket"></i> อัปโหลดไฟล์</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- uploadNewMoreDocument3FileModal -->
+<div class="modal fade bd-example-modal-lg" id="uploadNewMoreDocument3FileModal" tabindex="-1" role="dialog" aria-labelledby="uploadNewMoreDocument3FileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadNewMoreDocument3FileModalLabel"></h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          
+          <form id="newMoreDocument3FileForm" onsubmit="submitNewMoreDocument3File(this)">
+            <div class="mb-3">
+              <input class="form-control border-dark" type="file" id="newMoreDocument3File" name="newMoreDocument3File" required>
+            </div>
+            
+            <input type="hidden" name="citizenMoreDocument3File" id="citizenMoreDocument3File">
+
+            <div class="text-center mb-3">
+              <button type="submit" class="btn btn-success"><i class="fa-solid fa-arrow-up-from-bracket"></i> อัปโหลดไฟล์</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- uploadNewMoreDocument4FileModal -->
+<div class="modal fade bd-example-modal-lg" id="uploadNewMoreDocument4FileModal" tabindex="-1" role="dialog" aria-labelledby="uploadNewMoreDocument4FileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadNewMoreDocument4FileModalLabel"></h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          
+          <form id="newMoreDocument4FileForm" onsubmit="submitNewMoreDocument4File(this)">
+            <div class="mb-3">
+              <input class="form-control border-dark" type="file" id="newMoreDocument4File" name="newMoreDocument4File" required>
+            </div>
+            
+            <input type="hidden" name="citizenMoreDocument4File" id="citizenMoreDocument4File">
+
+            <div class="text-center mb-3">
+              <button type="submit" class="btn btn-success"><i class="fa-solid fa-arrow-up-from-bracket"></i> อัปโหลดไฟล์</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- uploadNewMoreDocument5FileModal -->
+<div class="modal fade bd-example-modal-lg" id="uploadNewMoreDocument5FileModal" tabindex="-1" role="dialog" aria-labelledby="uploadNewMoreDocument5FileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="uploadNewMoreDocument5FileModalLabel"></h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          
+          <form id="newMoreDocument5FileForm" onsubmit="submitNewMoreDocument5File(this)">
+            <div class="mb-3">
+              <input class="form-control border-dark" type="file" id="newMoreDocument5File" name="newMoreDocument5File" required>
+            </div>
+            
+            <input type="hidden" name="citizenMoreDocument5File" id="citizenMoreDocument5File">
+
+            <div class="text-center mb-3">
+              <button type="submit" class="btn btn-success"><i class="fa-solid fa-arrow-up-from-bracket"></i> อัปโหลดไฟล์</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- updateDataModal -->
+<div class="modal fade bd-example-modal-xl" id="updateDataModal" tabindex="-1" role="dialog" aria-labelledby="updateDataModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="updateDataModalLabel">อัปเดทข้อมูลผู้สมัคร</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <form id="updateDataModalForm" onsubmit="updateDataModalSubmit(this)">
+
+            <p class="form-label bg-primary rounded-3 text-white p-2 mb-3">
+              <i class="fa-solid fa-list-check"></i> <b>จัดการการสมัคร</b>
+            </p>
+
+            <div class="row">
+              <div class="col-lg-4 col-md-6 mb-3">
+                <label for="idModal" class="form-label">ID</label>
+                <input type="text" class="form-control border-dark" name="idModal" id="idModal" readonly>
+              </div>
+
+              <div class="col-lg-4 col-md-6 mb-3">
+                <label for="timestampModal" class="form-label">ประทับเวลา</label>
+                <input type="text" class="form-control border-dark" name="timestampModal" id="timestampModal" readonly>
+              </div>
+
+              <div class="col-lg-4 col-md-6 mb-3">
+                <label for="studentNumberModal" class="form-label">เลขประจำตัวผู้สมัคร</label>
+                <input type="text" class="form-control border-dark" name="studentNumberModal" id="studentNumberModal" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="statusModal" class="form-label">สถานะการสมัคร</label>
+                <select class="form-select border-dark" name="statusModal" id="statusModal">
+                </select>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="applicationFileModal" class="form-label">ไฟล์ใบสมัคร</label>
+                <div id="applicationFileModal">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-12 mb-3">
+                <label for="noteModal" class="form-label">หมายเหตุ</label>
+                <input type="text" class="form-control border-dark" name="noteModal" id="noteModal">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="updatedByModal" class="form-label">ผู้อัปเดทข้อมูล</label>
+                <input type="text" class="form-control border-dark" name="updatedByModal" id="updatedByModal" readonly>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="updatedTimestampModal" class="form-label">อัปเดทข้อมูลล่าสุด</label>
+                <input type="text" class="form-control border-dark" name="updatedTimestampModal" id="updatedTimestampModal" readonly>
+              </div>
+            </div>
+
+            <div class="text-center mb-3">
+              <button type="submit" class="btn btn-warning" id="updateButton"><i class="fa-regular fa-circle-check"></i> อัปเดทข้อมูล</button>
+            </div>
+
+            <p class="form-label bg-primary rounded-3 text-white p-2 mb-3">
+              <i class="fas fa-user"></i> <b>ข้อมูลพื้นฐานนักเรียน</b>
+            </p>
+
+            <div class="row d-flex justify-content-center">
+              <div class="col-md-6 text-center" id="studentImageDivModal">
+              </div>
+            </div>
+
+            <!-- ระดับชั้น แผนการเรียน -->
+            <div class="row">
+              <div class="col-lg-4 col-md-6 mb-3">
+                <label for="gradeRegistorModal" class="form-label">ระดับชั้น</label>
+                <select class="form-select border-dark" id="gradeRegistorModal" name="gradeRegistorModal" onchange="filterStudyPlanModal()" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                </select>
+              </div>
+
+              <div class="col-lg-4 col-md-6 mb-3">
+                <label for="studyPlanModal" class="form-label">แผนการเรียน</label>
+                <select class="form-select border-dark" id="studyPlanModal" name="studyPlanModal" required>
+                </select>
+              </div>
+            </div>
+
+            <!-- คำนำหน้า ชื่อ นามสกุล -->
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="stdPreNameModal" class="form-label">คำนำหน้า</label>
+                <select class="form-select border-dark" name="stdPreNameModal" id="stdPreNameModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="เด็กชาย">เด็กชาย</option>
+                  <option value="เด็กหญิง">เด็กหญิง</option>
+                  <option value="นาย">นาย</option>
+                  <option value="นางสาว">นางสาว</option>
+                </select>
+              </div>
+            
+              <div class="col-md-4 mb-3">
+                <label for="stdFirstNameModal" class="form-label">ชื่อ</label>
+                <input type="text" class="form-control border-dark" name="stdFirstNameModal" id="stdFirstNameModal" required>
+              </div>
+            
+              <div class="col-md-4 mb-3">
+                <label for="stdLastNameModal" class="form-label">นามสกุล</label>
+                <input type="text" class="form-control border-dark" name="stdLastNameModal" id="stdLastNameModal" required>
+              </div>
+            </div>
+
+            <!-- เลขบัตรประจำตัวประชาชน -->
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="stdCitizenNumberModal" class="form-label">เลขบัตรประจำตัวประชาชน</label>
+                <input type="text" class="form-control border-dark" name="stdCitizenNumberModal" id="stdCitizenNumberModal" maxlength="13" required>
+              </div>
+            </div>
+
+            <!-- เพศ ศาสนา สัญชาติ เชื้อชาติ -->
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <label for="stdGenderModal" class="form-label">เพศ</label>
+                <select class="form-select border-dark" name="stdGenderModal" id="stdGenderModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ชาย">ชาย</option>
+                  <option value="หญิง">หญิง</option>
+                </select>
+              </div>
+            
+              <div class="col-md-3 mb-3">
+                <label for="stdReligionModal" class="form-label">ศาสนา</label>
+                <select class="form-select border-dark" name="stdReligionModal" id="stdReligionModal">
+                  <option value="พุทธ">พุทธ</option>
+                  <option value="คริสต์">คริสต์</option>
+                  <option value="อิสลาม">อิสลาม</option>
+                  <option value="อื่น ๆ">อื่น ๆ</option>
+                </select>
+              </div>
+            
+              <div class="col-md-3 mb-3">
+                <label for="stdNationalityModal" class="form-label">สัญชาติ</label>
+                <select class="form-select border-dark" name="stdNationalityModal" id="stdNationalityModal" required>
+                  <option value="ไทย">ไทย</option>
+                  <option value="ลาว">ลาว</option>
+                  <option value="กัมพูชา">กัมพูชา</option>
+                  <option value="พม่า">พม่า</option>
+                  <option value="อื่น ๆ">อื่น ๆ</option>
+                  <option value="ไม่ระบุสัญชาติ">ไม่ระบุสัญชาติ</option>
+                </select>
+              </div>
+            
+              <div class="col-md-3 mb-3">
+                <label for="stdEthnicityModal" class="form-label">เชื้อชาติ</label>
+                <select class="form-select border-dark" name="stdEthnicityModal" id="stdEthnicityModal" required>
+                  <option value="ไทย">ไทย</option>
+                  <option value="ลาว">ลาว</option>
+                  <option value="กัมพูชา">กัมพูชา</option>
+                  <option value="พม่า">พม่า</option>
+                  <option value="อื่น ๆ">อื่น ๆ</option>
+                  <option value="ไม่ระบุเชื้อชาติ">ไม่ระบุเชื้อชาติ</option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- วันเดือนปีเกิด อายุ น้ำหนัก ส่วนสูง -->
+            <div class="row">
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdBirthDateModal" class="form-label">วันเดือนปีเกิด</label>
+                <input name="stdBirthDateModal" id="stdBirthDateModal" class="form-control border-dark" placeholder="- กรุณาเลือก -" required>
+              </div>
+            
+              <script>
+                picker_date(document.getElementById("stdBirthDateModal"),{year_range:"-25:+25"});
+              </script>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdAgeModal" class="form-label">อายุ (ปี)&nbsp;</label><input type="button" class="btn btn-link btn-sm" style="text-decoration:none;" onclick="calculateAgeModal()" value="คำนวณอายุ">
+                <input type="text" class="form-control border-dark" name="stdAgeModal" id="stdAgeModal">
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdWeightModal" class="form-label">น้ำหนัก (กก.)</label>
+                <input type="number" class="form-control border-dark" name="stdWeightModal" id="stdWeightModal" maxlength="3" min="0">
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdHeightModal" class="form-label">ส่วนสูง (ซม.)</label>
+                <input type="number" class="form-control border-dark" name="stdHeightModal" id="stdHeightModal" maxlength="3" min="0">
+              </div>
+            </div>
+            
+            
+            <!-- เบอร์โทรศัพท์ที่สามารถติดต่อได้ -->
+            <div class="row">
+              <div class="col-lg-4 col-md-6 mb-3">
+                <label for="stdPhoneNumberModal" class="form-label">เบอร์โทรศัพท์ที่สามารถติดต่อได้</label>
+                <input type="text" class="form-control border-dark" name="stdPhoneNumberModal" id="stdPhoneNumberModal" maxlength="12"
+                            oninput="formatPhoneNumber(this)" required>
+              </div>
+            </div>
+            
+            <!-- โรงเรียนเดิม เกรดเฉลี่ย -->
+            <div class="row">
+              <div class="col-lg-6 col-md-8 mb-3 dropdown-container">
+                <label for="stdOldSchoolModal" class="form-label">โรงเรียนเดิม</label>
+                <input type="text" class="form-control border-dark" name="stdOldSchoolModal" id="stdOldSchoolModal"
+                            oninput="showSuggestionsModal('stdOldSchoolModal', suggestionsOldSchoolModal)"required>
+                <div class="suggestions-container" id="suggestions-container-stdOldSchoolModal"></div>
+              </div>
+            
+              <div class="col-lg-2 col-md-4 mb-3">
+                <label for="stdGPAModal" class="form-label">เกรดเฉลี่ย</label>
+                <input type="number" class="form-control border-dark" name="stdGPAModal" id="stdGPAModal" min="0" max="4" step="0.01">
+              </div>
+            </div>
+
+            <!-- หัวข้อ ที่อยู่ตามทะเบียนบ้าน -->
+            <p class="form-label bg-primary rounded-3 text-white p-2 mb-3">
+              <i class="fa-solid fa-house-chimney"></i> <b>ที่อยู่ตามทะเบียนบ้าน</b>
+            </p>
+
+            <div class="row">
+              <div class="col-lg-2 col-md-3 mb-3">
+                <label for="stdLocalHouseNoModal" class="form-label">บ้านเลขที่</label>
+                <input type="text" class="form-control border-dark" name="stdLocalHouseNoModal" id="stdLocalHouseNoModal" required>
+              </div>
+            
+              <div class="col-lg-1 col-md-3 mb-3">
+                <label for="stdLocalVillageNoModal" class="form-label">หมู่ที่</label>
+                <input type="text" class="form-control border-dark" name="stdLocalVillageNoModal" id="stdLocalVillageNoModal" required>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdLocalStreetModal" class="form-label">ถนน</label>
+                <input type="text" class="form-control border-dark" name="stdLocalStreetModal" id="stdLocalStreetModal">
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdLocalTrokModal" class="form-label">ตรอก</label>
+                <input type="text" class="form-control border-dark" name="stdLocalTrokModal" id="stdLocalTrokModal">
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdLocalSoiModal" class="form-label">ซอย</label>
+                <input type="text" class="form-control border-dark" name="stdLocalSoiModal" id="stdLocalSoiModal">
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdLocalSubDistrictModal" class="form-label">ตำบล / แขวง</label>
+                <input type="text" class="form-control border-dark" name="stdLocalSubDistrictModal" id="stdLocalSubDistrictModal" required>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdLocalDistrictModal" class="form-label">อำเภอ / เขต</label>
+                <input type="text" class="form-control border-dark" name="stdLocalDistrictModal" id="stdLocalDistrictModal" required>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdLocalProvinceModal" class="form-label">จังหวัด</label>
+                <input type="text" class="form-control border-dark" name="stdLocalProvinceModal" id="stdLocalProvinceModal" required>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdLocalZipCodeModal" class="form-label">รหัสไปรษณีย์</label>
+                <input type="text" class="form-control border-dark" name="stdLocalZipCodeModal" id="stdLocalZipCodeModal" maxlength="5" required>
+              </div>
+            </div>
+
+            <!-- หัวข้อ ที่อยู่ปัจจุบัน -->
+            <p class="form-label bg-primary rounded-3 text-white p-2 mb-3">
+              <i class="fas fa-map-marker-alt"></i> <b>ที่อยู่ปัจจุบัน</b>
+            </p>
+
+            <div class="row">
+              <div class="col-lg-2 col-md-3 mb-3">
+                <label for="stdCurrentHouseNoModal" class="form-label">บ้านเลขที่</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentHouseNoModal" id="stdCurrentHouseNoModal" required>
+              </div>
+            
+              <div class="col-lg-1 col-md-3 mb-3">
+                <label for="stdCurrentVillageNoModal" class="form-label">หมู่ที่</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentVillageNoModal" id="stdCurrentVillageNoModal" required>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdCurrentStreetModal" class="form-label">ถนน</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentStreetModal" id="stdCurrentStreetModal">
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdCurrentTrokModal" class="form-label">ตรอก</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentTrokModal" id="stdCurrentTrokModal">
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdCurrentSoiModal" class="form-label">ซอย</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentSoiModal" id="stdCurrentSoiModal">
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdCurrentSubDistrictModal" class="form-label">ตำบล / แขวง</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentSubDistrictModal" id="stdCurrentSubDistrictModal" required>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdCurrentDistrictModal" class="form-label">อำเภอ / เขต</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentDistrictModal" id="stdCurrentDistrictModal" required>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdCurrentProvinceModal" class="form-label">จังหวัด</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentProvinceModal" id="stdCurrentProvinceModal" required>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="stdCurrentZipCodeModal" class="form-label">รหัสไปรษณีย์</label>
+                <input type="text" class="form-control border-dark" name="stdCurrentZipCodeModal" id="stdCurrentZipCodeModal" maxlength="5" required>
+              </div>
+            </div>
+
+            <!-- หัวข้อ ความสามารถพิเศษ -->
+            <p class="form-label bg-primary rounded-3 text-white p-2 mb-3">
+              <i class="fa-solid fa-star"></i> <b>ความสามารถพิเศษ</b>
+            </p>
+            
+            <div class="row align-items-center">
+              <div class="col-lg-2 col-md-3 mb-2">
+                <div class="form-check ms-2">
+                  <input class="form-check-input" type="checkbox" id="musicTalentModal" onchange="musicTalentModalFn()">
+                  <label class="form-check-label" for="musicTalentModal">
+                    ดนตรี
+                  </label>
+                </div>
+              </div>
+            
+              <div class="col-lg-4 col-md-6 mb-2">
+                <input type="text" class="form-control" name="musicTalentDetailModal" id="musicTalentDetailModal" disabled>
+              </div>
+            </div>
+            
+            <div class="row align-items-center">
+              <div class="col-lg-2 col-md-3 mb-2">
+                <div class="form-check ms-2">
+                  <input class="form-check-input" type="checkbox" id="sportTalentModal" onchange="sportTalentModalFn()">
+                  <label class="form-check-label" for="sportTalentModal">
+                    กีฬา
+                  </label>
+                </div>
+              </div>
+            
+              <div class="col-lg-4 col-md-6 mb-2">
+                <input type="text" class="form-control" name="sportTalentDetailModal" id="sportTalentDetailModal" disabled>
+              </div>
+            </div>
+            
+            <div class="row align-items-center">
+              <div class="col-lg-2 col-md-3 mb-2">
+                <div class="form-check ms-2">
+                  <input class="form-check-input" type="checkbox" id="artTalentModal" onchange="artTalentModalFn()">
+                  <label class="form-check-label" for="artTalentModal">
+                    ศิลปะ
+                  </label>
+                </div>
+              </div>
+            
+              <div class="col-lg-4 col-md-6 mb-2">
+                <input type="text" class="form-control" name="artTalentDetailModal" id="artTalentDetailModal" disabled>
+              </div>
+            </div>
+            
+            <div class="row align-items-center">
+              <div class="col-lg-2 col-md-3 mb-2">
+                <div class="form-check ms-2">
+                  <input class="form-check-input" type="checkbox" id="languageTalentModal" onchange="languageTalentModalFn()">
+                  <label class="form-check-label" for="languageTalentModal">
+                    ภาษาสื่อสาร
+                  </label>
+                </div>
+              </div>
+            
+              <div class="col-lg-4 col-md-6 mb-2">
+                <input type="text" class="form-control" name="languageTalentDetailModal" id="languageTalentDetailModal" disabled>
+              </div>
+            </div>
+            
+            <div class="row align-items-center">
+              <div class="col-lg-2 col-md-3 mb-2">
+                <div class="form-check ms-2">
+                  <input class="form-check-input" type="checkbox" id="otherTalentModal" onchange="otherTalentModalFn()">
+                  <label class="form-check-label" for="otherTalentModal">
+                    อื่น ๆ
+                  </label>
+                </div>
+              </div>
+            
+              <div class="col-lg-4 col-md-6 mb-3">
+                <input type="text" class="form-control" name="otherTalentDetailModal" id="otherTalentDetailModal" disabled>
+              </div>
+            </div>
+            
+            <!-- หัวข้อ ความต้องการพิเศษเรียนร่วม -->
+            <p class="form-label bg-primary rounded-3 text-white p-2 mb-3">
+              <i class="fa-solid fa-wheelchair"></i> <b>ความต้องการพิเศษเรียนร่วม</b>
+            </p>
+            
+            <div class="form-check ms-2 mb-2">
+              <input class="form-check-input" type="checkbox" name="eyeDefectModal" id="eyeDefectModal" value = "" onchange="eyeDefectModalFn()">
+              <label class="form-check-label" for="eyeDefectModal">
+                ความพิการทางการมองเห็น
+              </label>
+            </div>
+            
+            <div class="form-check ms-2 mb-2">
+              <input class="form-check-input" type="checkbox" name="earDefectModal" id="earDefectModal" value = "" onchange="earDefectModalFn()">
+              <label class="form-check-label" for="earDefectModal">
+                ความพิการทางการได้ยิน
+              </label>
+            </div>
+            
+            <div class="form-check ms-2 mb-2">
+              <input class="form-check-input" type="checkbox" name="intelligenceDefectModal" id="intelligenceDefectModal" value = "" onchange="intelligenceDefectModalFn()">
+              <label class="form-check-label" for="intelligenceDefectModal">
+                ความพิการทางสติปัญญา
+              </label>
+            </div>
+            
+            <div class="form-check ms-2 mb-2">
+              <input class="form-check-input" type="checkbox" name="bodyDefectModal" id="bodyDefectModal" value = "" onchange="bodyDefectModalFn()">
+              <label class="form-check-label" for="bodyDefectModal">
+                ความพิการร่างกาย, สุขภาพ
+              </label>
+            </div>
+            
+            <div class="form-check ms-2 mb-2">
+              <input class="form-check-input" type="checkbox" name="learningDefectModal" id="learningDefectModal" value = "" onchange="learningDefectModalFn()">
+              <label class="form-check-label" for="learningDefectModal">
+                ความพิการทางการเรียนรู้
+              </label>
+            </div>
+            
+            <div class="form-check ms-2 mb-2">
+              <input class="form-check-input" type="checkbox" name="speechDefectModal" id="speechDefectModal" value = "" onchange="speechDefectModalFn()">
+              <label class="form-check-label" for="speechDefectModal">
+                ความพิการทางการพูด, ภาษา
+              </label>
+            </div>
+            
+            <div class="form-check ms-2 mb-2">
+              <input class="form-check-input" type="checkbox" name="emotionDefectModal" id="emotionDefectModal" value = "" onchange="emotionDefectModalFn()">
+              <label class="form-check-label" for="emotionDefectModal">
+                ความพิการทางพฤติกรรมและอารมณ์
+              </label>
+            </div>
+            
+            <div class="form-check ms-2 mb-2">
+              <input class="form-check-input" type="checkbox" name="autismDefectModal" id="autismDefectModal" value = "" onchange="autismDefectModalFn()">
+              <label class="form-check-label" for="autismDefectModal">
+                ความพิการทางออทิสติก
+              </label>
+            </div>
+            
+            <div class="form-check ms-2 mb-3">
+              <input class="form-check-input" type="checkbox" name="redundantDisabilityDefectModal" id="redundantDisabilityDefectModal" value = "" onchange="redundantDisabilityDefectModalFn()">
+              <label class="form-check-label" for="redundantDisabilityDefectModal">
+                ความพิการซ้ำซ้อน
+              </label>
+            </div>
+
+            <!-- หัวข้อ ข้อมูลครอบครัว -->
+            <p class="form-label bg-primary rounded-3 text-white p-2 mb-3">
+              <i class="fas fa-users"></i> <b>ข้อมูลครอบครัว</b>
+            </p>
+            
+            <label class="form-label" style="color:darkblue;font-size:20px;">
+              ข้อมูลบิดา
+            </label>
+            
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="fatherPreNameModal" class="form-label">คำนำหน้า <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="fatherPreNameModal" id="fatherPreNameModal" required>
+                  <option value="นาย">นาย</option>
+                </select>
+              </div>
+            
+              <div class="col-md-4 mb-3">
+                <label for="fatherFirstNameModal" class="form-label">ชื่อ <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="fatherFirstNameModal" id="fatherFirstNameModal" required>
+              </div>
+            
+              <div class="col-md-4 mb-3">
+                <label for="fatherLastNameModal" class="form-label">นามสกุล <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="fatherLastNameModal" id="fatherLastNameModal" required>
+              </div>
+            
+            </div>
+            
+            <div class="row">
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="fatherStatusModal" class="form-label">สถานะ <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="fatherStatusModal" id="fatherStatusModal" onchange="checkParentStatusModal()" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ยังมีชีวิตอยู่">ยังมีชีวิตอยู่</option>
+                  <option value="เสียชีวิต">เสียชีวิต</option>
+                  <option value="ไม่ปรากฏ">ไม่ปรากฏ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="fatherCareerModal" class="form-label">อาชีพ <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="fatherCareerModal" id="fatherCareerModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ข้าราชการ">ข้าราชการ</option>
+                  <option value="รัฐวิสาหกิจ">รัฐวิสาหกิจ</option>
+                  <option value="รับจ้าง">รับจ้าง</option>
+                  <option value="เกษตรกร">เกษตรกร</option>
+                  <option value="ค้าขาย">ค้าขาย</option>
+                  <option value="พนักงานเอกชน">พนักงานเอกชน</option>
+                  <option value="อาชีพอิสระ">อาชีพอิสระ</option>
+                  <option value="ไม่ประกอบอาชีพ">ไม่ประกอบอาชีพ</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-4 mb-3">
+                <label for="fatherIncomeModal" class="form-label">รายได้/เดือน <a class="redstar">*</a></label>
+                <select class="form-select border-dark"  name="fatherIncomeModal" id="fatherIncomeModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ไม่มีรายได้">ไม่มีรายได้</option>							
+                  <option value="1-5,000">1-5,000</option>                
+                  <option value="5,001-10,000">5,001-10,000</option>               
+                  <option value="10,001-15,000">10,001-15,000</option>               
+                  <option value="15,001-20,000">15,001-20,000</option>
+                  <option value="มากกว่า 20,000">มากกว่า 20,000</option>                
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-4 mb-3">
+                <label for="fatherReligionModal" class="form-label">ศาสนา</label>
+                <select class="form-select border-dark" name="fatherReligionModal" id="fatherReligionModal">
+                  <option value="พุทธ">พุทธ</option>
+                  <option value="คริสต์">คริสต์</option>
+                  <option value="อิสลาม">อิสลาม</option>
+                  <option value="อื่น ๆ">อื่น ๆ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-4 mb-3">
+                <label for="fatherPhoneNumberModal" class="form-label">เบอร์โทรศัพท์ <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="fatherPhoneNumberModal" id="fatherPhoneNumberModal" maxlength="12"
+                            oninput="formatPhoneNumber(this)" required>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <label class="form-label" style="color:darkblue;font-size:20px;">
+              ข้อมูลมารดา
+            </label>
+            
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="motherPreNameModal" class="form-label">คำนำหน้า <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="motherPreNameModal" id="motherPreNameModal" required>
+                  <option value="นางสาว">นางสาว</option>
+                  <option value="นาง">นาง</option>
+                </select>
+              </div>
+            
+              <div class="col-md-4 mb-3">
+                <label for="motherFirstNameModal" class="form-label">ชื่อ <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="motherFirstNameModal" id="motherFirstNameModal" required>
+              </div>
+            
+              <div class="col-md-4 mb-3">
+                <label for="motherLastNameModal" class="form-label">นามสกุล <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="motherLastNameModal" id="motherLastNameModal" required>
+              </div>
+            
+            </div>
+            
+            <div class="row">
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="motherStatusModal" class="form-label">สถานะ <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="motherStatusModal" id="motherStatusModal" onchange="checkParentStatusModal()" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ยังมีชีวิตอยู่">ยังมีชีวิตอยู่</option>
+                  <option value="เสียชีวิต">เสียชีวิต</option>
+                  <option value="ไม่ปรากฏ">ไม่ปรากฏ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="motherCareerModal" class="form-label">อาชีพ <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="motherCareerModal" id="motherCareerModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ข้าราชการ">ข้าราชการ</option>
+                  <option value="รัฐวิสาหกิจ">รัฐวิสาหกิจ</option>
+                  <option value="รับจ้าง">รับจ้าง</option>
+                  <option value="เกษตรกร">เกษตรกร</option>
+                  <option value="ค้าขาย">ค้าขาย</option>
+                  <option value="พนักงานเอกชน">พนักงานเอกชน</option>
+                  <option value="อาชีพอิสระ">อาชีพอิสระ</option>
+                  <option value="ไม่ประกอบอาชีพ">ไม่ประกอบอาชีพ</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-4 mb-3">
+                <label for="motherIncomeModal" class="form-label">รายได้/เดือน <a class="redstar">*</a></label>
+                <select class="form-select border-dark"  name="motherIncomeModal" id="motherIncomeModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ไม่มีรายได้">ไม่มีรายได้</option>							
+                  <option value="1-5,000">1-5,000</option>                
+                  <option value="5,001-10,000">5,001-10,000</option>               
+                  <option value="10,001-15,000">10,001-15,000</option>               
+                  <option value="15,001-20,000">15,001-20,000</option>
+                  <option value="มากกว่า 20,000">มากกว่า 20,000</option>                
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-4 mb-3">
+                <label for="motherReligionModal" class="form-label">ศาสนา</label>
+                <select class="form-select border-dark" name="motherReligionModal" id="motherReligionModal">
+                  <option value="พุทธ">พุทธ</option>
+                  <option value="คริสต์">คริสต์</option>
+                  <option value="อิสลาม">อิสลาม</option>
+                  <option value="อื่น ๆ">อื่น ๆ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-4 mb-3">
+                <label for="motherPhoneNumberModal" class="form-label">เบอร์โทรศัพท์ <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="motherPhoneNumberModal" id="motherPhoneNumberModal" maxlength="12"
+                            oninput="formatPhoneNumber(this)" required>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <label class="form-label" style="color:darkblue;font-size:20px;">
+              สถานภาพครอบครัว
+            </label>
+            
+            <div class="row">
+              <div class="col-lg-4 col-md-6 mb-3">
+                <label for="parentRelationStatusModal" class="form-label">สถานภาพครอบครัว <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="parentRelationStatusModal" id="parentRelationStatusModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="อยู่ด้วยกัน">อยู่ด้วยกัน</option>
+                  <option value="แยกกันอยู่เพื่อประกอบอาชีพ">แยกกันอยู่เพื่อประกอบอาชีพ</option>
+                  <option value="หย่าร้าง">หย่าร้าง</option>
+                  <option value="บิดาเสียชีวิต">บิดาเสียชีวิต</option>
+                  <option value="มารดาเสียชีวิต">มารดาเสียชีวิต</option>
+                  <option value="บิดา-มารดาเสียชีวิต">บิดา-มารดาเสียชีวิต</option>
+                </select>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <label class="form-label" style="color:darkblue;font-size:20px;">
+              ข้อมูลผู้ปกครอง
+            </label>
+            
+            <div class="row">
+              <div class="col-auto ms-3 mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="parentModal" id="dadModal" value="dadModal" onchange="getParentModal()">
+                  <label class="form-check-label" for="dadModal">บิดา</label>
+                </div>
+              </div>
+            
+              <div class="col-auto mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="parentModal" id="momModal" value="momModal" onchange="getParentModal()">
+                  <label class="form-check-label" for="momModal">มารดา</label>
+                </div>
+              </div>
+            
+              <div class="col-auto mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="parentModal" id="otherModal" value="otherModal" onchange="getParentModal()" checked>
+                  <label class="form-check-label" for="otherModal">อื่น ๆ</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="parentPreNameModal" class="form-label">คำนำหน้า <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="parentPreNameModal" id="parentPreNameModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="นาย">นาย</option>
+                  <option value="นางสาว">นางสาว</option>
+                  <option value="นาง">นาง</option>
+                </select>
+              </div>
+            
+              <div class="col-md-4 mb-3">
+                <label for="parentFirstNameModal" class="form-label">ชื่อ <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="parentFirstNameModal" id="parentFirstNameModal" required>
+              </div>
+            
+              <div class="col-md-4 mb-3">
+                <label for="parentLastNameModal" class="form-label">นามสกุล <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="parentLastNameModal" id="parentLastNameModal" required>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="parentStatusModal" class="form-label">สถานะ <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="parentStatusModal" id="parentStatusModal"required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ยังมีชีวิตอยู่">ยังมีชีวิตอยู่</option>
+                  <option value="เสียชีวิต">เสียชีวิต</option>
+                  <option value="ไม่ปรากฏ">ไม่ปรากฏ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="parentCareerModal" class="form-label">อาชีพ <a class="redstar">*</a></label>
+                <select class="form-select border-dark" name="parentCareerModal" id="parentCareerModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ข้าราชการ">ข้าราชการ</option>
+                  <option value="รัฐวิสาหกิจ">รัฐวิสาหกิจ</option>
+                  <option value="รับจ้าง">รับจ้าง</option>
+                  <option value="เกษตรกร">เกษตรกร</option>
+                  <option value="ค้าขาย">ค้าขาย</option>
+                  <option value="พนักงานเอกชน">พนักงานเอกชน</option>
+                  <option value="อาชีพอิสระ">อาชีพอิสระ</option>
+                  <option value="ไม่ประกอบอาชีพ">ไม่ประกอบอาชีพ</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-4 mb-3">
+                <label for="parentIncomeModal" class="form-label">รายได้/เดือน <a class="redstar">*</a></label>
+              <select class="form-select border-dark" name="parentIncomeModal" id="parentIncomeModal" required>
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="ไม่มีรายได้">ไม่มีรายได้</option>							
+                  <option value="1-5,000">1-5,000</option>                
+                  <option value="5,001-10,000">5,001-10,000</option>               
+                  <option value="10,001-15,000">10,001-15,000</option>               
+                  <option value="15,001-20,000">15,001-20,000</option>
+                  <option value="มากกว่า 20,000">มากกว่า 20,000</option>                
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-4 mb-3">
+                <label for="parentReligionModal" class="form-label">ศาสนา</label>
+                <select class="form-select border-dark" name="parentReligionModal" id="parentReligionModal">
+                  <option value="พุทธ">พุทธ</option>
+                  <option value="คริสต์">คริสต์</option>
+                  <option value="อิสลาม">อิสลาม</option>
+                  <option value="อื่น ๆ">อื่น ๆ</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-4 col-md-4 mb-3">
+                <label for="parentPhoneNumberModal" class="form-label">เบอร์โทรศัพท์ <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="parentPhoneNumberModal" id="parentPhoneNumberModal" maxlength="12"
+                            oninput="formatPhoneNumber(this)" required>
+              </div>
+            
+              <div class="col-lg-4 col-md-6 mb-3">
+                <label for="stdParentRelationModal" class="form-label">ความเกี่ยวข้องกับนักเรียน <a class="redstar">*</a></label>
+                <input type="text" class="form-control border-dark" name="stdParentRelationModal" id="stdParentRelationModal" required>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="disbursementModal" class="form-label">สิทธิการเบิกค่าใช้จ่าย</label>
+                <select class="form-select border-dark" name="disbursementModal" id="disbursementModal">
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="มี">มี</option>
+                  <option value="ไม่มี">ไม่มี</option>
+                </select>
+              </div>
+            
+              <div class="col-lg-3 col-md-6 mb-3">
+                <label for="medicalTreatmentModal" class="form-label">สิทธิการเบิกค่ารักษาพยาบาล</label>
+                <select class="form-select border-dark" name="medicalTreatmentModal" id="medicalTreatmentModal">
+                  <option disabled selected value="">- กรุณาเลือก -</option>
+                  <option value="มี">มี</option>
+                  <option value="ไม่มี">ไม่มี</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="uploadFileDivModal">
+
+              <!-- หัวข้อ ไฟล์ที่เกี่ยวข้อง -->
+              <p class="form-label bg-primary rounded-3 text-white p-2 mb-3">
+                <i class="fa-solid fa-file-lines"></i> <b>ไฟล์ที่เกี่ยวข้อง</b>
+              </p>
+
+              <div class="row" id="paymentDivModal">
+                <div class="mb-1">
+                  <b>หลักฐานการชำระเงิน</b>
+                </div>
+              
+                <div class="mb-3" id="paymentDivModalLink">
+                </div>
+              </div>
+
+              <div class="row" id="moreDocument1DivModal">
+                <div class="mb-1" id="moreDocument1ModalLabel">
+                </div>
+              
+                <div class="mb-3" id="moreDocument1DivModalLink">
+                </div>
+              </div>
+
+              <div class="row" id="moreDocument2DivModal">
+                <div class="mb-1" id="moreDocument2ModalLabel">
+                </div>
+              
+                <div class="mb-3" id="moreDocument2DivModalLink">
+                </div>
+              </div>
+
+              <div class="row" id="moreDocument3DivModal">
+                <div class="mb-1" id="moreDocument3ModalLabel">
+                </div>
+              
+                <div class="mb-3" id="moreDocument3DivModalLink">
+                </div>
+              </div>
+
+              <div class="row" id="moreDocument4DivModal">
+                <div class="mb-1" id="moreDocument4ModalLabel">
+                </div>
+              
+                <div class="mb-3" id="moreDocument4DivModalLink">
+                </div>
+              </div>
+
+              <div class="row" id="moreDocument5DivModal">
+                <div class="mb-1" id="moreDocument5ModalLabel">
+                </div>
+              
+                <div class="mb-3" id="moreDocument5DivModalLink">
+                </div>
+              </div>
+            
+            </div>
+
+            <input type="hidden" name="parentRelationStatusSaveModal" id="parentRelationStatusSaveModal">
+
+            <input type="hidden" name="parentPreNameSaveModal" id="parentPreNameSaveModal">
+            <input type="hidden" name="parentFirstNameSaveModal" id="parentFirstNameSaveModal">
+            <input type="hidden" name="parentLastNameSaveModal" id="parentLastNameSaveModal">
+            <input type="hidden" name="parentStatusSaveModal" id="parentStatusSaveModal">
+            <input type="hidden" name="parentCareerSaveModal" id="parentCareerSaveModal">
+            <input type="hidden" name="parentIncomeSaveModal" id="parentIncomeSaveModal">
+            <input type="hidden" name="parentReligionSaveModal" id="parentReligionSaveModal">
+            <input type="hidden" name="parentPhoneNumberSaveModal" id="parentPhoneNumberSaveModal">
+            <input type="hidden" name="stdParentRelationSaveModal" id="stdParentRelationSaveModal">
+          
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+                

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║   ADDRESS BLOCK TEMPLATE — ระบบรับสมัครนักเรียน            ║
+  ║   Version : 1.0                                              ║
+  ║   ใช้กับ  : Google Apps Script / PHP / Node.js / ฯลฯ       ║
+  ║   Library : jquery.Thailand.js (earthchie)                  ║
+  ╚══════════════════════════════════════════════════════════════╝
+
+  HOW TO USE:
+  1. คัดลอก <head> dependencies ไปใส่ในหน้าของคุณ
+  2. เลือก ADDRESS BLOCK ที่ต้องการ (มี 4 แบบ ด้านล่าง)
+  3. คัดลอก <script> init ไปปรับ prefix ให้ตรงกับ id ของ input
+
+  PREFIX CONVENTION:
+  - ที่อยู่ตามทะเบียนบ้าน  → prefix = "home"
+  - ที่อยู่ที่ติดต่อได้      → prefix = "contact"
+  - ที่อยู่ผู้ปกครอง         → prefix = "parent"
+  - ที่อยู่ปัจจุบัน           → prefix = "current"
+  ตัวอย่าง id: home-district, parent-amphoe, current-zipcode
+-->
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Address Block Template</title>
+
+  <!-- ═══════════════════════════════════════════════════
+       REQUIRED DEPENDENCIES — คัดลอกส่วนนี้ทุกครั้ง
+       ═══════════════════════════════════════════════════ -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/JQL.min.js"></script>
+  <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dependencies/typeahead.bundle.js"></script>
+  <link  rel="stylesheet" href="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.css">
+  <script src="https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/dist/jquery.Thailand.min.js"></script>
+  <link  rel="preconnect" href="https://fonts.googleapis.com">
+  <link  href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- เชื่อม CSS หลัก (address-component.css) -->
+  <!-- <link rel="stylesheet" href="address-component.css"> -->
+
+  <!-- INLINE CSS (ใช้ชั่วคราวเพื่อ demo — ในงานจริงให้ใช้ address-component.css) -->
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --navy:#0a1628; --navy-mid:#112240; --navy-light:#1a3560;
+      --gold:#c9a84c; --gold-light:#e8c97a; --gold-pale:#f5e9c4;
+      --cream:#fdf8ef; --text:#1e2d3d; --text-muted:#6b7a8d;
+      --border:#d6c9a8; --white:#ffffff; --error:#c0392b; --success:#1a7a4a;
+      --radius:10px; --shadow:0 4px 24px rgba(10,22,40,.10);
+    }
+    body { font-family:'Sarabun',sans-serif; background:var(--cream); color:var(--text); padding:32px 24px; }
+    h2.demo-title {
+      font-size:13px; text-transform:uppercase; letter-spacing:.1em;
+      color:var(--text-muted); border-bottom:2px solid var(--border);
+      padding-bottom:8px; margin:32px 0 18px;
+    }
+    h2.demo-title:first-child { margin-top:0; }
+
+    /* ── CARD ── */
+    .addr-card { background:var(--white); border-radius:16px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:24px; max-width:860px; }
+    .addr-card-head { padding:18px 24px 14px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:12px; }
+    .addr-card-icon { width:36px; height:36px; background:var(--gold-pale); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+    .addr-card-head h3 { font-size:15px; font-weight:700; color:var(--navy); }
+    .addr-card-head p  { font-size:12px; color:var(--text-muted); margin-top:2px; }
+    .addr-card-body { padding:22px 24px; }
+
+    /* ── GRID ── */
+    .addr-row          { display:grid; gap:14px; margin-bottom:14px; }
+    .addr-row:last-child { margin-bottom:0; }
+    .addr-row.g2 { grid-template-columns:1fr 1fr; }
+    .addr-row.g3 { grid-template-columns:1fr 1fr 1fr; }
+    .addr-row.g4 { grid-template-columns:repeat(4,1fr); }
+    .addr-row.g12 { grid-template-columns:1fr 2fr; }
+    .addr-row.g21 { grid-template-columns:2fr 1fr; }
+
+    /* ── FIELD ── */
+    .addr-field { display:flex; flex-direction:column; gap:5px; }
+    .addr-field label { font-size:13px; font-weight:600; color:var(--navy); }
+    .addr-req { color:var(--error); font-size:12px; }
+    .addr-field input, .addr-field select {
+      width:100%; padding:9px 13px; font-size:14px; font-family:inherit;
+      border:1.5px solid var(--border); border-radius:var(--radius);
+      background:var(--white); color:var(--text);
+      transition:border-color .2s, box-shadow .2s;
+      -webkit-appearance:none; appearance:none;
+    }
+    .addr-field input:focus, .addr-field select:focus {
+      outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,.15);
+    }
+    .addr-field input::placeholder { color:#bbb; }
+    .addr-field input[readonly] { background:#f9f7f2; color:var(--text-muted); cursor:default; }
+    .addr-err { font-size:12px; color:var(--error); display:none; margin-top:2px; }
+    .addr-field.has-error input, .addr-field.has-error select { border-color:var(--error); }
+    .addr-field.has-error .addr-err { display:block; }
+    .addr-field.is-valid input { border-color:var(--success); }
+
+    /* ── SAME-AS TOGGLE ── */
+    .addr-same-toggle {
+      display:flex; align-items:center; gap:10px; padding:12px 16px;
+      background:var(--gold-pale); border:1.5px solid var(--border);
+      border-radius:var(--radius); margin-bottom:16px; cursor:pointer;
+    }
+    .addr-same-toggle input[type="checkbox"] { width:17px; height:17px; accent-color:var(--gold); }
+    .addr-same-toggle span { font-size:13.5px; font-weight:500; color:var(--navy); }
+
+    /* ── COPY PREVIEW ── */
+    .addr-copy-preview {
+      display:none; background:var(--gold-pale); border:1.5px dashed var(--gold);
+      border-radius:var(--radius); padding:14px 18px; font-size:14px;
+      color:var(--navy); line-height:1.8;
+    }
+
+    /* ── INLINE PREVIEW ── */
+    .addr-inline-preview {
+      display:none; background:linear-gradient(135deg,var(--navy),var(--navy-light));
+      border-radius:12px; padding:16px 20px; color:#fff; font-size:14px; line-height:1.9;
+      margin-top:14px;
+    }
+    .addr-inline-preview small { color:var(--gold-light); font-size:11px; display:block; margin-bottom:4px; text-transform:uppercase; letter-spacing:.08em; }
+
+    /* ── TYPEAHEAD OVERRIDE ── */
+    .twitter-typeahead { width:100% !important; display:block !important; }
+    .tt-menu {
+      border:1.5px solid var(--border) !important; border-radius:var(--radius) !important;
+      box-shadow:0 8px 24px rgba(10,22,40,.12) !important; max-height:200px;
+      overflow-y:auto; background:var(--white) !important; margin-top:4px !important; z-index:9999 !important;
+    }
+    .tt-suggestion { padding:9px 13px !important; font-size:13.5px !important; font-family:'Sarabun',sans-serif !important; color:var(--text) !important; cursor:pointer; }
+    .tt-suggestion:hover, .tt-suggestion.tt-cursor { background:var(--gold-pale) !important; color:var(--navy) !important; }
+    .tt-highlight { color:var(--gold) !important; font-weight:700 !important; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:600px) {
+      .addr-row.g2,.addr-row.g3,.addr-row.g4,.addr-row.g12,.addr-row.g21 { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     BLOCK A — ที่อยู่เดียว (Standard)
+     ใช้สำหรับ: ที่อยู่นักเรียน, ที่อยู่ผู้ปกครอง
+     prefix: เปลี่ยน "home" เป็น prefix ที่ต้องการ
+     ════════════════════════════════════════════════════════════ -->
+<h2 class="demo-title">Block A — ที่อยู่เดียว (Standard)</h2>
+<div class="addr-card" id="block-a">
+  <div class="addr-card-head">
+    <div class="addr-card-icon">🏠</div>
+    <div>
+      <h3>ที่อยู่ตามทะเบียนบ้าน</h3><!-- ✏️ เปลี่ยนชื่อหัวข้อ -->
+      <p>ที่อยู่ตามบัตรประชาชน / ทะเบียนบ้านของนักเรียน</p><!-- ✏️ เปลี่ยนคำอธิบาย -->
+    </div>
+  </div>
+  <div class="addr-card-body">
+
+    <!-- Row 1: เลขที่ + อาคาร/หมู่บ้าน -->
+    <div class="addr-row g2">
+      <div class="addr-field" id="f-home-no">
+        <label>เลขที่ <span class="addr-req">*</span></label>
+        <input type="text" id="home-no" name="home_no" placeholder="เช่น 123/4" autocomplete="off">
+        <span class="addr-err">กรุณากรอกเลขที่บ้าน</span>
+      </div>
+      <div class="addr-field">
+        <label>ชื่ออาคาร / หมู่บ้าน</label>
+        <input type="text" id="home-building" name="home_building" placeholder="เช่น หมู่บ้านเมืองทอง">
+      </div>
+    </div>
+
+    <!-- Row 2: หมู่ + ซอย + ถนน + รหัสไปรษณีย์ -->
+    <div class="addr-row g4">
+      <div class="addr-field">
+        <label>หมู่ที่</label>
+        <input type="text" id="home-moo" name="home_moo" placeholder="เช่น 5">
+      </div>
+      <div class="addr-field">
+        <label>ซอย</label>
+        <input type="text" id="home-soi" name="home_soi" placeholder="ซอย...">
+      </div>
+      <div class="addr-field">
+        <label>ถนน</label>
+        <input type="text" id="home-road" name="home_road" placeholder="ถนน...">
+      </div>
+      <div class="addr-field" id="f-home-zip">
+        <label>รหัสไปรษณีย์ <span class="addr-req">*</span></label>
+        <input type="text" id="home-zipcode" name="home_zipcode" placeholder="00000" maxlength="5">
+        <span class="addr-err">รหัสไปรษณีย์ 5 หลัก</span>
+      </div>
+    </div>
+
+    <!-- Row 3: ตำบล + อำเภอ + จังหวัด  ← jquery.Thailand.js autocomplete -->
+    <div class="addr-row g3">
+      <div class="addr-field" id="f-home-district">
+        <label>ตำบล / แขวง <span class="addr-req">*</span></label>
+        <input type="text" id="home-district" name="home_district" placeholder="พิมพ์เพื่อค้นหา...">
+        <span class="addr-err">กรุณากรอกตำบล/แขวง</span>
+      </div>
+      <div class="addr-field" id="f-home-amphoe">
+        <label>อำเภอ / เขต <span class="addr-req">*</span></label>
+        <input type="text" id="home-amphoe" name="home_amphoe" placeholder="กรอกอัตโนมัติ" readonly>
+        <span class="addr-err">กรุณากรอกอำเภอ/เขต</span>
+      </div>
+      <div class="addr-field" id="f-home-province">
+        <label>จังหวัด <span class="addr-req">*</span></label>
+        <input type="text" id="home-province" name="home_province" placeholder="กรอกอัตโนมัติ" readonly>
+        <span class="addr-err">กรุณากรอกจังหวัด</span>
+      </div>
+    </div>
+
+    <!-- Inline Preview (optional) -->
+    <div class="addr-inline-preview" id="home-preview">
+      <small>📍 ที่อยู่ที่กรอก</small>
+      <span id="home-preview-text"></span>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     BLOCK B — สองที่อยู่ พร้อม "ใช้ที่อยู่เดียวกัน"
+     ใช้สำหรับ: ทะเบียนบ้าน + ที่อยู่ติดต่อ
+     ════════════════════════════════════════════════════════════ -->
+<h2 class="demo-title">Block B — สองที่อยู่ พร้อม "ใช้ที่อยู่เดียวกัน"</h2>
+
+<!-- ── B1: ที่อยู่หลัก ── -->
+<div class="addr-card">
+  <div class="addr-card-head">
+    <div class="addr-card-icon">🏠</div>
+    <div>
+      <h3>ที่อยู่ตามทะเบียนบ้าน</h3>
+      <p>ที่อยู่ตามบัตรประชาชนของนักเรียน</p>
+    </div>
+  </div>
+  <div class="addr-card-body">
+    <div class="addr-row g2">
+      <div class="addr-field" id="f-reg-no">
+        <label>เลขที่ <span class="addr-req">*</span></label>
+        <input type="text" id="reg-no" name="reg_no" placeholder="เช่น 123/4">
+        <span class="addr-err">กรุณากรอกเลขที่บ้าน</span>
+      </div>
+      <div class="addr-field">
+        <label>ชื่ออาคาร / หมู่บ้าน</label>
+        <input type="text" id="reg-building" name="reg_building" placeholder="เช่น หมู่บ้านสุขสันต์">
+      </div>
+    </div>
+    <div class="addr-row g4">
+      <div class="addr-field">
+        <label>หมู่ที่</label>
+        <input type="text" id="reg-moo" name="reg_moo" placeholder="เช่น 3">
+      </div>
+      <div class="addr-field">
+        <label>ซอย</label>
+        <input type="text" id="reg-soi" name="reg_soi" placeholder="ซอย...">
+      </div>
+      <div class="addr-field">
+        <label>ถนน</label>
+        <input type="text" id="reg-road" name="reg_road" placeholder="ถนน...">
+      </div>
+      <div class="addr-field" id="f-reg-zip">
+        <label>รหัสไปรษณีย์ <span class="addr-req">*</span></label>
+        <input type="text" id="reg-zipcode" name="reg_zipcode" placeholder="00000" maxlength="5">
+        <span class="addr-err">รหัสไปรษณีย์ 5 หลัก</span>
+      </div>
+    </div>
+    <div class="addr-row g3">
+      <div class="addr-field" id="f-reg-district">
+        <label>ตำบล / แขวง <span class="addr-req">*</span></label>
+        <input type="text" id="reg-district" name="reg_district" placeholder="พิมพ์เพื่อค้นหา...">
+        <span class="addr-err">กรุณากรอกตำบล</span>
+      </div>
+      <div class="addr-field" id="f-reg-amphoe">
+        <label>อำเภอ / เขต <span class="addr-req">*</span></label>
+        <input type="text" id="reg-amphoe" name="reg_amphoe" placeholder="กรอกอัตโนมัติ" readonly>
+        <span class="addr-err">กรุณากรอกอำเภอ</span>
+      </div>
+      <div class="addr-field" id="f-reg-province">
+        <label>จังหวัด <span class="addr-req">*</span></label>
+        <input type="text" id="reg-province" name="reg_province" placeholder="กรอกอัตโนมัติ" readonly>
+        <span class="addr-err">กรุณากรอกจังหวัด</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── B2: ที่อยู่ติดต่อ ── -->
+<div class="addr-card">
+  <div class="addr-card-head">
+    <div class="addr-card-icon">📬</div>
+    <div>
+      <h3>ที่อยู่ที่ติดต่อได้</h3>
+      <p>สำหรับจัดส่งเอกสาร / ติดต่อในกรณีฉุกเฉิน</p>
+    </div>
+  </div>
+  <div class="addr-card-body">
+
+    <!-- ✅ SAME-AS TOGGLE — เปลี่ยน data-source ให้ตรงกับ prefix ของที่อยู่หลัก -->
+    <label class="addr-same-toggle" data-source="reg" data-target="con">
+      <input type="checkbox" id="con-same-as-reg">
+      <span>📋 ใช้ที่อยู่เดียวกับทะเบียนบ้าน</span>
+    </label>
+
+    <div id="con-fields">
+      <div class="addr-row g2">
+        <div class="addr-field" id="f-con-no">
+          <label>เลขที่ <span class="addr-req">*</span></label>
+          <input type="text" id="con-no" name="con_no" placeholder="เช่น 99/12">
+          <span class="addr-err">กรุณากรอกเลขที่บ้าน</span>
+        </div>
+        <div class="addr-field">
+          <label>ชื่ออาคาร / หมู่บ้าน</label>
+          <input type="text" id="con-building" name="con_building" placeholder="เช่น คอนโด ABC">
+        </div>
+      </div>
+      <div class="addr-row g4">
+        <div class="addr-field"><label>หมู่ที่</label><input type="text" id="con-moo" name="con_moo" placeholder="เช่น 1"></div>
+        <div class="addr-field"><label>ซอย</label><input type="text" id="con-soi" name="con_soi" placeholder="ซอย..."></div>
+        <div class="addr-field"><label>ถนน</label><input type="text" id="con-road" name="con_road" placeholder="ถนน..."></div>
+        <div class="addr-field" id="f-con-zip">
+          <label>รหัสไปรษณีย์ <span class="addr-req">*</span></label>
+          <input type="text" id="con-zipcode" name="con_zipcode" placeholder="00000" maxlength="5">
+          <span class="addr-err">รหัสไปรษณีย์ 5 หลัก</span>
+        </div>
+      </div>
+      <div class="addr-row g3">
+        <div class="addr-field" id="f-con-district">
+          <label>ตำบล / แขวง <span class="addr-req">*</span></label>
+          <input type="text" id="con-district" name="con_district" placeholder="พิมพ์เพื่อค้นหา...">
+          <span class="addr-err">กรุณากรอกตำบล</span>
+        </div>
+        <div class="addr-field" id="f-con-amphoe">
+          <label>อำเภอ / เขต <span class="addr-req">*</span></label>
+          <input type="text" id="con-amphoe" name="con_amphoe" placeholder="กรอกอัตโนมัติ" readonly>
+          <span class="addr-err">กรุณากรอกอำเภอ</span>
+        </div>
+        <div class="addr-field" id="f-con-province">
+          <label>จังหวัด <span class="addr-req">*</span></label>
+          <input type="text" id="con-province" name="con_province" placeholder="กรอกอัตโนมัติ" readonly>
+          <span class="addr-err">กรุณากรอกจังหวัด</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="addr-copy-preview" id="con-copy-preview"></div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     BLOCK C — ที่อยู่แบบกระชับ (Compact) ไม่มี หมู่/ซอย/ถนน
+     ใช้สำหรับ: กรอกเร็ว, หน้าจอเล็ก, ข้อมูลส่วนน้อย
+     ════════════════════════════════════════════════════════════ -->
+<h2 class="demo-title">Block C — ที่อยู่แบบกระชับ (Compact)</h2>
+<div class="addr-card">
+  <div class="addr-card-head">
+    <div class="addr-card-icon">📌</div>
+    <div>
+      <h3>ที่อยู่ปัจจุบัน</h3><!-- ✏️ -->
+      <p>ที่อยู่ที่นักเรียนพักอาศัยอยู่ในปัจจุบัน</p>
+    </div>
+  </div>
+  <div class="addr-card-body">
+    <div class="addr-row g21">
+      <div class="addr-field" id="f-cur-no">
+        <label>เลขที่ / ชื่ออาคาร <span class="addr-req">*</span></label>
+        <input type="text" id="cur-no" name="cur_no" placeholder="เช่น 88 หมู่บ้านสุขสันต์">
+        <span class="addr-err">กรุณากรอกเลขที่</span>
+      </div>
+      <div class="addr-field" id="f-cur-zip">
+        <label>รหัสไปรษณีย์ <span class="addr-req">*</span></label>
+        <input type="text" id="cur-zipcode" name="cur_zipcode" placeholder="00000" maxlength="5">
+        <span class="addr-err">รหัสไปรษณีย์ 5 หลัก</span>
+      </div>
+    </div>
+    <div class="addr-row g3">
+      <div class="addr-field" id="f-cur-district">
+        <label>ตำบล / แขวง <span class="addr-req">*</span></label>
+        <input type="text" id="cur-district" name="cur_district" placeholder="พิมพ์เพื่อค้นหา...">
+        <span class="addr-err">กรุณากรอก</span>
+      </div>
+      <div class="addr-field" id="f-cur-amphoe">
+        <label>อำเภอ / เขต</label>
+        <input type="text" id="cur-amphoe" name="cur_amphoe" placeholder="กรอกอัตโนมัติ" readonly>
+      </div>
+      <div class="addr-field" id="f-cur-province">
+        <label>จังหวัด</label>
+        <input type="text" id="cur-province" name="cur_province" placeholder="กรอกอัตโนมัติ" readonly>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     BLOCK D — ที่อยู่ผู้ปกครอง (Parent / Guardian)
+     ใช้สำหรับ: หน้าข้อมูลผู้ปกครอง ขั้นตอนที่ 3
+     ════════════════════════════════════════════════════════════ -->
+<h2 class="demo-title">Block D — ที่อยู่ผู้ปกครอง / ผู้ดูแล</h2>
+<div class="addr-card">
+  <div class="addr-card-head">
+    <div class="addr-card-icon">👨‍👩‍👦</div>
+    <div>
+      <h3>ที่อยู่ผู้ปกครอง / ผู้ดูแลนักเรียน</h3>
+      <p>สำหรับติดต่อในกรณีฉุกเฉิน</p>
+    </div>
+  </div>
+  <div class="addr-card-body">
+
+    <!-- Same-as-student toggle -->
+    <label class="addr-same-toggle" data-source="home" data-target="par">
+      <input type="checkbox" id="par-same-as-home">
+      <span>👤 ที่อยู่เดียวกับนักเรียน</span>
+    </label>
+
+    <div id="par-fields">
+      <div class="addr-row g2">
+        <div class="addr-field" id="f-par-no">
+          <label>เลขที่ <span class="addr-req">*</span></label>
+          <input type="text" id="par-no" name="par_no" placeholder="เช่น 45/7">
+          <span class="addr-err">กรุณากรอกเลขที่บ้าน</span>
+        </div>
+        <div class="addr-field">
+          <label>ชื่ออาคาร / หมู่บ้าน</label>
+          <input type="text" id="par-building" name="par_building" placeholder="เช่น บ้านเดี่ยวสุขสันต์">
+        </div>
+      </div>
+      <div class="addr-row g4">
+        <div class="addr-field"><label>หมู่ที่</label><input type="text" id="par-moo" name="par_moo"></div>
+        <div class="addr-field"><label>ซอย</label><input type="text" id="par-soi" name="par_soi" placeholder="ซอย..."></div>
+        <div class="addr-field"><label>ถนน</label><input type="text" id="par-road" name="par_road" placeholder="ถนน..."></div>
+        <div class="addr-field" id="f-par-zip">
+          <label>รหัสไปรษณีย์ <span class="addr-req">*</span></label>
+          <input type="text" id="par-zipcode" name="par_zipcode" placeholder="00000" maxlength="5">
+          <span class="addr-err">รหัสไปรษณีย์ 5 หลัก</span>
+        </div>
+      </div>
+      <div class="addr-row g3">
+        <div class="addr-field" id="f-par-district">
+          <label>ตำบล / แขวง <span class="addr-req">*</span></label>
+          <input type="text" id="par-district" name="par_district" placeholder="พิมพ์เพื่อค้นหา...">
+          <span class="addr-err">กรุณากรอก</span>
+        </div>
+        <div class="addr-field" id="f-par-amphoe">
+          <label>อำเภอ / เขต</label>
+          <input type="text" id="par-amphoe" name="par_amphoe" placeholder="กรอกอัตโนมัติ" readonly>
+        </div>
+        <div class="addr-field" id="f-par-province">
+          <label>จังหวัด</label>
+          <input type="text" id="par-province" name="par_province" placeholder="กรอกอัตโนมัติ" readonly>
+        </div>
+      </div>
+    </div>
+
+    <div class="addr-copy-preview" id="par-copy-preview"></div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT ENGINE
+     คัดลอกส่วนนี้ไปทุกครั้ง — รองรับทุก Block โดยอัตโนมัติ
+     ════════════════════════════════════════════════════════════ -->
+<script>
+$(function () {
+
+  var DB = 'https://earthchie.github.io/jquery.Thailand.js/jquery.Thailand.js/database/db.json';
+
+  /* ═══════════════════════════════════════════════════════════
+     initThailand(prefix)
+     เรียกครั้งเดียวต่อ address block
+     prefix ต้องตรงกับ id ของ input เช่น "home", "reg", "con"
+     ═══════════════════════════════════════════════════════════ */
+  function initThailand(prefix) {
+    var $d = $('#' + prefix + '-district');
+    if (!$d.length) return; // ไม่มี field — ข้าม
+    $.Thailand({
+      database: DB,
+      $district: $d,
+      $amphoe:   $('#' + prefix + '-amphoe'),
+      $province: $('#' + prefix + '-province'),
+      $zipcode:  $('#' + prefix + '-zipcode'),
+      onDataFill: function (data) {
+        // ล้าง error
+        ['district','amphoe','province','zip'].forEach(function (k) {
+          $('#f-' + prefix + '-' + k).removeClass('has-error');
+        });
+        // แสดง inline preview (ถ้ามี)
+        updateInlinePreview(prefix);
+      }
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     collectAddress(prefix)  →  object ที่อยู่ครบชุด
+     ═══════════════════════════════════════════════════════════ */
+  window.collectAddress = function (prefix) {
+    function v(id) { return $('#' + prefix + '-' + id).val().trim(); }
+    return {
+      house_no: v('no'), building: v('building'),
+      moo:      v('moo'), soi: v('soi'), road: v('road'),
+      district: v('district'), amphoe: v('amphoe'),
+      province: v('province'), zipcode: v('zipcode'),
+    };
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     formatAddress(obj)  →  string ที่อยู่แบบบรรทัดเดียว
+     ═══════════════════════════════════════════════════════════ */
+  window.formatAddress = function (d) {
+    var p = [];
+    if (d.house_no) p.push('เลขที่ ' + d.house_no);
+    if (d.building) p.push(d.building);
+    if (d.moo)      p.push('หมู่ ' + d.moo);
+    if (d.soi)      p.push('ซอย' + d.soi);
+    if (d.road)     p.push('ถนน' + d.road);
+    if (d.district) p.push('ต.' + d.district);
+    if (d.amphoe)   p.push('อ.' + d.amphoe);
+    if (d.province) p.push('จ.' + d.province);
+    if (d.zipcode)  p.push(d.zipcode);
+    return p.join(' ');
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     validateAddress(prefix, skipIfHidden)  →  boolean
+     ═══════════════════════════════════════════════════════════ */
+  window.validateAddress = function (prefix, skipIfHidden) {
+    var container = $('#' + prefix + '-fields');
+    if (skipIfHidden && container.length && !container.is(':visible')) return true;
+
+    var ok = true;
+    var requiredFields = ['no','district','amphoe','province','zipcode'];
+    requiredFields.forEach(function (key) {
+      var $input = $('#' + prefix + '-' + key);
+      if (!$input.length) return;
+      var fid = 'f-' + prefix + '-' + (key === 'zipcode' ? 'zip' : key);
+      if (!$input.val().trim()) {
+        $('#' + fid).addClass('has-error'); ok = false;
+      } else if (key === 'zipcode' && !/^\d{5}$/.test($input.val().trim())) {
+        $('#' + fid).addClass('has-error'); ok = false;
+      } else {
+        $('#' + fid).removeClass('has-error');
+      }
+    });
+    return ok;
+  };
+
+  /* ═══════════════════════════════════════════════════════════
+     updateInlinePreview(prefix)
+     อัปเดต inline preview ถ้ามี element #[prefix]-preview
+     ═══════════════════════════════════════════════════════════ */
+  function updateInlinePreview(prefix) {
+    var $preview = $('#' + prefix + '-preview');
+    if (!$preview.length) return;
+    var addr = collectAddress(prefix);
+    var txt  = formatAddress(addr);
+    if (txt) {
+      $('#' + prefix + '-preview-text').text(txt);
+      $preview.show();
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     SAME-AS TOGGLE — อัตโนมัติสำหรับทุก .addr-same-toggle
+     data-source = prefix ของที่อยู่ต้นทาง
+     data-target = prefix ของที่อยู่ที่ต้องการ copy ไป
+     ═══════════════════════════════════════════════════════════ */
+  $('.addr-same-toggle').each(function () {
+    var $toggle  = $(this);
+    var $cb      = $toggle.find('input[type="checkbox"]');
+    var source   = $toggle.data('source');
+    var target   = $toggle.data('target');
+    var fieldsId = '#' + target + '-fields';
+    var previewId= '#' + target + '-copy-preview';
+
+    $cb.on('change', function () {
+      if (this.checked) {
+        $(fieldsId).hide();
+        var addr = collectAddress(source);
+        var txt  = formatAddress(addr);
+        $(previewId).html('📋 <strong>ใช้ที่อยู่เดียวกัน:</strong><br>' + (txt || '<em>ยังไม่ได้กรอกที่อยู่ต้นทาง</em>')).show();
+      } else {
+        $(fieldsId).show();
+        $(previewId).hide();
+      }
+    });
+  });
+
+  /* ═══════════════════════════════════════════════════════════
+     INIT — เรียก initThailand สำหรับทุก prefix ที่ใช้ในหน้านี้
+     ✏️ เพิ่ม/ลด prefix ตามที่มีในหน้าของคุณ
+     ═══════════════════════════════════════════════════════════ */
+  ['home', 'reg', 'con', 'cur', 'par'].forEach(initThailand);
+
+  /* ═══════════════════════════════════════════════════════════
+     CLEAR ERROR on input
+     ═══════════════════════════════════════════════════════════ */
+  $(document).on('input', '.addr-field input', function () {
+    $(this).closest('.addr-field').removeClass('has-error');
+  });
+
+});
+</script>
+</body>
+</html>

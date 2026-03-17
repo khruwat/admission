@@ -1,0 +1,2597 @@
+<script>
+
+  //****************************** ประกาศตัวแปร ******************************//
+  let studyPlanData, suggestionsOldSchool, suggestionsOldSchoolModal, sameOldSchoolName, systemSetting
+ 
+  //****************************** Go to Top ******************************//
+  window.onscroll = function() {scrollFunction()};
+
+  function scrollFunction() {
+    let mybutton = document.getElementById("topBtn");
+    if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+      mybutton.style.display = "block";
+    } 
+    else{
+      mybutton.style.display = "none";
+    }
+  }
+
+  function topFunction(){
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+
+  //****************************** จัดการเมนู ******************************//
+  function homeClicked(){
+    event.preventDefault()
+
+    if(systemSetting[10] == 'เปิดระบบ'){
+      document.getElementById('homeDiv').style.display = "block"
+    }else{
+      document.getElementById('homeDivClose').style.display = "block"
+    }
+
+    document.getElementById('statusDiv').style.display = "none"
+    document.getElementById('adminDiv').style.display = "none"
+    
+    document.getElementById('adminDetails').style.display = "block"
+  }
+
+  function statusClicked(){
+    event.preventDefault()
+
+    document.getElementById('homeDiv').style.display = "none"
+    document.getElementById('homeDivClose').style.display = "none"
+    document.getElementById('statusDiv').style.display = "block"
+    document.getElementById('adminDiv').style.display = "none"
+
+    document.getElementById('adminDetails').style.display = "block"
+  }
+
+  function adminClicked(){
+    event.preventDefault()
+
+    document.getElementById('homeDiv').style.display = "none"
+    document.getElementById('homeDivClose').style.display = "none"
+    document.getElementById('statusDiv').style.display = "none"
+    document.getElementById('adminDiv').style.display = "block"
+
+    document.getElementById('adminDetails').style.display = "none"
+  }
+
+  //****************************** ปิด Navbar ที่ toggle ลงมา ******************************//
+  $(document).ready(function () {
+    $('.navbar-nav>li>a').on('click', function(){
+      $('.navbar-collapse').collapse('hide')
+    })
+
+    $(document).on('click', function(e) {
+      if ($(e.target).is('.navbar-nav>li>a') === false) {
+        $('.navbar-collapse').collapse('hide')
+      }
+    })
+  })
+
+  //****************************** ปิด suggestionsOldSchool เมื่อคลิกที่อื่น ******************************//
+  document.addEventListener("click", function (event) {
+    if(!event.target.closest('.dropdown-container')){
+      document.querySelectorAll('.suggestions-container').forEach(function(container) {
+        container.style.display = "none"
+      })
+
+      document.getElementById('oldSchoolCheckDiv').style.display = "block"
+    }
+  })
+
+  //****************************** เริ่มเปิดเว็บแอป ******************************//
+  window.onload = function() {
+    
+    document.getElementById('homeDiv').style.display = "none"
+    document.getElementById('statusDiv').style.display = "none"
+    document.getElementById('adminDiv').style.display = "none"
+
+    document.getElementById("showDataTable").style.display = "none"
+
+    // document.getElementById('adminDiv').style.display = "none"
+
+    $('#spinnerLoadingModal').modal('show')
+    google.script.run.withSuccessHandler(showResult).getSetting()
+    google.script.run.withSuccessHandler(getStatusSuccess).getStatus()
+  }
+
+  //****************************** แสดงผลลัพธ์จาก การตั้งค่าข้อมูลทั่วไป  ******************************//
+  function showResult(setting){
+
+    systemSetting = setting
+
+    //แสดง HomeDiv
+    document.getElementById('homeDiv').style.display = "block"
+    document.getElementById('homeDivClose').style.display = "none"
+
+    document.getElementById('showSchoolLogoStatusDiv').innerHTML = '<img src="https://lh3.googleusercontent.com/d/' + setting[0] + '" height="100px"></img>'
+    document.getElementById('showSchoolLogoAdminDiv').innerHTML = '<img src="https://lh3.googleusercontent.com/d/' + setting[0] + '" height="100px"></img>'
+
+    document.getElementById('showMoreDocument1FileLabel').innerHTML = '<b>' + setting[15] +'</b>'
+    document.getElementById('uploadNewMoreDocument1FileModalLabel').innerHTML = 'อัปโหลด' + setting[15]
+              
+    document.getElementById('showMoreDocument2FileLabel').innerHTML = '<b>' + setting[17] +'</b>'
+    document.getElementById('uploadNewMoreDocument2FileModalLabel').innerHTML = 'อัปโหลด' + setting[17]
+
+    document.getElementById('showMoreDocument3FileLabel').innerHTML = '<b>' + setting[19] +'</b>'
+    document.getElementById('uploadNewMoreDocument3FileModalLabel').innerHTML = 'อัปโหลด' + setting[19]
+
+    document.getElementById('showMoreDocument4FileLabel').innerHTML = '<b>' + setting[21] +'</b>'
+    document.getElementById('uploadNewMoreDocument4FileModalLabel').innerHTML = 'อัปโหลด' + setting[21]
+
+    document.getElementById('showMoreDocument5FileLabel').innerHTML = '<b>' + setting[23] +'</b>'
+    document.getElementById('uploadNewMoreDocument5FileModalLabel').innerHTML = 'อัปโหลด' + setting[23]
+
+    google.script.run.withSuccessHandler(getStudyPlanDataSuccess).getStudyPlanData()
+
+    //ตรวจสอบการ เปิด - ปิด ระบบรับสมัคร
+    if(setting[10] == 'ปิดระบบ'){
+
+      //ถ้าระบบปิด ให้ซ่อน Nav กรอกใบสมัคร และ แสดงรูปภาพปิดรับสมัคร
+      document.getElementById('fillFormNav').style.display = "none"
+      document.getElementById('homeDiv').style.display = "none"
+      document.getElementById('homeDivClose').style.display = "block"
+      document.getElementById('homeDivClose').innerHTML = '<div class="mb-3 text-center" id="showSchoolLogo">' +
+                                                        '<img src="https://lh3.googleusercontent.com/d/' + setting[13] + '" width="80%"></img>'
+                                                     '</div>'
+      $('#spinnerLoadingModal').modal('hide')
+
+    }else{
+
+      $('#regisAdviceModal').modal('show')
+
+      //ถ้าระบบเปิด ดึงข้อมูลชั้นเรียน ชื่อโรงเรียนเดิม และแสดงข้อมูลหน้าเว็บแอป
+      google.script.run.withSuccessHandler(function(values){
+        if(values != null){
+          suggestionsOldSchool = values
+          suggestionsOldSchoolModal = values
+        }
+        
+      }).getOldSchool();
+    
+      //แสดงข้อมูล logo ชื่อโรงเรียน ปีการศึกษา รูปภาพคำแนะนำการสมัคร
+      document.getElementById('showSchoolLogoHomeDiv').innerHTML = '<img src="https://lh3.googleusercontent.com/d/' + setting[0] + '" height="100px"></img>'
+
+      document.getElementById('schoolName').innerHTML = setting[1]
+      document.getElementById('schoolNameAdmin').innerHTML = setting[1]
+      document.getElementById('academicYear').innerHTML = 'ปีการศึกษา ' + setting[2]
+      document.getElementById('academicYearAdmin').innerHTML = 'ปีการศึกษา ' + setting[2]
+      document.getElementById('regisAdviceImage').innerHTML = '<img src="https://lh3.googleusercontent.com/d/' + setting[3] + '" width="100%"></img>'
+
+    }
+
+    //ตรวจสอบ รูปแบบการอัปโหลดรูปภาพนักเรียน
+    if(setting[4] == 'บังคับอัปโหลดรูปภาพนักเรียน'){
+      document.getElementById('studentImageDiv').innerHTML = '<div class="mb-2">' +
+                                                              '<label for="studentImage"><i class="fa-regular fa-image"></i> อัปโหลดรูปถ่ายนักเรียน <a class="redstar">*</a></label>' +
+                                                              '</div>' +
+
+                                                              '<div class="mb-3">' +
+                                                                '<img id="uploadStudentImagePreview" style="width: 180px; height: 200px;">' +
+                                                              '</div>' +
+
+                                                              '<div class="mb-3 border-dark">' +
+                                                                '<input class="form-control" type="file" id="studentImage" name="studentImage" onchange="previewStudentImage()" accept=".jpg, .jpeg, .png" required>' +
+                                                              '</div>'
+        
+      previewStudentImage()
+
+      document.getElementById('studentImageDivModal').innerHTML = '<div class="mb-3">' +
+                                                                    '<img id="uploadStudentImageModal" style="width: 180px; height: 200px;">' +
+                                                                  '</div>'
+
+    }else if(setting[4] == 'ไม่บังคับอัปโหลดรูปภาพนักเรียน'){
+      document.getElementById('studentImageDiv').innerHTML = '<div class="mb-2">' +
+                                                                '<label for="studentImage"><i class="fa-regular fa-image"></i> อัปโหลดรูปถ่ายนักเรียน</label>' +
+                                                              '</div>' +
+
+                                                              '<div class="mb-3">' +
+                                                                '<img id="uploadStudentImagePreview" style="width: 180px; height: 200px;">' +
+                                                              '</div>' +
+
+                                                              '<div class="mb-3 border-dark">' +
+                                                                '<input class="form-control" type="file" id="studentImage" name="studentImage" onchange="previewStudentImage()" accept=".jpg, .jpeg, .png">' +
+                                                              '</div>'
+
+      previewStudentImage()
+
+      document.getElementById('studentImageDivModal').innerHTML = '<div class="mb-3">' +
+                                                                    '<img id="uploadStudentImageModal" style="width: 180px; height: 200px;">' +
+                                                                  '</div>'
+
+    }else{
+      document.getElementById('studentImageDiv').innerHTML = '<input type="hidden" name="studentImage" id="studentImage">'
+
+      document.getElementById('studentImageDivModal').innerHTML = ''
+    }    
+
+    //กำหนดชื่อโรงเรียนเดิม
+    sameOldSchoolName = setting[1]
+    document.getElementById('oldSchoolCheckLabel').innerHTML = 'จบการศึกษาจาก' + setting[1]
+
+    $('#spinnerLoadingModal').modal('hide')
+
+    if(setting[5] == 'ปิดใช้งาน' && setting[14] == 'ปิดใช้งาน' && setting[16] == 'ปิดใช้งาน' && setting[18] == 'ปิดใช้งาน' && 
+      setting[20] == 'ปิดใช้งาน' &&  setting[22] == 'ปิดใช้งาน'){
+      document.getElementById('uploadFileDiv').innerHTML =  '<input type="hidden" name="slipImage" id="slipImage">' +
+                                                            '<input type="hidden" name="moreDocument1" id="moreDocument1">' +
+                                                            '<input type="hidden" name="moreDocument2" id="moreDocument2">' +
+                                                            '<input type="hidden" name="moreDocument3" id="moreDocument3">' +
+                                                            '<input type="hidden" name="moreDocument4" id="moreDocument4">' +
+                                                            '<input type="hidden" name="moreDocument5" id="moreDocument5">'
+
+      document.getElementById('showSlipFileDiv').style.display = 'none'
+      document.getElementById('showMoreDocument1FileDiv').style.display = 'none'
+      document.getElementById('showMoreDocument2FileDiv').style.display = 'none'
+      document.getElementById('showMoreDocument3FileDiv').style.display = 'none'
+      document.getElementById('showMoreDocument4FileDiv').style.display = 'none'
+      document.getElementById('showMoreDocument5FileDiv').style.display = 'none'
+
+      document.getElementById('uploadFileDivModal').style.display = 'none'
+                                                            
+    }else{
+      
+      //ตรวจสอบ รูปแบบการอัปโหลดหลักฐานการชำระเงิน
+      if(setting[5] == 'บังคับอัปโหลดหลักฐานการชำระเงิน'){
+        document.getElementById('paymentDiv').innerHTML = '<div class="mb-3">' +
+                                                            '<div class="text-center" id="paymentImage">' +
+                                                              '<img src="https://lh3.googleusercontent.com/d/' + setting[6] +'" width="80%"></img>' +
+                                                            '</div>' +
+                                                          '</div>' +
+
+                                                          '<div class="mb-3">' +
+                                                            '<label for="slipImage" class="form-label">อัปโหลดหลักฐานการชำระเงิน <a class="redstar">*</a></label>' +
+                                                            '<input class="form-control border-dark" type="file" id="slipImage" name="slipImage" onchange="previewSlipImage()" accept=".jpg, .jpeg, .png" required>' +
+                                                          '</div>' +
+
+                                                          '<hr>'
+          
+        previewSlipImage()
+
+      }else if(setting[5] == 'ไม่บังคับอัปโหลดหลักฐานการชำระเงิน'){
+        document.getElementById('paymentDiv').innerHTML = '<div class="mb-3">' +
+                                                            '<div class="text-center" id="paymentImage">' +
+                                                              '<img src="https://lh3.googleusercontent.com/d/' + setting[6] +'" width="80%"></img>' +
+                                                            '</div>' +
+                                                          '</div>' +
+
+                                                          '<div class="mb-3">' +
+                                                            '<label for="slipImage" class="form-label">อัปโหลดหลักฐานการชำระเงิน</label>' +
+                                                            '<input class="form-control border-dark" type="file" id="slipImage" name="slipImage" onchange="previewSlipImage()" accept=".jpg, .jpeg, .png">' +
+                                                          '</div>' +
+
+                                                          '<hr>'
+          
+        previewSlipImage()
+
+      }else{
+        document.getElementById('paymentDiv').innerHTML = '<input type="hidden" name="slipImage" id="slipImage">'
+
+        document.getElementById('showSlipFileDiv').style.display = 'none'
+        document.getElementById('paymentDivModal').style.display = 'none'
+      }
+
+      //ตรวจสอบ สถานะเอกสารเพิ่มเติม 1
+      if(setting[14] == 'เปิดใช้งาน'){
+        document.getElementById('moreDocument1Div').innerHTML = '<div class="mb-3">' +
+                                                                  '<label for="moreDocument1" class="form-label" id="moreDocument1Label">' + setting[15] + ' <a class="redstar">*</a></label>' +
+                                                                  '<input class="form-control border-dark" type="file" id="moreDocument1" name="moreDocument1" required>' +
+                                                                '</div>' +
+
+                                                                '<hr>'
+
+        document.getElementById('moreDocument1ModalLabel').innerHTML = '<b>' + setting[15] + '</b>'
+      }else{
+        document.getElementById('moreDocument1Div').innerHTML = '<input type="hidden" name="moreDocument1" id="moreDocument1">'
+
+        document.getElementById('showMoreDocument1FileDiv').style.display = 'none'
+        document.getElementById('moreDocument1DivModal').style.display = 'none'
+      }
+
+      //ตรวจสอบ สถานะเอกสารเพิ่มเติม 2
+      if(setting[16] == 'เปิดใช้งาน'){
+        document.getElementById('moreDocument2Div').innerHTML = '<div class="mb-3">' +
+                                                                  '<label for="moreDocument2" class="form-label" id="moreDocument2Label">' + setting[17] + ' <a class="redstar">*</a></label>' +
+                                                                  '<input class="form-control border-dark" type="file" id="moreDocument2" name="moreDocument2" required>' +
+                                                                '</div>' +
+
+                                                                '<hr>'
+
+        document.getElementById('moreDocument2ModalLabel').innerHTML = '<b>' + setting[17] + '</b>'
+      }else{
+        document.getElementById('moreDocument2Div').innerHTML = '<input type="hidden" name="moreDocument2" id="moreDocument2">'
+
+        document.getElementById('showMoreDocument2FileDiv').style.display = 'none'
+        document.getElementById('moreDocument2DivModal').style.display = 'none'
+      }
+
+      //ตรวจสอบ สถานะเอกสารเพิ่มเติม 3
+      if(setting[18] == 'เปิดใช้งาน'){
+        document.getElementById('moreDocument3Div').innerHTML = '<div class="mb-3">' +
+                                                                  '<label for="moreDocument3" class="form-label" id="moreDocument3Label">' + setting[19] + ' <a class="redstar">*</a></label>' +
+                                                                  '<input class="form-control border-dark" type="file" id="moreDocument3" name="moreDocument3" required>' +
+                                                                '</div>' +
+
+                                                                '<hr>'
+
+        document.getElementById('moreDocument3ModalLabel').innerHTML = '<b>' + setting[19] + '</b>'
+      }else{
+        document.getElementById('moreDocument3Div').innerHTML = '<input type="hidden" name="moreDocument3" id="moreDocument3">'
+
+        document.getElementById('showMoreDocument3FileDiv').style.display = 'none'
+        document.getElementById('moreDocument3DivModal').style.display = 'none'
+      }
+
+      //ตรวจสอบ สถานะเอกสารเพิ่มเติม 4
+      if(setting[20] == 'เปิดใช้งาน'){
+        document.getElementById('moreDocument4Div').innerHTML = '<div class="mb-3">' +
+                                                                  '<label for="moreDocument4" class="form-label" id="moreDocument4Label">' + setting[21] + ' <a class="redstar">*</a></label>' +
+                                                                  '<input class="form-control border-dark" type="file" id="moreDocument4" name="moreDocument4" required>' +
+                                                                '</div>' +
+
+                                                                '<hr>'
+
+        document.getElementById('moreDocument4ModalLabel').innerHTML = '<b>' + setting[21] + '</b>'
+      }else{
+        document.getElementById('moreDocument4Div').innerHTML = '<input type="hidden" name="moreDocument4" id="moreDocument4">'
+
+        document.getElementById('showMoreDocument4FileDiv').style.display = 'none'
+        document.getElementById('moreDocument4DivModal').style.display = 'none'
+      }
+
+      //ตรวจสอบ สถานะเอกสารเพิ่มเติม 5
+      if(setting[22] == 'เปิดใช้งาน'){
+        document.getElementById('moreDocument5Div').innerHTML = '<div class="mb-3">' +
+                                                                    '<label for="moreDocument5" class="form-label" id="moreDocument5Label">' + setting[23] + ' <a class="redstar">*</a></label>' +
+                                                                    '<input class="form-control border-dark" type="file" id="moreDocument5" name="moreDocument5" required>' +
+                                                                  '</div>'
+
+        document.getElementById('moreDocument5ModalLabel').innerHTML = '<b>' + setting[23] + '</b>'
+      }else{
+        document.getElementById('moreDocument5Div').innerHTML = '<input type="hidden" name="moreDocument5" id="moreDocument5">'
+
+        document.getElementById('showMoreDocument5FileDiv').style.display = 'none'
+        document.getElementById('moreDocument5DivModal').style.display = 'none'
+      }
+
+    }
+
+    //แสดงค่า ชื่อผู้ดูแลระบบ เบอร์โทรศัพท์ ช่องทางการติดต่ออื่น ๆ
+    document.getElementById("adminDetails").innerHTML = '💡 ผู้ดูแลระบบ : ' + setting[7] + '<br>' +
+                                                        '📞 เบอร์โทรศัพท์ : ' + setting[8] + '<br>' +
+                                                        setting[9]
+    
+  }
+
+  //****************************** สร้างตัวเลือกของระดับชั้น ******************************//
+  function getStudyPlanDataSuccess(values){
+    studyPlanData = values
+
+    let uniqueGradeRegistor = [...new Set(studyPlanData.map(item => item[0]))]
+    let studyPlanList = studyPlanData.map(item => item[2])
+
+    let gradeRegistor = document.getElementById('gradeRegistor')
+    let gradeRegistorModal = document.getElementById('gradeRegistorModal')
+
+    let gradeRegistorFilter = document.getElementById('gradeRegistorFilter')
+
+    for (let i = 0; i < uniqueGradeRegistor.length; i++) {
+      let option = document.createElement("option");
+      option.value = uniqueGradeRegistor[i];
+      option.text = uniqueGradeRegistor[i];
+
+      gradeRegistor.appendChild(option);
+
+      let optionModal = document.createElement("option");
+      optionModal.value = uniqueGradeRegistor[i];
+      optionModal.text = uniqueGradeRegistor[i];
+
+      gradeRegistorModal.appendChild(optionModal);
+
+      let optionFilter = document.createElement("option");
+      optionFilter.value = uniqueGradeRegistor[i];
+      optionFilter.text = uniqueGradeRegistor[i];
+
+      gradeRegistorFilter.appendChild(optionFilter);
+    }
+
+    let studyPlanFilter = document.getElementById('studyPlanFilter')
+
+    for (let i = 0; i < studyPlanList.length; i++) {
+      let option = document.createElement("option");
+      option.value = studyPlanList[i];
+      option.text = studyPlanList[i];
+
+      studyPlanFilter.appendChild(option);
+
+    }
+
+  }
+
+  //****************************** กรองแผนการเรียนจากค่าของระดับชั้น ******************************//
+  function filterStudyPlan(){
+    let gradeRegistor = document.getElementById('gradeRegistor').value
+
+    let filterStudyPlan = studyPlanData.filter(studyPlan => studyPlan[0] == gradeRegistor)
+
+    document.getElementById('gradeRegistorCode').value = filterStudyPlan[0][1]
+
+    let studyPlan = document.getElementById('studyPlan')
+
+    studyPlan.innerHTML = '<option selected disabled value="">- กรุณาเลือก -</option>'
+
+    for (let i = 0; i < filterStudyPlan.length; i++) {
+      let option = document.createElement("option")
+      option.value = filterStudyPlan[i][2]
+      option.text = filterStudyPlan[i][2]
+      studyPlan.appendChild(option)
+    }
+  }
+
+  function filterStudyPlanModal(){
+    let gradeRegistorModal = document.getElementById('gradeRegistorModal').value
+
+    let filterStudyPlanModal = studyPlanData.filter(studyPlan => studyPlan[0] == gradeRegistorModal)
+
+    let studyPlanModal = document.getElementById('studyPlanModal')
+
+    studyPlanModal.innerHTML = '<option selected disabled value="">- กรุณาเลือก -</option>'
+
+    for (let i = 0; i < filterStudyPlanModal.length; i++) {
+      let option = document.createElement("option")
+      option.value = filterStudyPlanModal[i][2]
+      option.text = filterStudyPlanModal[i][2]
+      studyPlanModal.appendChild(option)
+    }
+  }
+
+  //****************************** กรองสถานะการสมัคร ******************************//
+  function getStatusSuccess(values){
+
+    let statusModal = document.getElementById('statusModal')
+    let regisStatusFilter = document.getElementById('regisStatusFilter')
+
+    for (let i = 0; i < values.length; i++) {
+      let option = document.createElement("option");
+      option.value = values[i];
+      option.text = values[i];
+
+      statusModal.appendChild(option);
+
+      let optionFilter = document.createElement("option");
+      optionFilter.value = values[i];
+      optionFilter.text = values[i];
+
+      regisStatusFilter.appendChild(optionFilter);
+
+    }
+
+  }
+
+  //****************************** แสดงภาพตัวอย่างของ รูปถ่ายนักเรียน ******************************//
+  function previewStudentImage() {
+
+    if(document.getElementById("studentImage").value==""){
+      document.getElementById("uploadStudentImagePreview").src = "https://lh3.googleusercontent.com/d/1q1CjoEWMwGw9WLCOKhJGghCCUOjPJLSW"
+    }
+    else{
+      var oFReader = new FileReader()
+      oFReader.readAsDataURL(document.getElementById("studentImage").files[0])
+      
+      oFReader.onload = function (oFREvent) {
+        document.getElementById("uploadStudentImagePreview").src = oFREvent.target.result
+      }
+    }   
+  }
+
+  //****************************** จัดรูปแบบเบอร์โทรศัพท์ 000-000-0000 ******************************//
+  function formatPhoneNumber(input) {
+    let phoneNumber = input.value.replace(/\D/g, '');
+
+    if (phoneNumber.length > 3) {
+      phoneNumber = phoneNumber.substring(0, 3) + '-' + phoneNumber.substring(3);
+    }
+    if (phoneNumber.length > 7) {
+      phoneNumber = phoneNumber.substring(0, 7) + '-' + phoneNumber.substring(7);
+    }
+
+    if (phoneNumber.length > 12) {
+      phoneNumber = phoneNumber.substring(0, 12);
+    }
+
+    input.value = phoneNumber;
+  }
+
+  //****************************** คำนวณอายุจากวันเกิด ******************************//
+  function calculateAge(){
+
+    let stdBirthDate = document.getElementById("stdBirthDate").value
+    
+    if (stdBirthDate==""){
+      alert("กรุณาเลือกวันเดือนปีเกิด")
+      document.getElementById("stdAge").value = "" 
+    }
+    else{
+      let birthDateArray = stdBirthDate.split("/")
+
+      let d1 = birthDateArray[0]
+      let m1 = birthDateArray[1]
+      let y1 = birthDateArray[2]
+
+      let date = new Date()
+      let d2 = date.getDate()
+      let m2 = date.getMonth() + 1
+      let y2 = date.getFullYear() + 543
+      let month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+      if(d1 > d2){
+        d2 = d2 + month[m2 - 1]
+        m2 = m2 - 1
+      }
+
+      if(m1 > m2){
+        m2 = m2 + 12
+        y2 = y2 - 1
+      }
+
+      let y = y2 - y1
+      document.getElementById("stdAge").value = y 
+    }
+
+  }
+
+  function calculateAgeModal(){
+
+    let stdBirthDateModal = document.getElementById("stdBirthDateModal").value
+    
+    if (stdBirthDateModal==""){
+      alert("กรุณาเลือกวันเดือนปีเกิด")
+      document.getElementById("stdAgeModal").value = "" 
+    }
+    else{
+      let birthDateArray = stdBirthDateModal.split("/")
+
+      let d1 = birthDateArray[0]
+      let m1 = birthDateArray[1]
+      let y1 = birthDateArray[2]
+
+      let date = new Date()
+      let d2 = date.getDate()
+      let m2 = date.getMonth() + 1
+      let y2 = date.getFullYear() + 543
+      let month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+      if(d1 > d2){
+        d2 = d2 + month[m2 - 1]
+        m2 = m2 - 1
+      }
+
+      if(m1 > m2){
+        m2 = m2 + 12
+        y2 = y2 - 1
+      }
+
+      let y = y2 - y1
+      document.getElementById("stdAgeModal").value = y 
+    }
+
+  }
+
+  //************************* โชว์ suggestion จากข้อมูลโรงเรียนเดิมที่ตั้งค่าไว้ ******************************//
+  function showSuggestions(inputId, suggestions) {
+
+    if(suggestions != null){
+      const input = document.getElementById(inputId)
+      const inputValue = input.value.trim().toLowerCase()
+      const suggestionsContainer = document.getElementById(`suggestions-container-${inputId}`)
+      
+      suggestionsContainer.innerHTML = ""
+
+      if (inputValue !== "") {
+        document.getElementById('oldSchoolCheckDiv').style.display = "none"
+
+        const matchingSuggestions = suggestions.filter(suggestion => suggestion.toLowerCase().includes(inputValue));
+
+        matchingSuggestions.forEach(suggestion => {
+          const suggestionElement = document.createElement("div")
+          suggestionElement.classList.add("suggestion")
+          suggestionElement.textContent = suggestion
+          suggestionElement.addEventListener("click", () => {
+            input.value = suggestion
+            suggestionsContainer.innerHTML = ""
+            suggestionsContainer.style.display = "none"
+          });
+
+          suggestionsContainer.appendChild(suggestionElement)
+        });
+
+        suggestionsContainer.style.display = "block"
+      } else {
+        document.getElementById('oldSchoolCheckDiv').style.display = "block"
+        suggestionsContainer.style.display = "none"
+      }
+    }
+  }
+
+  function showSuggestionsModal(inputId, suggestions) {
+
+    if(suggestions != null){
+      const input = document.getElementById(inputId)
+      const inputValue = input.value.trim().toLowerCase()
+      const suggestionsContainer = document.getElementById(`suggestions-container-${inputId}`)
+      
+      suggestionsContainer.innerHTML = ""
+
+      if (inputValue !== "") {
+
+        const matchingSuggestions = suggestions.filter(suggestion => suggestion.toLowerCase().includes(inputValue));
+
+        matchingSuggestions.forEach(suggestion => {
+          const suggestionElement = document.createElement("div")
+          suggestionElement.classList.add("suggestion")
+          suggestionElement.textContent = suggestion
+          suggestionElement.addEventListener("click", () => {
+            input.value = suggestion
+            suggestionsContainer.innerHTML = ""
+            suggestionsContainer.style.display = "none"
+          });
+
+          suggestionsContainer.appendChild(suggestionElement)
+        });
+
+        suggestionsContainer.style.display = "block"
+      } else {
+        suggestionsContainer.style.display = "none"
+      }
+    }
+  }
+
+  //****************************** กำหนดค่าโรงเรียนเดิม ******************************//
+  function oldSchoolCheckFn(){
+    let checkBox = document.getElementById("oldSchoolCheck")
+
+    if (checkBox.checked == true){
+      document.getElementById("stdOldSchool").value = sameOldSchoolName
+      document.getElementById("stdOldSchool").disabled = true
+    }else{
+      document.getElementById("stdOldSchool").disabled = false
+      document.getElementById("stdOldSchool").value = ""
+    }
+  }
+
+  //****************************** กำหนดค่าที่อยู่ปัจจุบันตามทะเบียนบ้าน ******************************//
+  function addressChecked(){
+    let checkBox = document.getElementById("addressCheck")
+
+    if (checkBox.checked == true){
+
+      document.getElementById("stdCurrentHouseNo").readOnly = true
+      document.getElementById("stdCurrentVillageNo").readOnly = true
+      document.getElementById("stdCurrentStreet").readOnly = true
+      document.getElementById("stdCurrentTrok").readOnly = true
+      document.getElementById("stdCurrentSoi").readOnly = true
+      document.getElementById("stdCurrentSubDistrict").disabled = true
+      document.getElementById("stdCurrentDistrict").disabled = true
+      document.getElementById("stdCurrentProvince").disabled = true
+      document.getElementById("stdCurrentZipCode").disabled = true
+          
+      document.getElementById("stdCurrentHouseNo").value = document.getElementById("stdLocalHouseNo").value
+      document.getElementById("stdCurrentVillageNo").value = document.getElementById("stdLocalVillageNo").value
+      document.getElementById("stdCurrentStreet").value = document.getElementById("stdLocalStreet").value
+      document.getElementById("stdCurrentTrok").value = document.getElementById("stdLocalTrok").value
+      document.getElementById("stdCurrentSoi").value = document.getElementById("stdLocalSoi").value
+      document.getElementById("stdCurrentSubDistrict").value = document.getElementById("stdLocalSubDistrict").value
+      document.getElementById("stdCurrentDistrict").value = document.getElementById("stdLocalDistrict").value
+      document.getElementById("stdCurrentProvince").value = document.getElementById("stdLocalProvince").value
+      document.getElementById("stdCurrentZipCode").value = document.getElementById("stdLocalZipCode").value
+    }else{
+
+      document.getElementById("stdCurrentHouseNo").readOnly = false
+      document.getElementById("stdCurrentVillageNo").readOnly = false
+      document.getElementById("stdCurrentStreet").readOnly = false
+      document.getElementById("stdCurrentTrok").readOnly = false
+      document.getElementById("stdCurrentSoi").readOnly = false
+      document.getElementById("stdCurrentSubDistrict").disabled = false
+      document.getElementById("stdCurrentDistrict").disabled = false
+      document.getElementById("stdCurrentProvince").disabled = false
+      document.getElementById("stdCurrentZipCode").disabled = false
+          
+      document.getElementById("stdCurrentHouseNo").value = ""
+      document.getElementById("stdCurrentVillageNo").value = ""
+      document.getElementById("stdCurrentStreet").value = ""
+      document.getElementById("stdCurrentTrok").value = ""
+      document.getElementById("stdCurrentSoi").value = ""
+      document.getElementById("stdCurrentSubDistrict").value = ""
+      document.getElementById("stdCurrentDistrict").value = ""
+      document.getElementById("stdCurrentProvince").value = ""
+      document.getElementById("stdCurrentZipCode").value = ""
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ ดนตรี ******************************//
+  function musicTalentFn(){
+    let checkBox = document.getElementById("musicTalent")
+
+    if (checkBox.checked == true){
+      document.getElementById("musicTalentDetail").disabled = false
+      document.getElementById("musicTalentDetail").focus()
+      document.getElementById("musicTalentDetail").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("musicTalentDetail").disabled = true
+      document.getElementById("musicTalentDetail").value = ""
+      document.getElementById("musicTalentDetail").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ กีฬา ******************************//
+  function sportTalentFn(){
+    let checkBox = document.getElementById("sportTalent")
+    
+    if (checkBox.checked == true){
+      document.getElementById("sportTalentDetail").disabled = false
+      document.getElementById("sportTalentDetail").focus()
+      document.getElementById("sportTalentDetail").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("sportTalentDetail").disabled = true
+      document.getElementById("sportTalentDetail").value = ""
+      document.getElementById("sportTalentDetail").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ ศิลปะ ******************************//
+  function artTalentFn(){
+    let checkBox = document.getElementById("artTalent")
+    
+    if (checkBox.checked == true){
+      document.getElementById("artTalentDetail").disabled = false
+      document.getElementById("artTalentDetail").focus()
+      document.getElementById("artTalentDetail").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("artTalentDetail").disabled = true
+      document.getElementById("artTalentDetail").value = ""
+      document.getElementById("artTalentDetail").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ ภาษาสื่อสาร ******************************//
+  function languageTalentFn(){
+    let checkBox = document.getElementById("languageTalent")
+    
+    if (checkBox.checked == true){
+      document.getElementById("languageTalentDetail").disabled = false
+      document.getElementById("languageTalentDetail").focus()
+      document.getElementById("languageTalentDetail").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("languageTalentDetail").disabled = true
+      document.getElementById("languageTalentDetail").value = ""
+      document.getElementById("languageTalentDetail").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ อื่น ๆ ******************************//
+  function otherTalentFn(){
+    let checkBox = document.getElementById("otherTalent")
+    
+    if (checkBox.checked == true){
+      document.getElementById("otherTalentDetail").disabled = false
+      document.getElementById("otherTalentDetail").focus()
+      document.getElementById("otherTalentDetail").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("otherTalentDetail").disabled = true
+      document.getElementById("otherTalentDetail").value = ""
+      document.getElementById("otherTalentDetail").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ ดนตรี Modal******************************//
+  function musicTalentModalFn(){
+    let checkBox = document.getElementById("musicTalentModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("musicTalentDetailModal").disabled = false
+      document.getElementById("musicTalentDetailModal").focus()
+      document.getElementById("musicTalentDetailModal").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("musicTalentDetailModal").disabled = true
+      document.getElementById("musicTalentDetailModal").value = ""
+      document.getElementById("musicTalentDetailModal").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ กีฬา Modal******************************//
+  function sportTalentModalFn(){
+    let checkBox = document.getElementById("sportTalentModal")
+    
+    if (checkBox.checked == true){
+      document.getElementById("sportTalentDetailModal").disabled = false
+      document.getElementById("sportTalentDetailModal").focus()
+      document.getElementById("sportTalentDetailModal").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("sportTalentDetailModal").disabled = true
+      document.getElementById("sportTalentDetailModal").value = ""
+      document.getElementById("sportTalentDetailModal").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ ศิลปะ Modal******************************//
+  function artTalentModalFn(){
+    let checkBox = document.getElementById("artTalentModal")
+    
+    if (checkBox.checked == true){
+      document.getElementById("artTalentDetailModal").disabled = false
+      document.getElementById("artTalentDetailModal").focus()
+      document.getElementById("artTalentDetailModal").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("artTalentDetailModal").disabled = true
+      document.getElementById("artTalentDetailModal").value = ""
+      document.getElementById("artTalentDetailModal").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ ภาษาสื่อสาร Modal******************************//
+  function languageTalentModalFn(){
+    let checkBox = document.getElementById("languageTalentModal")
+    
+    if (checkBox.checked == true){
+      document.getElementById("languageTalentDetailModal").disabled = false
+      document.getElementById("languageTalentDetailModal").focus()
+      document.getElementById("languageTalentDetailModal").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("languageTalentDetailModal").disabled = true
+      document.getElementById("languageTalentDetailModal").value = ""
+      document.getElementById("languageTalentDetailModal").placeholder = ''
+    }
+  }
+
+  //****************************** ความสามารถพิเศษ อื่น ๆ Modal******************************//
+  function otherTalentModalFn(){
+    let checkBox = document.getElementById("otherTalentModal")
+    
+    if (checkBox.checked == true){
+      document.getElementById("otherTalentDetailModal").disabled = false
+      document.getElementById("otherTalentDetailModal").focus()
+      document.getElementById("otherTalentDetailModal").placeholder = 'โปรดระบุ'
+    }else{
+      document.getElementById("otherTalentDetailModal").disabled = true
+      document.getElementById("otherTalentDetailModal").value = ""
+      document.getElementById("otherTalentDetailModal").placeholder = ''
+    }
+  }
+
+  //****************************** ความพิการทางการมองเห็น ******************************//
+  function eyeDefectFn() {
+    let checkBox = document.getElementById("eyeDefect")
+
+    if (checkBox.checked == true){
+      document.getElementById("eyeDefect").value = "ความพิการทางการมองเห็น"
+    }else{
+      document.getElementById("eyeDefect").value = ""
+    }
+  }
+  
+  //****************************** ความพิการทางการได้ยิน ******************************//
+  function earDefectFn(){
+    let checkBox = document.getElementById("earDefect")
+
+    if (checkBox.checked == true){
+      document.getElementById("earDefect").value = "ความพิการทางการได้ยิน"
+    }else{
+      document.getElementById("earDefect").value = ""
+    }
+  }
+  
+  //****************************** ความพิการทางสติปัญญา ******************************//
+  function intelligenceDefectFn(){
+    let checkBox = document.getElementById("intelligenceDefect")
+
+    if (checkBox.checked == true){
+      document.getElementById("intelligenceDefect").value = "ความพิการทางสติปัญญา"
+    }else{
+      document.getElementById("intelligenceDefect").value = ""
+    }
+  }
+  
+  //****************************** ความพิการร่างกาย, สุขภาพ ******************************//
+  function bodyDefectFn(){
+    let checkBox = document.getElementById("bodyDefect")
+
+    if (checkBox.checked == true){
+      document.getElementById("bodyDefect").value = "ความพิการร่างกาย, สุขภาพ"
+    }else{
+      document.getElementById("bodyDefect").value = ""
+    }
+  }
+  
+  //****************************** ความพิการทางการเรียนรู้ ******************************//
+  function learningDefectFn(){
+    let checkBox = document.getElementById("learningDefect")
+
+    if (checkBox.checked == true){
+      document.getElementById("learningDefect").value = "ความพิการทางการเรียนรู้"
+    }else{
+      document.getElementById("learningDefect").value = ""
+    }
+  }
+  
+  //****************************** ความพิการทางการพูด, ภาษา ******************************//
+  function speechDefectFn(){
+    let checkBox = document.getElementById("speechDefect")
+
+    if (checkBox.checked == true){
+      document.getElementById("speechDefect").value = "ความพิการทางการพูด, ภาษา"
+    }else{
+      document.getElementById("speechDefect").value = ""
+    }
+  }
+
+  //****************************** ความพิการทางพฤติกรรมและอารมณ์ ******************************//
+  function emotionDefectFn(){
+    let checkBox = document.getElementById("emotionDefect")
+
+    if (checkBox.checked == true){
+      document.getElementById("emotionDefect").value = "ความพิการทางพฤติกรรมและอารมณ์"
+    }else{
+      document.getElementById("emotionDefect").value = ""
+    }
+  }
+  
+  //****************************** ความพิการทางออทิสติก ******************************//
+  function autismDefectFn(){
+    let checkBox = document.getElementById("autismDefect")
+
+    if (checkBox.checked == true){
+      document.getElementById("autismDefect").value = "ความพิการทางออทิสติก"
+    }else{
+      document.getElementById("autismDefect").value = ""
+    }
+  }
+  
+  //****************************** ความพิการซ้ำซ้อน ******************************//
+  function redundantDisabilityDefectFn(){
+    let checkBox = document.getElementById("redundantDisabilityDefect")
+    
+    if (checkBox.checked == true){
+      document.getElementById("redundantDisabilityDefect").value = "ความพิการซ้ำซ้อน"
+    }else{
+      document.getElementById("redundantDisabilityDefect").value = ""
+    }
+  }
+
+  //****************************** ความพิการทางการมองเห็น Modal******************************//
+  function eyeDefectModalFn() {
+    let checkBox = document.getElementById("eyeDefectModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("eyeDefectModal").value = "ความพิการทางการมองเห็น"
+    }else{
+      document.getElementById("eyeDefectModal").value = ""
+    }
+
+  }
+  
+  //****************************** ความพิการทางการได้ยิน Modal******************************//
+  function earDefectModalFn(){
+    let checkBox = document.getElementById("earDefectModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("earDefectModal").value = "ความพิการทางการได้ยิน"
+    }else{
+      document.getElementById("earDefectModal").value = ""
+    }
+
+  }
+  
+  //****************************** ความพิการทางสติปัญญา Modal******************************//
+  function intelligenceDefectModalFn(){
+    let checkBox = document.getElementById("intelligenceDefectModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("intelligenceDefectModal").value = "ความพิการทางสติปัญญา"
+    }else{
+      document.getElementById("intelligenceDefectModal").value = ""
+    }
+
+  }
+  
+  //****************************** ความพิการร่างกาย, สุขภาพ Modal******************************//
+  function bodyDefectModalFn(){
+    let checkBox = document.getElementById("bodyDefectModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("bodyDefectModal").value = "ความพิการร่างกาย, สุขภาพ"
+    }else{
+      document.getElementById("bodyDefectModal").value = ""
+    }
+
+  }
+  
+  //****************************** ความพิการทางการเรียนรู้ Modal******************************//
+  function learningDefectModalFn(){
+    let checkBox = document.getElementById("learningDefectModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("learningDefectModal").value = "ความพิการทางการเรียนรู้"
+    }else{
+      document.getElementById("learningDefectModal").value = ""
+    }
+
+  }
+  
+  //****************************** ความพิการทางการพูด, ภาษา Modal******************************//
+  function speechDefectModalFn(){
+    let checkBox = document.getElementById("speechDefectModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("speechDefectModal").value = "ความพิการทางการพูด, ภาษา"
+    }else{
+      document.getElementById("speechDefectModal").value = ""
+    }
+
+  }
+
+  //****************************** ความพิการทางพฤติกรรมและอารมณ์ Modal******************************//
+  function emotionDefectModalFn(){
+    let checkBox = document.getElementById("emotionDefectModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("emotionDefectModal").value = "ความพิการทางพฤติกรรมและอารมณ์"
+    }else{
+      document.getElementById("emotionDefectModal").value = ""
+    }
+
+  }
+  
+  //****************************** ความพิการทางออทิสติก Modal******************************//
+  function autismDefectModalFn(){
+    let checkBox = document.getElementById("autismDefectModal")
+
+    if (checkBox.checked == true){
+      document.getElementById("autismDefectModal").value = "ความพิการทางออทิสติก"
+    }else{
+      document.getElementById("autismDefectModal").value = ""
+    }
+
+  }
+  
+  //****************************** ความพิการซ้ำซ้อน Modal******************************//
+  function redundantDisabilityDefectModalFn(){
+    let checkBox = document.getElementById("redundantDisabilityDefectModal")
+    
+    if (checkBox.checked == true){
+      document.getElementById("redundantDisabilityDefectModal").value = "ความพิการซ้ำซ้อน"
+    }else{
+      document.getElementById("redundantDisabilityDefectModal").value = ""
+    }
+
+  }
+
+  //****************************** สถานะการมีชีวิตอยู่ของพ่อ-แม่ ******************************//
+  function checkParentStatus(){
+    let fatherStatus = document.getElementById("fatherStatus").value
+    let motherStatus = document.getElementById("motherStatus").value
+
+    document.getElementById("other").checked = true
+    getParent()
+
+    if(fatherStatus == "เสียชีวิต" || fatherStatus =="ไม่ปรากฏ"){
+      document.getElementById("fatherCareer").value = ""
+      document.getElementById("fatherIncome").value = ""
+      document.getElementById("fatherReligion").value = ""
+      document.getElementById("fatherPhoneNumber").value = ""
+
+      document.getElementById("fatherCareer").disabled = true
+      document.getElementById("fatherIncome").disabled = true
+      document.getElementById("fatherReligion").disabled = true
+      document.getElementById("fatherPhoneNumber").disabled = true
+
+      document.getElementById("dad").disabled = true
+    }else{
+      document.getElementById("fatherCareer").disabled = false
+      document.getElementById("fatherIncome").disabled = false
+      document.getElementById("fatherReligion").disabled = false
+      document.getElementById("fatherPhoneNumber").disabled = false
+
+      document.getElementById("dad").disabled = false
+    }
+
+    if(motherStatus == "เสียชีวิต" || motherStatus =="ไม่ปรากฏ"){
+      document.getElementById("motherCareer").value = ""
+      document.getElementById("motherIncome").value = ""
+      document.getElementById("motherReligion").value = ""
+      document.getElementById("motherPhoneNumber").value = ""
+
+      document.getElementById("motherCareer").disabled = true
+      document.getElementById("motherIncome").disabled = true
+      document.getElementById("motherReligion").disabled = true
+      document.getElementById("motherPhoneNumber").disabled = true
+
+      document.getElementById("mom").disabled = true
+    }else{
+      document.getElementById("motherCareer").disabled = false
+      document.getElementById("motherIncome").disabled = false
+      document.getElementById("motherReligion").disabled = false
+      document.getElementById("motherPhoneNumber").disabled = false
+
+      document.getElementById("mom").disabled = false
+    }
+
+    if(fatherStatus == "เสียชีวิต" && motherStatus == "เสียชีวิต"){
+      document.getElementById("parentRelationStatus").value = "บิดา-มารดาเสียชีวิต"
+      document.getElementById("parentRelationStatus").disabled = true
+    }else if(fatherStatus == "เสียชีวิต" && motherStatus != "เสียชีวิต"){
+      document.getElementById("parentRelationStatus").value = "บิดาเสียชีวิต"
+      document.getElementById("parentRelationStatus").disabled = true
+    }else if(fatherStatus != "เสียชีวิต" && motherStatus == "เสียชีวิต"){
+      document.getElementById("parentRelationStatus").value = "มารดาเสียชีวิต"
+      document.getElementById("parentRelationStatus").disabled = true
+    }else{
+      document.getElementById("parentRelationStatus").value = ""
+      document.getElementById("parentRelationStatus").disabled = false
+    }
+    
+  }
+
+  function checkParentStatusModal(){
+    let fatherStatusModal = document.getElementById("fatherStatusModal").value
+    let motherStatusModal = document.getElementById("motherStatusModal").value
+
+    document.getElementById("otherModal").checked = true
+    // getParentModal()
+
+    if(fatherStatusModal == "เสียชีวิต" || fatherStatusModal =="ไม่ปรากฏ"){
+      document.getElementById("fatherCareerModal").value = ""
+      document.getElementById("fatherIncomeModal").value = ""
+      document.getElementById("fatherReligionModal").value = ""
+      document.getElementById("fatherPhoneNumberModal").value = ""
+
+      document.getElementById("fatherCareerModal").disabled = true
+      document.getElementById("fatherIncomeModal").disabled = true
+      document.getElementById("fatherReligionModal").disabled = true
+      document.getElementById("fatherPhoneNumberModal").disabled = true
+
+      document.getElementById("dadModal").disabled = true
+    }else{
+      document.getElementById("fatherCareerModal").disabled = false
+      document.getElementById("fatherIncomeModal").disabled = false
+      document.getElementById("fatherReligionModal").disabled = false
+      document.getElementById("fatherPhoneNumberModal").disabled = false
+
+      document.getElementById("dadModal").disabled = false
+    }
+
+    if(motherStatusModal == "เสียชีวิต" || motherStatusModal =="ไม่ปรากฏ"){
+      document.getElementById("motherCareerModal").value = ""
+      document.getElementById("motherIncomeModal").value = ""
+      document.getElementById("motherReligionModal").value = ""
+      document.getElementById("motherPhoneNumberModal").value = ""
+
+      document.getElementById("motherCareerModal").disabled = true
+      document.getElementById("motherIncomeModal").disabled = true
+      document.getElementById("motherReligionModal").disabled = true
+      document.getElementById("motherPhoneNumberModal").disabled = true
+
+      document.getElementById("momModal").disabled = true
+    }else{
+      document.getElementById("motherCareerModal").disabled = false
+      document.getElementById("motherIncomeModal").disabled = false
+      document.getElementById("motherReligionModal").disabled = false
+      document.getElementById("motherPhoneNumberModal").disabled = false
+
+      document.getElementById("momModal").disabled = false
+    }
+
+    if(fatherStatusModal == "เสียชีวิต" && motherStatusModal == "เสียชีวิต"){
+      document.getElementById("parentRelationStatusModal").value = "บิดา-มารดาเสียชีวิต"
+      document.getElementById("parentRelationStatusModal").disabled = true
+    }else if(fatherStatusModal == "เสียชีวิต" && motherStatusModal != "เสียชีวิต"){
+      document.getElementById("parentRelationStatusModal").value = "บิดาเสียชีวิต"
+      document.getElementById("parentRelationStatusModal").disabled = true
+    }else if(fatherStatusModal != "เสียชีวิต" && motherStatusModal == "เสียชีวิต"){
+      document.getElementById("parentRelationStatusModal").value = "มารดาเสียชีวิต"
+      document.getElementById("parentRelationStatusModal").disabled = true
+    }else{
+      document.getElementById("parentRelationStatusModal").value = ""
+      document.getElementById("parentRelationStatusModal").disabled = false
+    }
+    
+  }
+  
+  //****************************** กำหนดค่าข้อมูลผู้ปกครอง ******************************//
+  function getParent() {
+    let parent = document.querySelector('input[name="parent"]:checked').value
+
+    if(parent=="dad"){
+      document.getElementById("parentPreName").disabled = true
+      document.getElementById("parentFirstName").disabled = true
+      document.getElementById("parentLastName").disabled = true
+      document.getElementById("parentStatus").disabled = true
+      document.getElementById("parentCareer").disabled = true
+      document.getElementById("parentIncome").disabled = true
+      document.getElementById("parentReligion").disabled = true
+      document.getElementById("parentPhoneNumber").disabled = true
+      document.getElementById("stdParentRelation").disabled = true
+      
+      document.getElementById("parentPreName").value = document.getElementById("fatherPreName").value 
+      document.getElementById("parentFirstName").value = document.getElementById("fatherFirstName").value 
+      document.getElementById("parentLastName").value = document.getElementById("fatherLastName").value 
+      document.getElementById("parentStatus").value = document.getElementById("fatherStatus").value 
+      document.getElementById("parentCareer").value = document.getElementById("fatherCareer").value 
+      document.getElementById("parentIncome").value = document.getElementById("fatherIncome").value 
+      document.getElementById("parentReligion").value = document.getElementById("fatherReligion").value 
+      document.getElementById("parentPhoneNumber").value = document.getElementById("fatherPhoneNumber").value 
+      document.getElementById("stdParentRelation").value = "บิดา" 
+
+    }else if(parent=="mom"){
+      document.getElementById("parentPreName").disabled = true
+      document.getElementById("parentFirstName").disabled = true
+      document.getElementById("parentLastName").disabled = true
+      document.getElementById("parentStatus").disabled = true
+      document.getElementById("parentCareer").disabled = true
+      document.getElementById("parentIncome").disabled = true
+      document.getElementById("parentReligion").disabled = true
+      document.getElementById("parentPhoneNumber").disabled = true
+      document.getElementById("stdParentRelation").disabled = true
+          
+      document.getElementById("parentPreName").value = document.getElementById("motherPreName").value 
+      document.getElementById("parentFirstName").value = document.getElementById("motherFirstName").value 
+      document.getElementById("parentLastName").value = document.getElementById("motherLastName").value 
+      document.getElementById("parentStatus").value = document.getElementById("motherStatus").value 
+      document.getElementById("parentCareer").value = document.getElementById("motherCareer").value 
+      document.getElementById("parentIncome").value = document.getElementById("motherIncome").value 
+      document.getElementById("parentReligion").value = document.getElementById("motherReligion").value 
+      document.getElementById("parentPhoneNumber").value = document.getElementById("motherPhoneNumber").value 
+      document.getElementById("stdParentRelation").value = "มารดา" 
+    
+    }else if(parent=="other"){
+      document.getElementById("parentPreName").disabled = false
+      document.getElementById("parentFirstName").disabled = false
+      document.getElementById("parentLastName").disabled = false
+      document.getElementById("parentStatus").disabled = false
+      document.getElementById("parentCareer").disabled = false
+      document.getElementById("parentIncome").disabled = false
+      document.getElementById("parentReligion").disabled = false
+      document.getElementById("parentPhoneNumber").disabled = false
+      document.getElementById("stdParentRelation").disabled = false
+          
+      document.getElementById("parentPreName").value = "" 
+      document.getElementById("parentFirstName").value = "" 
+      document.getElementById("parentLastName").value = "" 
+      document.getElementById("parentStatus").value = "" 
+      document.getElementById("parentCareer").value = "" 
+      document.getElementById("parentIncome").value = "" 
+      document.getElementById("parentReligion").value = "พุทธ" 
+      document.getElementById("parentPhoneNumber").value = "" 
+      document.getElementById("stdParentRelation").value = "" 
+    }
+  }
+
+  function getParentModal() {
+    let parentModal = document.querySelector('input[name="parentModal"]:checked').value
+
+    if(parentModal=="dadModal"){
+      document.getElementById("parentPreNameModal").disabled = true
+      document.getElementById("parentFirstNameModal").disabled = true
+      document.getElementById("parentLastNameModal").disabled = true
+      document.getElementById("parentStatusModal").disabled = true
+      document.getElementById("parentCareerModal").disabled = true
+      document.getElementById("parentIncomeModal").disabled = true
+      document.getElementById("parentReligionModal").disabled = true
+      document.getElementById("parentPhoneNumberModal").disabled = true
+      document.getElementById("stdParentRelationModal").disabled = true
+      
+      document.getElementById("parentPreNameModal").value = document.getElementById("fatherPreNameModal").value 
+      document.getElementById("parentFirstNameModal").value = document.getElementById("fatherFirstNameModal").value 
+      document.getElementById("parentLastNameModal").value = document.getElementById("fatherLastNameModal").value 
+      document.getElementById("parentStatusModal").value = document.getElementById("fatherStatusModal").value 
+      document.getElementById("parentCareerModal").value = document.getElementById("fatherCareerModal").value 
+      document.getElementById("parentIncomeModal").value = document.getElementById("fatherIncomeModal").value 
+      document.getElementById("parentReligionModal").value = document.getElementById("fatherReligionModal").value 
+      document.getElementById("parentPhoneNumberModal").value = document.getElementById("fatherPhoneNumberModal").value 
+      document.getElementById("stdParentRelationModal").value = "บิดา" 
+
+    }else if(parentModal=="momModal"){
+      document.getElementById("parentPreNameModal").disabled = true
+      document.getElementById("parentFirstNameModal").disabled = true
+      document.getElementById("parentLastNameModal").disabled = true
+      document.getElementById("parentStatusModal").disabled = true
+      document.getElementById("parentCareerModal").disabled = true
+      document.getElementById("parentIncomeModal").disabled = true
+      document.getElementById("parentReligionModal").disabled = true
+      document.getElementById("parentPhoneNumberModal").disabled = true
+      document.getElementById("stdParentRelationModal").disabled = true
+          
+      document.getElementById("parentPreNameModal").value = document.getElementById("motherPreNameModal").value 
+      document.getElementById("parentFirstNameModal").value = document.getElementById("motherFirstNameModal").value 
+      document.getElementById("parentLastNameModal").value = document.getElementById("motherLastNameModal").value 
+      document.getElementById("parentStatusModal").value = document.getElementById("motherStatusModal").value 
+      document.getElementById("parentCareerModal").value = document.getElementById("motherCareerModal").value 
+      document.getElementById("parentIncomeModal").value = document.getElementById("motherIncomeModal").value 
+      document.getElementById("parentReligionModal").value = document.getElementById("motherReligionModal").value 
+      document.getElementById("parentPhoneNumberModal").value = document.getElementById("motherPhoneNumberModal").value 
+      document.getElementById("stdParentRelationModal").value = "มารดา" 
+    
+    }else if(parentModal=="otherModal"){
+      document.getElementById("parentPreNameModal").disabled = false
+      document.getElementById("parentFirstNameModal").disabled = false
+      document.getElementById("parentLastNameModal").disabled = false
+      document.getElementById("parentStatusModal").disabled = false
+      document.getElementById("parentCareerModal").disabled = false
+      document.getElementById("parentIncomeModal").disabled = false
+      document.getElementById("parentReligionModal").disabled = false
+      document.getElementById("parentPhoneNumberModal").disabled = false
+      document.getElementById("stdParentRelationModal").disabled = false
+          
+      document.getElementById("parentPreNameModal").value = "" 
+      document.getElementById("parentFirstNameModal").value = "" 
+      document.getElementById("parentLastNameModal").value = "" 
+      document.getElementById("parentStatusModal").value = "" 
+      document.getElementById("parentCareerModal").value = "" 
+      document.getElementById("parentIncomeModal").value = "" 
+      document.getElementById("parentReligionModal").value = "พุทธ" 
+      document.getElementById("parentPhoneNumberModal").value = "" 
+      document.getElementById("stdParentRelationModal").value = "" 
+    }
+  }
+
+  //****************************** แสดงภาพตัวอย่างของ หลักฐานการชำระเงิน ******************************//
+  function previewSlipImage() {
+
+    if(document.getElementById("slipImage").value != ""){
+      $('#previewSlipModal').modal('show')
+
+      var oFReader = new FileReader()
+      oFReader.readAsDataURL(document.getElementById("slipImage").files[0])
+
+      oFReader.onload = function (oFREvent) {
+        document.getElementById("uploadSlipImagePreview").src = oFREvent.target.result
+      }
+    }
+  }
+
+  //****************************** confirm reset form ******************************//
+  function resetFormConfirm(){
+    Swal.fire({
+      title: 'ยืนยันการรีเซ็ทข้อมูล?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'รีเซ็ท',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        resetForm()
+        
+        Swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: 'รีเซ็ทข้อมูลสำเร็จ',
+          showConfirmButton: false,
+          timer: 1000
+        })
+
+        setTimeout(topFunction, 1500);
+        
+      }
+    })
+  }
+
+  //****************************** reset form ******************************//
+  function resetForm(){
+    document.getElementById('registorForm').reset()
+    document.getElementById('studyPlan').innerHTML = ''
+    
+    if(document.getElementById('studentImageDiv').innerHTML != '<input type="hidden" name="studentImage" id="studentImage">'){
+      previewStudentImage()
+    }
+    
+    document.getElementById("stdOldSchool").disabled = false
+    
+    addressChecked()
+    manageLocalAddress()
+    
+    musicTalentFn()
+    sportTalentFn()
+    artTalentFn()
+    languageTalentFn()
+    otherTalentFn()
+    
+    checkParentStatus()
+    getParent()
+
+  }
+
+  //****************************** แก้ปัญหา reset form แล้ว ตำบล อำเภอ จังหวัด รหัสไปรษณีย์ ปัจจุบัน ไม่คืนค่าว่าง ******************************//
+  function manageLocalAddress(){
+
+    document.getElementById('stdLocalSubDistrictDiv').innerHTML = 
+    '<label for="stdLocalSubDistrict" class="form-label">ตำบล <a class="redstar">*</a></label>' +
+    '<input type="text" class="form-control bg-white border-dark" name="stdLocalSubDistrict" id="stdLocalSubDistrict" required>' ;
+
+    document.getElementById('stdLocalDistrictDiv').innerHTML = 
+    '<label for="stdLocalDistrict" class="form-label">อำเภอ <a class="redstar">*</a></label>' +
+    '<input type="text" class="form-control bg-white border-dark" name="stdLocalDistrict" id="stdLocalDistrict" required>' ;
+
+    document.getElementById('stdLocalProvinceDiv').innerHTML = 
+    '<label for="stdLocalProvince" class="form-label">จังหวัด <a class="redstar">*</a></label>' +
+    '<input type="text" class="form-control bg-white border-dark" name="stdLocalProvince" id="stdLocalProvince" required>' ;
+
+    document.getElementById('stdLocalZipCodeDiv').innerHTML = 
+    '<label for="stdLocalZipCode" class="form-label">รหัสไปรษณีย์ <a class="redstar">*</a></label>' +
+    '<input type="text" class="form-control bg-white border-dark" name="stdLocalZipCode" id="stdLocalZipCode" required>' ;
+
+    document.getElementById('stdCurrentSubDistrictDiv').innerHTML = 
+    '<label for="stdCurrentSubDistrict" class="form-label">ตำบล <a class="redstar">*</a></label>' +
+    '<input type="text" class="form-control bg-white border-dark" name="stdCurrentSubDistrict" id="stdCurrentSubDistrict" required>' ;
+
+    document.getElementById('stdCurrentDistrictDiv').innerHTML = 
+    '<label for="stdCurrentDistrict" class="form-label">อำเภอ <a class="redstar">*</a></label>' +
+    '<input type="text" class="form-control bg-white border-dark" name="stdCurrentDistrict" id="stdCurrentDistrict" required>' ;
+
+    document.getElementById('stdCurrentProvinceDiv').innerHTML = 
+    '<label for="stdCurrentProvince" class="form-label">จังหวัด <a class="redstar">*</a></label>' +
+    '<input type="text" class="form-control bg-white border-dark" name="stdCurrentProvince" id="stdCurrentProvince" required>' ;
+
+    document.getElementById('stdCurrentZipCodeDiv').innerHTML = 
+    '<label for="stdCurrentZipCode" class="form-label">รหัสไปรษณีย์ <a class="redstar">*</a></label>' +
+    '<input type="text" class="form-control bg-white border-dark" name="stdCurrentZipCode" id="stdCurrentZipCode" required>' ;
+
+    $.Thailand({
+      $district: $('#stdLocalSubDistrict'),
+      $amphoe: $('#stdLocalDistrict'),
+      $province: $('#stdLocalProvince'),
+      $zipcode: $('#stdLocalZipCode')
+    });
+
+    $.Thailand({
+      $district: $('#stdCurrentSubDistrict'),
+      $amphoe: $('#stdCurrentDistrict'),
+      $province: $('#stdCurrentProvince'),
+      $zipcode: $('#stdCurrentZipCode')
+    });
+  }
+
+  //****************************** ตรวจสอบเลขบัตรประชาชน ******************************//
+  function stdCitizenNumberCheck(stdCitizenNumber){
+    if(stdCitizenNumber.length != 13){
+      return true
+    }
+
+    let sum = 0
+    
+    for(let i = 0 ; i < 12 ; i++){
+      sum += parseFloat(stdCitizenNumber.charAt(i)) * (13-i)
+    }
+
+    if(((11 - (sum % 11)) % 10 ) != parseFloat(stdCitizenNumber.charAt(12))){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  //****************************** บันทึกข้อมูล ******************************//
+  function submitForm(obj){
+    event.preventDefault()
+
+    if(stdCitizenNumberCheck(obj.stdCitizenNumber.value)){
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'โปรดตรวจสอบเลขบัตรประชาชน',
+        showConfirmButton: false,
+        timer: 1000
+      })
+
+      setTimeout(function(){
+        document.getElementById("stdCitizenNumber").focus();
+      }, 1500);
+
+    }else{
+      Swal.fire({
+        title: 'ยืนยันการบันทึกข้อมูล?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+
+          Swal.fire({
+            title: 'กำลังบันทึกข้อมูล...',
+            text: 'โปรดรอสักครู่...ระบบใช้เวลาในการบันทึกข้อมูลประมาณ 30 วินาที',
+            allowOutsideClick: false,
+            showConfirmButton: false
+          });
+
+          Swal.showLoading();
+
+          document.getElementById("submitButton").disabled = true
+          document.getElementById("resetButton").disabled = true
+
+          document.getElementById('stdOldSchoolSave').value = document.getElementById('stdOldSchool').value
+
+          document.getElementById('stdCurrentHouseNoSave').value = document.getElementById('stdCurrentHouseNo').value
+          document.getElementById('stdCurrentVillageNoSave').value = document.getElementById('stdCurrentVillageNo').value
+          document.getElementById('stdCurrentStreetSave').value = document.getElementById('stdCurrentStreet').value
+          document.getElementById('stdCurrentTrokSave').value = document.getElementById('stdCurrentTrok').value
+          document.getElementById('stdCurrentSoiSave').value = document.getElementById('stdCurrentSoi').value
+          document.getElementById('stdCurrentSubDistrictSave').value = document.getElementById('stdCurrentSubDistrict').value
+          document.getElementById('stdCurrentDistrictSave').value = document.getElementById('stdCurrentDistrict').value
+          document.getElementById('stdCurrentProvinceSave').value = document.getElementById('stdCurrentProvince').value
+          document.getElementById('stdCurrentZipCodeSave').value = document.getElementById('stdCurrentZipCode').value
+
+          document.getElementById('parentRelationStatusSave').value = document.getElementById('parentRelationStatus').value
+
+          document.getElementById('parentPreNameSave').value = document.getElementById('parentPreName').value
+          document.getElementById('parentFirstNameSave').value = document.getElementById('parentFirstName').value
+          document.getElementById('parentLastNameSave').value = document.getElementById('parentLastName').value
+          document.getElementById('parentStatusSave').value = document.getElementById('parentStatus').value
+          document.getElementById('parentCareerSave').value = document.getElementById('parentCareer').value
+          document.getElementById('parentIncomeSave').value = document.getElementById('parentIncome').value
+          document.getElementById('parentReligionSave').value = document.getElementById('parentReligion').value
+          document.getElementById('parentPhoneNumberSave').value = document.getElementById('parentPhoneNumber').value
+          document.getElementById('stdParentRelationSave').value = document.getElementById('stdParentRelation').value
+
+
+          google.script.run.withSuccessHandler(submitDataSuccess).submitData(obj)
+
+        }
+      })
+      
+    }
+  }
+
+  //****************************** บันทึกข้อมูลสำเร็จ ******************************//
+  function submitDataSuccess(result){
+    document.getElementById("submitButton").disabled = false
+    document.getElementById("resetButton").disabled = false
+
+    if(result){
+      resetForm()
+
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: 'บันทึกข้อมูลสำเร็จ',
+        text: 'สามารถดูข้อมูลการสมัครได้ที่เมนู "ตรวจสอบสถานะการสมัคร"',
+        showConfirmButton: true
+      }).finally(() => {
+        setTimeout(topFunction, 500);
+      });
+    }else{
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'ท่านได้ทำการสมัครไปแล้ว',
+        text: 'สามารถดูข้อมูลการสมัครได้ที่เมนู "ตรวจสอบสถานะการสมัคร"',
+        showConfirmButton: true
+      }).finally(() => {
+        setTimeout(topFunction, 500);
+      });
+    }
+  }
+
+  //****************************** ค้นหาข้อมูลการสมัครด้วยเลขบัตรประชาชน ******************************//
+  function citizenNumberSearchData(obj){
+    event.preventDefault()
+
+    if(stdCitizenNumberCheck(obj.stdCitizenNumberSearch.value)){
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'โปรดตรวจสอบเลขบัตรประชาชน',
+        showConfirmButton: false,
+        timer: 1000
+      })
+
+    }else{
+      Swal.fire({
+        title: 'กำลังค้นหาข้อมูล...',
+        allowOutsideClick: false,
+        showConfirmButton: false
+      });
+
+      Swal.showLoading();
+
+      google.script.run.withSuccessHandler(citizenNumberSearchSuccess).citizenNumberSearch(obj)
+    }
+  }
+
+  //****************************** ค้นหาข้อมูลการสมัครด้วยเลขบัตรประชาชน สำเร็จ ******************************//
+  function citizenNumberSearchSuccess(result){
+
+    if(result.length == 0){
+      // ถ้าไม่เจอ swal ไม่พบข้อมูล
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'ไม่พบข้อมูลการสมัคร',
+        showConfirmButton: false,
+        timer: 1000
+      })
+
+      document.getElementById("showDataTable").style.display = "none"
+      
+    }else{
+
+      // ถ้าเจอ swal พบข้อมูล + แสดงข้อมูลใน showDataTable
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: 'ค้นหาข้อมูลสำเร็จ',
+        showConfirmButton: false,
+        timer: 1000
+      })
+
+      document.getElementById("showDataTable").style.display = "block"
+
+      //กำหนดข้อมูล เลขบัตรประชาชนสำหรับการค้นหาแถวเพื่ออัปโหลดไฟล์ใหม่
+      document.getElementById('citizenSlipModal').value = document.getElementById('stdCitizenNumberSearch').value
+      document.getElementById('citizenMoreDocument1File').value = document.getElementById('stdCitizenNumberSearch').value
+      document.getElementById('citizenMoreDocument2File').value = document.getElementById('stdCitizenNumberSearch').value
+      document.getElementById('citizenMoreDocument3File').value = document.getElementById('stdCitizenNumberSearch').value
+      document.getElementById('citizenMoreDocument4File').value = document.getElementById('stdCitizenNumberSearch').value
+      document.getElementById('citizenMoreDocument5File').value = document.getElementById('stdCitizenNumberSearch').value
+
+      document.getElementById("showStudentNumber").innerHTML = result[1]
+      document.getElementById("showStudentName").innerHTML = result[3] + " " + result[4] + " " + result[5]
+      document.getElementById("showGradeRegistor").innerHTML = result[16]
+      document.getElementById("showStudyPlan").innerHTML = result[17]
+      document.getElementById("showStatus").innerHTML = result[80]
+      document.getElementById("showNote").innerHTML = result[81]
+
+      if(result[82] == ""){
+        document.getElementById("showApplicationFile").innerHTML = '- ไม่พบไฟล์ -'
+      }else{
+        document.getElementById("showApplicationFile").innerHTML = 
+        '<a class="text-decoration-none" href="' + result[82] + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+      }
+
+      //ลิงก์ หลักฐานการชำระเงิน ถ้าเป็นค่าว่างให้แสดงปุ่ม เปิด modal form upload ไฟล์หลักฐานการชำระเงินใหม่ ถ้าไม่ว่างให้แสดงลิงก์เปิดไฟล์
+      if(result[84] == ""){
+        document.getElementById("showSlipFile").innerHTML = '<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadNewSlipImageModal"><i class="fa-solid fa-file-arrow-up"></i> อัปโหลดไฟล์ใหม่</button>'
+      }else{
+        document.getElementById("showSlipFile").innerHTML = 
+        '<a class="text-decoration-none" href="' + result[84] + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+      }
+
+      //ลิงก์ เอกสารเพิ่มเติม 1-5 ถ้าเป็นค่าว่างให้แสดงปุ่ม เปิด modal form upload ไฟล์เอกสารเพิ่มเติม 1-5 ใหม่ ถ้าไม่ว่างให้แสดงลิงก์เปิดไฟล์
+      if(result[85] == ""){
+        document.getElementById("showMoreDocument1File").innerHTML = '<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadNewMoreDocument1FileModal"><i class="fa-solid fa-file-arrow-up"></i> อัปโหลดไฟล์ใหม่</button>'
+      }else{
+        document.getElementById("showMoreDocument1File").innerHTML = 
+        '<a class="text-decoration-none" href="' + result[85] + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+      }
+
+      if(result[86] == ""){
+        document.getElementById("showMoreDocument2File").innerHTML = '<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadNewMoreDocument2FileModal"><i class="fa-solid fa-file-arrow-up"></i> อัปโหลดไฟล์ใหม่</button>'
+      }else{
+        document.getElementById("showMoreDocument2File").innerHTML = 
+        '<a class="text-decoration-none" href="' + result[86] + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+      }
+
+      if(result[87] == ""){
+        document.getElementById("showMoreDocument3File").innerHTML = '<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadNewMoreDocument3FileModal"><i class="fa-solid fa-file-arrow-up"></i> อัปโหลดไฟล์ใหม่</button>'
+      }else{
+        document.getElementById("showMoreDocument3File").innerHTML = 
+        '<a class="text-decoration-none" href="' + result[87] + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+      }
+
+      if(result[88] == ""){
+        document.getElementById("showMoreDocument4File").innerHTML = '<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadNewMoreDocument4FileModal"><i class="fa-solid fa-file-arrow-up"></i> อัปโหลดไฟล์ใหม่</button>'
+      }else{
+        document.getElementById("showMoreDocument4File").innerHTML = 
+        '<a class="text-decoration-none" href="' + result[88] + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+      }
+
+      if(result[89] == ""){
+        document.getElementById("showMoreDocument5File").innerHTML = '<button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadNewMoreDocument5FileModal"><i class="fa-solid fa-file-arrow-up"></i> อัปโหลดไฟล์ใหม่</button>'
+      }else{
+        document.getElementById("showMoreDocument5File").innerHTML = 
+        '<a class="text-decoration-none" href="' + result[89] + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+      }
+  
+    }
+  }
+
+  //****************************** อัปโหลดไฟล์ หลักฐานการชำระเงิน ใหม่ ******************************//
+  function submitNewSlipImage(obj){
+    event.preventDefault()
+
+    Swal.fire({
+      title: 'ยืนยันการอัปโหลด?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'บันทึก',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'กำลังอัปโหลด...',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        Swal.showLoading();
+
+        google.script.run.withSuccessHandler(submitNewSlipImageSuccess).submitNewSlipImage(obj)
+          
+      }
+    })
+      
+  }
+  
+  //************************** อัปโหลดไฟล์ หลักฐานการชำระเงิน ใหม่สำเร็จ แล้วแสดงลิงก์เปิดไฟล์ แทน ปุ่มเปิด modal **************************//
+  function submitNewSlipImageSuccess(result){
+    Swal.fire({
+      position: 'center',
+      icon: 'success',
+      title: 'อัปโหลดไฟล์สำเร็จ',
+      showConfirmButton: false,
+      timer: 1000
+    })
+
+    document.getElementById("showSlipFile").innerHTML = 
+    '<a class="text-decoration-none" href="' + result + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+
+    document.getElementById('newSlipImageForm').reset()
+    $('#uploadNewSlipImageModal').modal('hide')
+  }
+
+  //****************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 1 ใหม่ ******************************//
+  function submitNewMoreDocument1File(obj){
+    event.preventDefault()
+
+    Swal.fire({
+      title: 'ยืนยันการอัปโหลด?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'บันทึก',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'กำลังอัปโหลด...',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        Swal.showLoading();
+
+        google.script.run.withSuccessHandler(submitNewMoreDocument1FileSuccess).submitNewMoreDocument1File(obj)
+          
+      }
+    })
+      
+  }
+  
+  //************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 1 ใหม่สำเร็จ แล้วแสดงลิงก์เปิดไฟล์ แทน ปุ่มเปิด modal **************************//
+  function submitNewMoreDocument1FileSuccess(result){
+    Swal.fire({
+      position: 'center',
+      icon: 'success',
+      title: 'อัปโหลดไฟล์สำเร็จ',
+      showConfirmButton: false,
+      timer: 1000
+    })
+
+    document.getElementById("showMoreDocument1File").innerHTML = 
+    '<a class="text-decoration-none" href="' + result + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+
+    document.getElementById('newMoreDocument1FileForm').reset()
+    $('#uploadNewMoreDocument1FileModal').modal('hide')
+  }
+
+  //****************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 2 ใหม่ ******************************//
+  function submitNewMoreDocument2File(obj){
+    event.preventDefault()
+
+    Swal.fire({
+      title: 'ยืนยันการอัปโหลด?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'บันทึก',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'กำลังอัปโหลด...',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        Swal.showLoading();
+
+        google.script.run.withSuccessHandler(submitNewMoreDocument2FileSuccess).submitNewMoreDocument2File(obj)
+          
+      }
+    })
+      
+  }
+  
+  //************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 2 ใหม่สำเร็จ แล้วแสดงลิงก์เปิดไฟล์ แทน ปุ่มเปิด modal **************************//
+  function submitNewMoreDocument2FileSuccess(result){
+    Swal.fire({
+      position: 'center',
+      icon: 'success',
+      title: 'อัปโหลดไฟล์สำเร็จ',
+      showConfirmButton: false,
+      timer: 1000
+    })
+
+    document.getElementById("showMoreDocument2File").innerHTML = 
+    '<a class="text-decoration-none" href="' + result + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+
+    document.getElementById('newMoreDocument2FileForm').reset()
+    $('#uploadNewMoreDocument2FileModal').modal('hide')
+  }
+
+  //****************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 3 ใหม่ ******************************//
+  function submitNewMoreDocument3File(obj){
+    event.preventDefault()
+
+    Swal.fire({
+      title: 'ยืนยันการอัปโหลด?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'บันทึก',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'กำลังอัปโหลด...',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        Swal.showLoading();
+
+        google.script.run.withSuccessHandler(submitNewMoreDocument3FileSuccess).submitNewMoreDocument3File(obj)
+          
+      }
+    })
+      
+  }
+  
+  //************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 3 ใหม่สำเร็จ แล้วแสดงลิงก์เปิดไฟล์ แทน ปุ่มเปิด modal **************************//
+  function submitNewMoreDocument3FileSuccess(result){
+    Swal.fire({
+      position: 'center',
+      icon: 'success',
+      title: 'อัปโหลดไฟล์สำเร็จ',
+      showConfirmButton: false,
+      timer: 1000
+    })
+
+    document.getElementById("showMoreDocument3File").innerHTML = 
+    '<a class="text-decoration-none" href="' + result + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+
+    document.getElementById('newMoreDocument3FileForm').reset()
+    $('#uploadNewMoreDocument3FileModal').modal('hide')
+  }
+
+  //****************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 4 ใหม่ ******************************//
+  function submitNewMoreDocument4File(obj){
+    event.preventDefault()
+
+    Swal.fire({
+      title: 'ยืนยันการอัปโหลด?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'บันทึก',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'กำลังอัปโหลด...',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        Swal.showLoading();
+
+        google.script.run.withSuccessHandler(submitNewMoreDocument4FileSuccess).submitNewMoreDocument4File(obj)
+          
+      }
+    })
+      
+  }
+  
+  //************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 4 ใหม่สำเร็จ แล้วแสดงลิงก์เปิดไฟล์ แทน ปุ่มเปิด modal **************************//
+  function submitNewMoreDocument4FileSuccess(result){
+    Swal.fire({
+      position: 'center',
+      icon: 'success',
+      title: 'อัปโหลดไฟล์สำเร็จ',
+      showConfirmButton: false,
+      timer: 1000
+    })
+
+    document.getElementById("showMoreDocument4File").innerHTML = 
+    '<a class="text-decoration-none" href="' + result + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+
+    document.getElementById('newMoreDocument4FileForm').reset()
+    $('#uploadNewMoreDocument4FileModal').modal('hide')
+  }
+
+  //****************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 5 ใหม่ ******************************//
+  function submitNewMoreDocument5File(obj){
+    event.preventDefault()
+
+    Swal.fire({
+      title: 'ยืนยันการอัปโหลด?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'บันทึก',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'กำลังอัปโหลด...',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        Swal.showLoading();
+
+        google.script.run.withSuccessHandler(submitNewMoreDocument5FileSuccess).submitNewMoreDocument5File(obj)
+          
+      }
+    })
+      
+  }
+  
+  //************************** อัปโหลดไฟล์ เอกสารเพิ่มเติม 5 ใหม่สำเร็จ แล้วแสดงลิงก์เปิดไฟล์ แทน ปุ่มเปิด modal **************************//
+  function submitNewMoreDocument5FileSuccess(result){
+    Swal.fire({
+      position: 'center',
+      icon: 'success',
+      title: 'อัปโหลดไฟล์สำเร็จ',
+      showConfirmButton: false,
+      timer: 1000
+    })
+
+    document.getElementById("showMoreDocument5File").innerHTML = 
+    '<a class="text-decoration-none" href="' + result + '" target="_blank">' + '<i class="fa-solid fa-folder-open"></i> เปิดไฟล์' + '</a>'
+
+    document.getElementById('newMoreDocument5FileForm').reset()
+    $('#uploadNewMoreDocument5FileModal').modal('hide')
+  }
+
+  //****************************** Admin เข้าสู่ระบบ ******************************//
+  function login(obj){
+    event.preventDefault()
+
+    Swal.fire({
+      title: 'กำลังเข้าสู่ระบบ...',
+      allowOutsideClick: false,
+      showConfirmButton: false
+    });
+
+    Swal.showLoading();
+
+    google.script.run.withSuccessHandler(loginSuccess).loginAdmin(obj)
+  }
+
+  //****************************** ผลลัพธ์การเข้าสู่ระบบ ******************************//
+  function loginSuccess(adminName){
+    if(adminName == null){
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'Username หรือ Password ไม่ถูกต้อง',
+        showConfirmButton: false,
+        timer: 1000
+      })
+      
+    }else{
+
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: 'เข้าสู่ระบบสำเร็จ',
+        showConfirmButton: false,
+        timer: 1000
+      })
+
+      document.getElementById('mainDiv').style.display = "none"
+      document.getElementById('adminLoginDiv').style.display = "block"
+
+      document.getElementById('adminNameDiv').innerHTML = "ผู้ใช้งาน : " + adminName
+      
+      google.script.run.withSuccessHandler(getAllRegistorDataSuccess).getAllRegistorData()
+
+    }
+  }
+
+  //****************************** ออกจากระบบ ******************************//
+  function logout(){
+    Swal.fire({
+      title: 'คุณต้องการออกจากระบบ?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ออกจากระบบ',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+
+        Swal.fire({
+          title: 'กำลังออกจากระบบ...',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        Swal.showLoading();
+
+        google.script.run.withSuccessHandler((url)=>{
+          window.open(url,'_top')
+        }).getURL()
+      }
+    })
+  }
+
+  //****************************** แสดง Datatable ข้อมูลผู้สมัครทั้งหมด ******************************//
+  function getAllRegistorDataSuccess(dataArray){
+    
+    $(document).ready(function() {
+      var table = $('#data-table').DataTable({
+        destroy: true,
+        data: dataArray,
+        order: [[0, 'desc']],
+        columns: [
+          { title: "ID" },
+          { title: "เลขประจำตัวผู้สมัคร" },
+          { title: "คำนำหน้า" },
+          { title: "ชื่อ" },
+          { title: "นามสกุล" },
+          { title: "ชั้นเรียน" },
+          { title: "แผนการเรียน" },
+          { title: "สถานะการสมัคร" },
+          {
+          title: "Actions",
+            render: function(data, type, row, meta) {
+            return '<button class="btn btn-sm btn-warning" onclick="updateData(this);"><i class="fa-solid fa-pen-to-square"></i></button>';
+            }
+          }
+
+        ],
+
+        columnDefs: [
+          { targets: [0, 3, 8], className: 'all' },
+          { targets: [1, 8], className: 'text-center' }
+        ]
+
+      });
+    });
+  }
+
+  //****************************** ดึงข้อมูลสำหรับนำไปอัปเดทข้อมูล ******************************//
+  function updateData(el){
+    let recordId = el.parentNode.parentNode.cells[0].innerHTML
+    $('#spinnerLoadingModal').modal('show')
+
+    google.script.run.withSuccessHandler(showDataModal).getData(recordId)
+  }
+
+  //****************************** แสดงข้อมูลตามที่เลือกไว้ใน Modal ******************************//
+  function showDataModal(modalResult){
+    $('#spinnerLoadingModal').modal('hide')
+    $('#updateDataModal').modal('show')
+
+    document.getElementById('idModal').value = modalResult[0]
+    document.getElementById('studentNumberModal').value = modalResult[1]
+    document.getElementById('timestampModal').value = modalResult[2]
+
+    document.getElementById('statusModal').value = modalResult[80]
+    document.getElementById('noteModal').value = modalResult[81]
+
+    if(modalResult[82] == ""){
+      document.getElementById('applicationFileModal').innerHTML = '- ไม่พบไฟล์ - (เลือกสถานะการสมัครเป็น "การสมัครสำเร็จ" เพื่อสร้างไฟล์ใบสมัคร)'
+    }else{
+      document.getElementById('applicationFileModal').innerHTML =  '<a class="text-decoration-none" href="' + modalResult[82] + 
+                                                                          '" target="_blank"><i class="fa-regular fa-folder-open"></i> เปิดไฟล์' + 
+                                                                        '</a>' +
+
+                                                                        '<button type="button" class="btn btn-sm btn-outline-danger ms-3" onclick="delFile(83)">' +
+                                                                          '<i class="fa-solid fa-trash-can"></i> ลบไฟล์ใบสมัคร' + 
+                                                                        '</button>'
+    }
+
+    document.getElementById('updatedByModal').value = modalResult[90]
+    document.getElementById('updatedTimestampModal').value = modalResult[91]
+
+
+    if(document.getElementById('studentImageDivModal').innerHTML != ''){
+      if(modalResult[83] == ""){
+        document.getElementById("uploadStudentImageModal").src = "https://lh3.googleusercontent.com/d/1q1CjoEWMwGw9WLCOKhJGghCCUOjPJLSW"
+      }else{
+        document.getElementById("uploadStudentImageModal").src = "https://lh3.googleusercontent.com/d/" + modalResult[83].match(/\/d\/([\w-]{33})/)[1]
+      }
+    }
+
+    document.getElementById('gradeRegistorModal').value = modalResult[16]
+    filterStudyPlanModal()
+    document.getElementById('studyPlanModal').value = modalResult[17]
+
+    document.getElementById('stdPreNameModal').value = modalResult[3]
+    document.getElementById('stdFirstNameModal').value = modalResult[4]
+    document.getElementById('stdLastNameModal').value = modalResult[5]
+    document.getElementById('stdCitizenNumberModal').value = modalResult[6]
+
+    document.getElementById('stdGenderModal').value = modalResult[7]
+    document.getElementById('stdReligionModal').value = modalResult[8]
+    document.getElementById('stdNationalityModal').value = modalResult[9]
+    document.getElementById('stdEthnicityModal').value = modalResult[10]
+
+    document.getElementById('stdBirthDateModal').value = modalResult[11]
+    document.getElementById('stdAgeModal').value = modalResult[12]
+    document.getElementById('stdWeightModal').value = modalResult[13]
+    document.getElementById('stdHeightModal').value = modalResult[14]
+    document.getElementById('stdPhoneNumberModal').value = modalResult[15]
+
+    document.getElementById('stdOldSchoolModal').value = modalResult[18]
+    document.getElementById('stdGPAModal').value = modalResult[19]
+
+    document.getElementById('stdLocalHouseNoModal').value = modalResult[20]
+    document.getElementById('stdLocalVillageNoModal').value = modalResult[21]
+    document.getElementById('stdLocalStreetModal').value = modalResult[22]
+    document.getElementById('stdLocalTrokModal').value = modalResult[23]
+    document.getElementById('stdLocalSoiModal').value = modalResult[24]
+    document.getElementById('stdLocalSubDistrictModal').value = modalResult[25]
+    document.getElementById('stdLocalDistrictModal').value = modalResult[26]
+    document.getElementById('stdLocalProvinceModal').value = modalResult[27]
+    document.getElementById('stdLocalZipCodeModal').value = modalResult[28]
+
+    document.getElementById('stdCurrentHouseNoModal').value = modalResult[29]
+    document.getElementById('stdCurrentVillageNoModal').value = modalResult[30]
+    document.getElementById('stdCurrentStreetModal').value = modalResult[31]
+    document.getElementById('stdCurrentTrokModal').value = modalResult[32]
+    document.getElementById('stdCurrentSoiModal').value = modalResult[33]
+    document.getElementById('stdCurrentSubDistrictModal').value = modalResult[34]
+    document.getElementById('stdCurrentDistrictModal').value = modalResult[35]
+    document.getElementById('stdCurrentProvinceModal').value = modalResult[36]
+    document.getElementById('stdCurrentZipCodeModal').value = modalResult[37]
+
+    if(modalResult[38] != ""){
+      document.getElementById('musicTalentModal').checked = true
+      document.getElementById('musicTalentDetailModal').disabled = false
+      document.getElementById('musicTalentDetailModal').value = modalResult[38]
+    }else{
+      document.getElementById('musicTalentModal').checked = false
+      document.getElementById('musicTalentDetailModal').disabled = true
+      document.getElementById('musicTalentDetailModal').value = ""
+    }
+
+    if(modalResult[39] != ""){
+      document.getElementById('sportTalentModal').checked = true
+      document.getElementById('sportTalentDetailModal').disabled = false
+      document.getElementById('sportTalentDetailModal').value = modalResult[39]
+    }else{
+      document.getElementById('sportTalentModal').checked = false
+      document.getElementById('sportTalentDetailModal').disabled = true
+      document.getElementById('sportTalentDetailModal').value = ""
+    }
+
+    if(modalResult[40] != ""){
+      document.getElementById('artTalentModal').checked = true
+      document.getElementById('artTalentDetailModal').disabled = false
+      document.getElementById('artTalentDetailModal').value = modalResult[40]
+    }else{
+      document.getElementById('artTalentModal').checked = false
+      document.getElementById('artTalentDetailModal').disabled = true
+      document.getElementById('artTalentDetailModal').value = ""
+    }
+
+    if(modalResult[41] != ""){
+      document.getElementById('languageTalentModal').checked = true
+      document.getElementById('languageTalentDetailModal').disabled = false
+      document.getElementById('languageTalentDetailModal').value = modalResult[41]
+    }else{
+      document.getElementById('languageTalentModal').checked = false
+      document.getElementById('languageTalentDetailModal').disabled = true
+      document.getElementById('languageTalentDetailModal').value = ""
+    }
+
+    if(modalResult[42] != ""){
+      document.getElementById('otherTalentModal').checked = true
+      document.getElementById('otherTalentDetailModal').disabled = false
+      document.getElementById('otherTalentDetailModal').value = modalResult[42]
+    }else{
+      document.getElementById('otherTalentModal').checked = false
+      document.getElementById('otherTalentDetailModal').disabled = true
+      document.getElementById('otherTalentDetailModal').value = ""
+    }
+
+    if(modalResult[43] != ""){
+      document.getElementById('eyeDefectModal').checked = true
+      document.getElementById('eyeDefectModal').value = modalResult[43]
+    }else{
+      document.getElementById('eyeDefectModal').checked = false
+      document.getElementById('eyeDefectModal').value = ""
+    }
+
+    if(modalResult[44] != ""){
+      document.getElementById('earDefectModal').checked = true
+      document.getElementById('earDefectModal').value = modalResult[44]
+    }else{
+      document.getElementById('earDefectModal').checked = false
+      document.getElementById('earDefectModal').value = ""
+    }
+    
+    if(modalResult[45] != ""){
+      document.getElementById('intelligenceDefectModal').checked = true
+      document.getElementById('intelligenceDefectModal').value = modalResult[45]
+    }else{
+      document.getElementById('intelligenceDefectModal').checked = false
+      document.getElementById('intelligenceDefectModal').value = ""
+    }
+
+    if(modalResult[46] != ""){
+      document.getElementById('bodyDefectModal').checked = true
+      document.getElementById('bodyDefectModal').value = modalResult[46]
+    }else{
+      document.getElementById('bodyDefectModal').checked = false
+      document.getElementById('bodyDefectModal').value = ""
+    }
+
+    if(modalResult[47] != ""){
+      document.getElementById('learningDefectModal').checked = true
+      document.getElementById('learningDefectModal').value = modalResult[47]
+    }else{
+      document.getElementById('learningDefectModal').checked = false
+      document.getElementById('learningDefectModal').value = ""
+    }
+
+    if(modalResult[48] != ""){
+      document.getElementById('speechDefectModal').checked = true
+      document.getElementById('speechDefectModal').value = modalResult[48]
+    }else{
+      document.getElementById('speechDefectModal').checked = false
+      document.getElementById('speechDefectModal').value = ""
+    }
+
+    if(modalResult[49] != ""){
+      document.getElementById('emotionDefectModal').checked = true
+      document.getElementById('emotionDefectModal').value = modalResult[49]
+    }else{
+      document.getElementById('emotionDefectModal').checked = false
+      document.getElementById('emotionDefectModal').value = ""
+    }
+
+    if(modalResult[50] != ""){
+      document.getElementById('autismDefectModal').checked = true
+      document.getElementById('autismDefectModal').value = modalResult[50]
+    }else{
+      document.getElementById('autismDefectModal').checked = false
+      document.getElementById('autismDefectModal').value = ""
+    }
+
+    if(modalResult[51] != ""){
+      document.getElementById('redundantDisabilityDefectModal').checked = true
+      document.getElementById('redundantDisabilityDefectModal').value = modalResult[51]
+    }else{
+      document.getElementById('redundantDisabilityDefectModal').checked = false
+      document.getElementById('redundantDisabilityDefectModal').value = ""
+    }
+
+    document.getElementById('fatherPreNameModal').value = modalResult[52]
+    document.getElementById('fatherFirstNameModal').value = modalResult[53]
+    document.getElementById('fatherLastNameModal').value = modalResult[54]
+    document.getElementById('fatherStatusModal').value = modalResult[55]
+    document.getElementById('fatherCareerModal').value = modalResult[56]
+    document.getElementById('fatherIncomeModal').value = modalResult[57]
+    document.getElementById('fatherReligionModal').value = modalResult[58]
+    document.getElementById('fatherPhoneNumberModal').value = modalResult[59]
+
+    document.getElementById('motherPreNameModal').value = modalResult[60]
+    document.getElementById('motherFirstNameModal').value = modalResult[61]
+    document.getElementById('motherLastNameModal').value = modalResult[62]
+    document.getElementById('motherStatusModal').value = modalResult[63]
+    document.getElementById('motherCareerModal').value = modalResult[64]
+    document.getElementById('motherIncomeModal').value = modalResult[65]
+    document.getElementById('motherReligionModal').value = modalResult[66]
+    document.getElementById('motherPhoneNumberModal').value = modalResult[67]
+
+    checkParentStatusModal()
+
+    document.getElementById('parentRelationStatusModal').value = modalResult[68]
+
+    let stdParentRelationModal = modalResult[77]
+
+    if(stdParentRelationModal == "บิดา"){
+      document.getElementById("dadModal").checked = true
+    }else if(stdParentRelationModal == "มารดา"){
+      document.getElementById("momModal").checked = true
+    }else{
+      document.getElementById("otherModal").checked = true
+    }
+
+    getParentModal()
+
+    document.getElementById('parentPreNameModal').value = modalResult[69]
+    document.getElementById('parentFirstNameModal').value = modalResult[70]
+    document.getElementById('parentLastNameModal').value = modalResult[71]
+    document.getElementById('parentStatusModal').value = modalResult[72]
+    document.getElementById('parentCareerModal').value = modalResult[73]
+    document.getElementById('parentIncomeModal').value = modalResult[74]
+    document.getElementById('parentReligionModal').value = modalResult[75]
+    document.getElementById('parentPhoneNumberModal').value = modalResult[76]
+    document.getElementById('stdParentRelationModal').value = modalResult[77]
+
+    document.getElementById('disbursementModal').value = modalResult[78]
+    document.getElementById('medicalTreatmentModal').value = modalResult[79]
+
+    if(modalResult[84] == ""){
+      document.getElementById('paymentDivModalLink').innerHTML = '- ไม่พบไฟล์ -'
+    }else{
+      document.getElementById('paymentDivModalLink').innerHTML =  '<a class="text-decoration-none" href="' + modalResult[84] + 
+                                                                    '" target="_blank"><i class="fa-regular fa-folder-open"></i> เปิดไฟล์' + 
+                                                                  '</a>' +
+
+                                                                  '<button type="button" class="btn btn-sm btn-outline-danger ms-3"' +
+                                                                    'onclick="delFile(85)">' + 
+                                                                    '<i class="fa-solid fa-trash-can"></i>' + 
+                                                                  '</button>'
+    }
+
+    if(modalResult[85] == ""){
+      document.getElementById('moreDocument1DivModalLink').innerHTML = '- ไม่พบไฟล์ -'
+    }else{
+      document.getElementById('moreDocument1DivModalLink').innerHTML =  '<a class="text-decoration-none" href="' + modalResult[85] + 
+                                                                          '" target="_blank"><i class="fa-regular fa-folder-open"></i> เปิดไฟล์' + 
+                                                                        '</a>' +
+
+                                                                        '<button type="button" class="btn btn-sm btn-outline-danger ms-3"' +
+                                                                          'onclick="delFile(86)">' + 
+                                                                          '<i class="fa-solid fa-trash-can"></i>' + 
+                                                                        '</button>'
+    }
+
+    if(modalResult[86] == ""){
+      document.getElementById('moreDocument2DivModalLink').innerHTML = '- ไม่พบไฟล์ -'
+    }else{
+      document.getElementById('moreDocument2DivModalLink').innerHTML =  '<a class="text-decoration-none" href="' + modalResult[86] + 
+                                                                          '" target="_blank"><i class="fa-regular fa-folder-open"></i> เปิดไฟล์' + 
+                                                                        '</a>' +
+
+                                                                        '<button type="button" class="btn btn-sm btn-outline-danger ms-3"' +
+                                                                          'onclick="delFile(87)">' + 
+                                                                          '<i class="fa-solid fa-trash-can"></i>' + 
+                                                                        '</button>'
+    }
+
+    if(modalResult[87] == ""){
+      document.getElementById('moreDocument3DivModalLink').innerHTML = '- ไม่พบไฟล์ -'
+    }else{
+      document.getElementById('moreDocument3DivModalLink').innerHTML =  '<a class="text-decoration-none" href="' + modalResult[87] + 
+                                                                          '" target="_blank"><i class="fa-regular fa-folder-open"></i> เปิดไฟล์' + 
+                                                                        '</a>' +
+
+                                                                        '<button type="button" class="btn btn-sm btn-outline-danger ms-3"' +
+                                                                          'onclick="delFile(88)">' + 
+                                                                          '<i class="fa-solid fa-trash-can"></i>' + 
+                                                                        '</button>'
+    }
+
+    if(modalResult[88] == ""){
+      document.getElementById('moreDocument4DivModalLink').innerHTML = '- ไม่พบไฟล์ -'
+    }else{
+      document.getElementById('moreDocument4DivModalLink').innerHTML =  '<a class="text-decoration-none" href="' + modalResult[88] + 
+                                                                          '" target="_blank"><i class="fa-regular fa-folder-open"></i> เปิดไฟล์' + 
+                                                                        '</a>' +
+
+                                                                        '<button type="button" class="btn btn-sm btn-outline-danger ms-3"' +
+                                                                          'onclick="delFile(89)">' + 
+                                                                          '<i class="fa-solid fa-trash-can"></i>' + 
+                                                                        '</button>'
+    }
+
+    if(modalResult[89] == ""){
+      document.getElementById('moreDocument5DivModalLink').innerHTML = '- ไม่พบไฟล์ -'
+    }else{
+      document.getElementById('moreDocument5DivModalLink').innerHTML =  '<a class="text-decoration-none" href="' + modalResult[89] + 
+                                                                          '" target="_blank"><i class="fa-regular fa-folder-open"></i> เปิดไฟล์' + 
+                                                                        '</a>' +
+
+                                                                        '<button type="button" class="btn btn-sm btn-outline-danger ms-3"' +
+                                                                          'onclick="delFile(90)">' + 
+                                                                          '<i class="fa-solid fa-trash-can"></i>' + 
+                                                                        '</button>'
+    }
+
+  }
+
+  //****************************** ลบไฟล์ที่กำหนด โดยกำหนดด้วย คอลัมน์ที่ส่งมาพร้อมกับ onclick ******************************//
+  function delFile(col){
+    let recordId = document.getElementById('idModal').value
+    let adminName = document.getElementById('adminNameDiv').innerHTML.split(' : ')[1].trim()
+    let textDelete
+
+    if(col == 83){
+      textDelete = "ไฟล์ใบสมัคร"
+    }else if(col == 85){
+      textDelete = "หลักฐานการชำระเงิน"
+    }else if(col == 86){
+      textDelete = systemSetting[15]
+    }else if(col == 87){
+      textDelete = systemSetting[17]
+    }else if(col == 88){
+      textDelete = systemSetting[19]
+    }else if(col == 89){
+      textDelete = systemSetting[21]
+    }else if(col == 90){
+      textDelete = systemSetting[23]
+    }
+
+    Swal.fire({
+      title: 'ยืนยันการลบไฟล์?',
+      text: textDelete,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'ลบไฟล์',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: 'กำลังลบไฟล์...',
+          allowOutsideClick: false,
+          showConfirmButton: false
+        });
+
+        Swal.showLoading();
+
+        google.script.run.withSuccessHandler(deleteFileSuccess).deleteFile(recordId, col, adminName)
+        
+      }
+    })
+    
+  }
+
+  //****************************** ลบไฟล์สำเร็จ ******************************//
+  function deleteFileSuccess(colDelete) {
+    Swal.fire({
+      position: 'center',
+      icon: 'success',
+      title: 'ลบไฟล์สำเร็จ',
+      showConfirmButton: false,
+      timer: 1000
+    });
+
+    let recordId = document.getElementById('idModal').value
+    google.script.run.withSuccessHandler(showDataModal).getData(recordId)
+
+  }
+
+  //****************************** บันทึกการอัปเดทข้อมูล ******************************//
+  function updateDataModalSubmit(obj){
+    event.preventDefault()
+
+    if(stdCitizenNumberCheck(obj.stdCitizenNumberModal.value)){
+      Swal.fire({
+        position: 'center',
+        icon: 'error',
+        title: 'โปรดตรวจสอบเลขบัตรประชาชน',
+        showConfirmButton: false,
+        timer: 1000
+      })
+
+      setTimeout(function(){
+        document.getElementById("stdCitizenNumberModal").focus();
+      }, 1500);
+
+    }else{
+      Swal.fire({
+        title: 'ยืนยันการอัปเดทข้อมูล?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+
+          if(obj.statusModal.value == "การสมัครสำเร็จ" && document.getElementById('applicationFileModal').innerHTML == '- ไม่พบไฟล์ - (เลือกสถานะการสมัครเป็น "การสมัครสำเร็จ" เพื่อสร้างไฟล์ใบสมัคร)'){
+            Swal.fire({
+              title: 'กำลังอัปเดทข้อมูล...',
+              text: 'การสร้างไฟล์ใบสมัครอาจใช้เวลา โปรดรอสักครู่...',
+              allowOutsideClick: false,
+              showConfirmButton: false
+            });
+
+          }else{
+            Swal.fire({
+              title: 'กำลังอัปเดทข้อมูล...',
+              allowOutsideClick: false,
+              showConfirmButton: false
+            });
+          }
+
+          Swal.showLoading();
+
+          document.getElementById("updateButton").disabled = true
+
+          let adminName = document.getElementById('adminNameDiv').innerHTML.split(' : ')[1].trim()
+          document.getElementById('updatedByModal').value = adminName
+
+          document.getElementById('parentRelationStatusSaveModal').value = document.getElementById('parentRelationStatusModal').value
+
+          document.getElementById('parentPreNameSaveModal').value = document.getElementById('parentPreNameModal').value
+          document.getElementById('parentFirstNameSaveModal').value = document.getElementById('parentFirstNameModal').value
+          document.getElementById('parentLastNameSaveModal').value = document.getElementById('parentLastNameModal').value
+          document.getElementById('parentStatusSaveModal').value = document.getElementById('parentStatusModal').value
+          document.getElementById('parentCareerSaveModal').value = document.getElementById('parentCareerModal').value
+          document.getElementById('parentIncomeSaveModal').value = document.getElementById('parentIncomeModal').value
+          document.getElementById('parentReligionSaveModal').value = document.getElementById('parentReligionModal').value
+          document.getElementById('parentPhoneNumberSaveModal').value = document.getElementById('parentPhoneNumberModal').value
+          document.getElementById('stdParentRelationSaveModal').value = document.getElementById('stdParentRelationModal').value
+
+          google.script.run.withSuccessHandler(updateDataSuccess).updateData(obj)
+
+        }
+      })
+      
+    }
+  }
+
+  //****************************** อัปเดทข้อมูลสำเร็จ ******************************//
+  function updateDataSuccess(){
+    Swal.fire({
+      position: 'center',
+      icon: 'success',
+      title: 'อัปเดทข้อมูลสำเร็จ',
+      showConfirmButton: false,
+      timer: 1000
+    });
+
+    document.getElementById("updateButton").disabled = false
+
+    let recordId = document.getElementById('idModal').value
+    google.script.run.withSuccessHandler(showDataModal).getData(recordId)
+
+    google.script.run.withSuccessHandler(getAllRegistorDataSuccess).getAllRegistorData()
+
+    
+  }
+
+  //****************************** กรองข้อมูลที่จะแสดงบน Datatable ******************************//
+  function filterData(){
+    let gradeRegistorFilter = document.getElementById('gradeRegistorFilter').value
+    let studyPlanFilter = document.getElementById('studyPlanFilter').value
+    let regisStatusFilter = document.getElementById('regisStatusFilter').value
+
+
+    let table = $('#data-table').DataTable();
+
+    table.column(5).search(gradeRegistorFilter).draw();
+    table.column(6).search(studyPlanFilter).draw();
+    table.column(7).search(regisStatusFilter).draw();
+
+  }
+
+</script>
