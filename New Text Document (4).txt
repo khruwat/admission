@@ -1,0 +1,152 @@
+<!-- ===== Dashboard Section ===== -->
+<div id="page-dashboard" class="page-section active">
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div>
+      <h1 class="page-title"><i class="fas fa-tachometer-alt" style="color:var(--primary);"></i> แดชบอร์ด <span>ภาพรวมระบบ</span></h1>
+      <p class="page-breadcrumb">
+        <i class="fas fa-circle" style="color:#10B981; font-size:0.45rem; vertical-align:middle;"></i>&nbsp;
+        ระบบรับสมัครออนไลน์ &mdash; <span>โรงเรียนหนองบัวไชยวารพิทยาสรรพ์</span>
+      </p>
+    </div>
+    <div>
+      <button class="btn btn-outline btn-sm" onclick="loadDashboard()">
+        <i class="fas fa-sync-alt"></i> รีเฟรช
+      </button>
+    </div>
+  </div>
+
+  <!-- Info Boxes — gradient cards -->
+  <div class="dash-info-grid">
+
+    <!-- Card 1: ผู้สมัครทั้งหมด -->
+    <div class="dash-info-box" style="background:linear-gradient(135deg,#7C3AED 0%,#9333EA 60%,#C084FC 100%);" onclick="navigateTo('admin')">
+      <div class="dic-body">
+        <div class="dic-icon"><i class="fas fa-users"></i></div>
+        <div class="dic-text">
+          <div class="dic-number" id="stat-total">0</div>
+          <div class="dic-label">ผู้สมัครทั้งหมด</div>
+        </div>
+      </div>
+      <div class="dic-wave"><svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0 30 Q50 10 100 25 Q150 40 200 20 L200 40 L0 40 Z" fill="rgba(255,255,255,0.12)"/><path d="M0 35 Q60 18 120 30 Q170 42 200 28 L200 40 L0 40 Z" fill="rgba(255,255,255,0.08)"/></svg></div>
+      <div class="dic-footer">ดูทั้งหมด <i class="fas fa-arrow-right"></i></div>
+    </div>
+
+    <!-- Card 2: รอตรวจสอบ -->
+    <div class="dash-info-box" style="background:linear-gradient(135deg,#F97316 0%,#EC4899 60%,#F43F5E 100%);" onclick="navigateTo('admin')">
+      <div class="dic-body">
+        <div class="dic-icon"><i class="fas fa-hourglass-half"></i></div>
+        <div class="dic-text">
+          <div class="dic-number" id="stat-pending">0</div>
+          <div class="dic-label">รอตรวจสอบ</div>
+        </div>
+      </div>
+      <div class="dic-wave"><svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0 28 Q40 12 100 22 Q160 34 200 16 L200 40 L0 40 Z" fill="rgba(255,255,255,0.12)"/><path d="M0 34 Q70 20 130 32 Q175 40 200 26 L200 40 L0 40 Z" fill="rgba(255,255,255,0.08)"/></svg></div>
+      <div class="dic-footer">จัดการ <i class="fas fa-arrow-right"></i></div>
+    </div>
+
+    <!-- Card 3: อนุมัติแล้ว -->
+    <div class="dash-info-box" style="background:linear-gradient(135deg,#06B6D4 0%,#3B82F6 55%,#6366F1 100%);" onclick="navigateTo('admin')">
+      <div class="dic-body">
+        <div class="dic-icon"><i class="fas fa-user-check"></i></div>
+        <div class="dic-text">
+          <div class="dic-number" id="stat-approved">0</div>
+          <div class="dic-label">อนุมัติแล้ว</div>
+        </div>
+      </div>
+      <div class="dic-wave"><svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0 26 Q55 8 110 22 Q155 36 200 18 L200 40 L0 40 Z" fill="rgba(255,255,255,0.12)"/><path d="M0 33 Q80 22 140 31 Q180 38 200 24 L200 40 L0 40 Z" fill="rgba(255,255,255,0.08)"/></svg></div>
+      <div class="dic-footer">ดูรายชื่อ <i class="fas fa-arrow-right"></i></div>
+    </div>
+
+    <!-- Card 4: ไม่ผ่าน -->
+    <div class="dash-info-box" style="background:linear-gradient(135deg,#F59E0B 0%,#F97316 55%,#EF4444 100%);" onclick="navigateTo('admin')">
+      <div class="dic-body">
+        <div class="dic-icon"><i class="fas fa-user-times"></i></div>
+        <div class="dic-text">
+          <div class="dic-number" id="stat-rejected">0</div>
+          <div class="dic-label">ไม่ผ่าน</div>
+        </div>
+      </div>
+      <div class="dic-wave"><svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0 29 Q45 11 105 24 Q158 37 200 19 L200 40 L0 40 Z" fill="rgba(255,255,255,0.12)"/><path d="M0 35 Q65 21 125 33 Q172 42 200 27 L200 40 L0 40 Z" fill="rgba(255,255,255,0.08)"/></svg></div>
+      <div class="dic-footer">ดูรายชื่อ <i class="fas fa-arrow-right"></i></div>
+    </div>
+
+  </div>
+
+  <!-- Main Row: Chart (left 2/3) + Progress bars (right 1/3) -->
+  <div class="dash-main-row">
+
+    <!-- Chart Card -->
+    <div class="glass-card dash-chart-card">
+      <div class="dash-card-header">
+        <div>
+          <h3><i class="fas fa-chart-bar"></i> ภาพรวมผู้สมัคร</h3>
+          <p style="color:var(--text-muted); font-size:0.78rem; margin-top:2px;">จำแนกตามระดับชั้น</p>
+        </div>
+        <span class="dash-badge-year">ปีการศึกษา 2568</span>
+      </div>
+      <div style="position:relative; height:240px; margin:16px 0 8px;">
+        <canvas id="gradeChart"></canvas>
+      </div>
+      <!-- Bottom summary stats -->
+      <div class="dash-bottom-stats">
+        <div class="dash-bottom-stat">
+          <div class="dbs-dot" style="background:#7C3AED;"></div>
+          <div class="dash-bottom-num" id="bstat-total">0</div>
+          <div class="dash-bottom-lbl">ทั้งหมด</div>
+        </div>
+        <div class="dash-bottom-stat">
+          <div class="dbs-dot" style="background:#F59E0B;"></div>
+          <div class="dash-bottom-num" id="bstat-pending" style="color:#F59E0B;">0</div>
+          <div class="dash-bottom-lbl">รอตรวจ</div>
+        </div>
+        <div class="dash-bottom-stat">
+          <div class="dbs-dot" style="background:#10B981;"></div>
+          <div class="dash-bottom-num" id="bstat-approved" style="color:#10B981;">0</div>
+          <div class="dash-bottom-lbl">อนุมัติ</div>
+        </div>
+        <div class="dash-bottom-stat">
+          <div class="dbs-dot" style="background:#EF4444;"></div>
+          <div class="dash-bottom-num" id="bstat-rejected" style="color:#EF4444;">0</div>
+          <div class="dash-bottom-lbl">ไม่ผ่าน</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Plan Distribution -->
+    <div class="glass-card">
+      <div class="dash-card-header" style="margin-bottom:14px;">
+        <h3><i class="fas fa-bullseye"></i> แผนการเรียน</h3>
+      </div>
+      <div id="plan-distribution">
+        <p style="color:var(--text-muted); text-align:center; padding:16px 0; font-size:0.85rem;">กำลังโหลด...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Grade Distribution (full width) -->
+  <div class="glass-card" style="margin-bottom:22px;">
+    <div class="dash-card-header" style="margin-bottom:14px;">
+      <h3><i class="fas fa-layer-group"></i> ระดับชั้น</h3>
+    </div>
+    <div id="grade-distribution">
+      <p style="color:var(--text-muted); text-align:center; padding:16px 0; font-size:0.85rem;">กำลังโหลด...</p>
+    </div>
+  </div>
+
+  <!-- Recent Enrollments (full width) -->
+  <div class="glass-card" style="margin-top:22px;">
+    <div class="dash-card-header" style="margin-bottom:16px;">
+      <h3><i class="fas fa-history"></i> ผู้สมัครล่าสุด</h3>
+      <button class="btn btn-outline btn-sm" onclick="navigateTo('admin')">
+        <i class="fas fa-external-link-alt"></i> ดูทั้งหมด
+      </button>
+    </div>
+    <div id="recent-enrollments">
+      <p style="color:var(--text-muted); text-align:center; padding:20px;">กำลังโหลดข้อมูล...</p>
+    </div>
+  </div>
+
+</div>

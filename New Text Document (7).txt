@@ -1,0 +1,1112 @@
+<script>
+/* ========================================
+   Student Enrollment System - Frontend JS
+   ======================================== */
+
+// ===== Global State =====
+var allEnrollments = [];
+var uploadedFileData = null;
+var uploadedPhotoData = null;
+
+// ===== Navigation =====
+function navigateTo(pageId) {
+  document.querySelectorAll('.page-section').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  document.querySelectorAll('.nav-item').forEach(function(el) {
+    el.classList.remove('active');
+  });
+
+  var target = document.getElementById('page-' + pageId);
+  if (target) target.classList.add('active');
+
+  var navItem = document.querySelector('[data-page="' + pageId + '"]');
+  if (navItem) navItem.classList.add('active');
+
+  if (pageId === 'dashboard') loadDashboard();
+  else if (pageId === 'admin') loadAdminData();
+
+  closeSidebar();
+}
+
+// ===== Mobile Sidebar =====
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.querySelector('.sidebar-overlay').classList.toggle('active');
+}
+
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.querySelector('.sidebar-overlay').classList.remove('active');
+}
+
+// ===== Dashboard =====
+function loadDashboard() {
+  google.script.run
+    .withSuccessHandler(renderDashboard)
+    .withFailureHandler(handleError)
+    .getDashboardStats();
+}
+
+function renderDashboard(result) {
+  console.log('renderDashboard result:', JSON.stringify(result));
+  if (!result || !result.success) {
+    var msg = (result && result.message) ? result.message : 'ไม่สามารถโหลดข้อมูลได้';
+    if (result && result.debug) msg += ' [debug: ' + result.debug + ']';
+    handleError(msg);
+    return;
+  }
+
+  var total    = result.total;
+  var pending  = result.byStatus['รอตรวจสอบ'] || 0;
+  var approved = result.byStatus['อนุมัติ'] || 0;
+  var rejected = result.byStatus['ไม่อนุมัติ'] || 0;
+
+  // Top info boxes
+  animateNumber('stat-total',    total);
+  animateNumber('stat-pending',  pending);
+  animateNumber('stat-approved', approved);
+  animateNumber('stat-rejected', rejected);
+
+  // Bottom stats (inside chart card)
+  animateNumber('bstat-total',    total);
+  animateNumber('bstat-pending',  pending);
+  animateNumber('bstat-approved', approved);
+  animateNumber('bstat-rejected', rejected);
+
+  // ── Grade Bar Chart (Chart.js) ──────────────────────────────────────────
+  var gradeKeys = Object.keys(result.byGrade);
+  var gradeVals = gradeKeys.map(function(k) { return result.byGrade[k]; });
+  var COLORS = ['#6366F1','#8B5CF6','#A855F7','#EC4899','#F59E0B','#10B981','#3B82F6','#EF4444'];
+  var ctx = document.getElementById('gradeChart');
+  if (ctx && typeof Chart !== 'undefined') {
+    if (window._gradeChartInst) { window._gradeChartInst.destroy(); }
+    window._gradeChartInst = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: gradeKeys.length ? gradeKeys : ['ยังไม่มีข้อมูล'],
+        datasets: [{
+          label: 'จำนวนผู้สมัคร',
+          data: gradeVals.length ? gradeVals : [0],
+          backgroundColor: COLORS.slice(0, Math.max(gradeKeys.length, 1)),
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(20,16,60,0.92)',
+            titleFont: { family: 'Kanit', size: 13 },
+            bodyFont:  { family: 'Kanit', size: 12 },
+            callbacks: { label: function(c) { return '  ' + c.parsed.y + ' คน'; } }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            ticks: { color: '#64748B', font: { family: 'Kanit', size: 11 } }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            ticks: { color: '#64748B', font: { family: 'Kanit', size: 11 }, stepSize: 1 }
+          }
+        }
+      }
+    });
+  }
+
+  // ── Plan Distribution (Goal-Completion progress bars) ───────────────────
+  var planEl   = document.getElementById('plan-distribution');
+  var planKeys = Object.keys(result.byPlan || {});
+  var PCOLORS  = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#EC4899'];
+  if (planKeys.length === 0) {
+    planEl.innerHTML = '<p style="color:rgba(255,255,255,0.4);text-align:center;padding:12px 0;font-size:0.85rem;">ยังไม่มีข้อมูล</p>';
+  } else {
+    var planMax  = Math.max.apply(null, planKeys.map(function(k) { return result.byPlan[k]; }));
+    var planHtml = '<div style="display:flex;flex-direction:column;gap:14px;">';
+    planKeys.forEach(function(plan, i) {
+      var cnt  = result.byPlan[plan];
+      var pct  = planMax > 0 ? Math.round(cnt / planMax * 100) : 0;
+      var bg   = PCOLORS[i % PCOLORS.length];
+      planHtml += '<div>'
+        + '<div style="display:flex;justify-content:space-between;margin-bottom:5px;">'
+        + '<span style="color:var(--text-primary);font-size:0.88rem;">' + escapeHtml(plan) + '</span>'
+        + '<span style="color:var(--text-secondary);font-size:0.83rem;font-weight:600;">' + cnt + '/' + total + '</span>'
+        + '</div>'
+        + '<div style="background:#F0F2F8;border-radius:6px;height:10px;overflow:hidden;">'
+        + '<div style="background:' + bg + ';height:100%;border-radius:6px;width:' + pct + '%;transition:width 0.9s ease;"></div>'
+        + '</div></div>';
+    });
+    planHtml += '</div>';
+    planEl.innerHTML = planHtml;
+  }
+
+  // ── Grade Progress Bars ─────────────────────────────────────────────────
+  var gradeEl  = document.getElementById('grade-distribution');
+  var GCOLORS  = ['#6366F1','#8B5CF6','#A855F7','#EC4899','#F59E0B','#10B981','#3B82F6','#F97316','#14B8A6'];
+  if (gradeKeys.length === 0) {
+    gradeEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:12px 0;font-size:0.85rem;">ยังไม่มีข้อมูล</p>';
+  } else {
+    var gradeMax  = Math.max.apply(null, gradeVals);
+    var gradeHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px 32px;">';
+    gradeKeys.forEach(function(grade, i) {
+      var cnt  = result.byGrade[grade];
+      var pct  = gradeMax > 0 ? Math.round(cnt / gradeMax * 100) : 0;
+      var bg   = GCOLORS[i % GCOLORS.length];
+      gradeHtml += '<div>'
+        + '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+        + '<span style="color:var(--text-primary);font-size:0.88rem;font-weight:500;">' + escapeHtml(grade) + '</span>'
+        + '<span style="color:var(--text-secondary);font-size:0.82rem;font-weight:600;">' + cnt + ' คน</span>'
+        + '</div>'
+        + '<div style="background:#F0F2F8;border-radius:6px;height:8px;overflow:hidden;">'
+        + '<div style="background:' + bg + ';height:100%;border-radius:6px;width:' + pct + '%;transition:width 0.9s ease;"></div>'
+        + '</div></div>';
+    });
+    gradeHtml += '</div>';
+    gradeEl.innerHTML = gradeHtml;
+  }
+
+  // ── Recent Enrollments Table ─────────────────────────────────────────────
+  var recentEl = document.getElementById('recent-enrollments');
+  if (!result.recent || result.recent.length === 0) {
+    recentEl.innerHTML = '<p style="color:rgba(255,255,255,0.5);text-align:center;padding:24px;">ยังไม่มีข้อมูล</p>';
+  } else {
+    var AVG_COLORS = ['#7C3AED','#10B981','#F59E0B','#EF4444','#3B82F6'];
+    var html = '<table class="recent-table" style="width:100%;">'
+      + '<thead><tr><th></th><th>ชื่อ-นามสกุล</th><th>ระดับชั้น</th><th>แผนการเรียน</th><th>วันที่สมัคร</th><th>สถานะ</th></tr></thead><tbody>';
+    result.recent.forEach(function(r, i) {
+      var dateStr = r.timestamp
+        ? new Date(r.timestamp).toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'2-digit' })
+        : '-';
+      var letter = (r.fullName && r.fullName.trim()) ? r.fullName.trim().charAt(0) : '?';
+      var avBg   = AVG_COLORS[i % AVG_COLORS.length];
+      html += '<tr>'
+        + '<td style="width:44px;"><div style="width:34px;height:34px;border-radius:50%;background:' + avBg
+        + ';display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.88rem;color:#fff;">'
+        + escapeHtml(letter) + '</div></td>'
+        + '<td style="font-weight:500;">' + escapeHtml(r.fullName || '-') + '</td>'
+        + '<td>' + escapeHtml(r.grade || '-') + '</td>'
+        + '<td>' + escapeHtml(r.studyPlan || '-') + '</td>'
+        + '<td style="font-size:0.8rem;color:var(--text-muted);">' + dateStr + '</td>'
+        + '<td>' + getStatusBadge(r.status) + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table>';
+    recentEl.innerHTML = html;
+  }
+}
+
+function animateNumber(elementId, target) {
+  var el = document.getElementById(elementId);
+  if (!el) return;
+  var current = 0;
+  var increment = Math.ceil(target / 30) || 1;
+  if (target === 0) { el.textContent = '0'; return; }
+  var timer = setInterval(function() {
+    current += increment;
+    if (current >= target) { current = target; clearInterval(timer); }
+    el.textContent = current.toLocaleString();
+  }, 20);
+}
+
+// ===== Photo Upload =====
+function handlePhotoSelect(inputEl) {
+  var file = inputEl.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    Swal.fire({ icon: 'error', title: 'ไฟล์ใหญ่เกินไป', text: 'ขนาดไฟล์ต้องไม่เกิน 5MB', confirmButtonColor: '#6366F1' });
+    inputEl.value = '';
+    return;
+  }
+
+  var allowedTypes = ['image/jpeg', 'image/png'];
+  if (allowedTypes.indexOf(file.type) === -1) {
+    Swal.fire({ icon: 'error', title: 'ประเภทไฟล์ไม่ถูกต้อง', text: 'รองรับเฉพาะ JPG, PNG', confirmButtonColor: '#6366F1' });
+    inputEl.value = '';
+    return;
+  }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    // Show preview in header photo box
+    var previewEl = document.getElementById('photoPreview');
+    if (previewEl) {
+      previewEl.innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">';
+    }
+    // Show preview in upload section
+    var previewLarge = document.getElementById('photoPreviewLarge');
+    if (previewLarge) {
+      previewLarge.innerHTML = '<img src="' + e.target.result + '" style="max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 8px;">';
+    }
+
+    var base64 = e.target.result.split(',')[1];
+    uploadedPhotoData = { data: base64, name: file.name, type: file.type };
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== File Upload =====
+function handleFileSelect(inputEl) {
+  var file = inputEl.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    Swal.fire({ icon: 'error', title: 'ไฟล์ใหญ่เกินไป', text: 'ขนาดไฟล์ต้องไม่เกิน 5MB', confirmButtonColor: '#6366F1' });
+    inputEl.value = '';
+    return;
+  }
+
+  var allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+  if (allowedTypes.indexOf(file.type) === -1) {
+    Swal.fire({ icon: 'error', title: 'ประเภทไฟล์ไม่ถูกต้อง', text: 'รองรับเฉพาะ JPG, PNG, PDF', confirmButtonColor: '#6366F1' });
+    inputEl.value = '';
+    return;
+  }
+
+  document.getElementById('fileName').textContent = '📎 ' + file.name;
+  document.getElementById('fileName').style.display = 'block';
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var base64 = e.target.result.split(',')[1];
+    uploadedFileData = { data: base64, name: file.name, type: file.type };
+  };
+  reader.readAsDataURL(file);
+}
+
+// Drag and drop
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    var dropArea = document.getElementById('fileUploadArea');
+    if (!dropArea) return;
+    ['dragenter', 'dragover'].forEach(function(evt) {
+      dropArea.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); dropArea.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(function(evt) {
+      dropArea.addEventListener(evt, function(e) { e.preventDefault(); e.stopPropagation(); dropArea.classList.remove('dragover'); });
+    });
+    dropArea.addEventListener('drop', function(e) {
+      var files = e.dataTransfer.files;
+      if (files.length > 0) {
+        document.getElementById('fileInput').files = files;
+        handleFileSelect(document.getElementById('fileInput'));
+      }
+    });
+  });
+})();
+
+// ===== Enrollment Form =====
+function submitEnrollForm() {
+  if (!validateForm()) return;
+
+  Swal.fire({
+    title: 'กำลังบันทึกข้อมูล...',
+    html: 'กรุณารอสักครู่',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: function() { Swal.showLoading(); }
+  });
+
+  // Upload photo first, then document, then submit
+  uploadPhotoThen(function(photoUrl) {
+    uploadDocThen(function(docUrl) {
+      submitFormData(photoUrl, docUrl);
+    });
+  });
+}
+
+function uploadPhotoThen(callback) {
+  if (uploadedPhotoData) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        callback(res.success ? res.url : '');
+      })
+      .withFailureHandler(function() { callback(''); })
+      .uploadFile(uploadedPhotoData.data, uploadedPhotoData.name, uploadedPhotoData.type);
+  } else {
+    callback('');
+  }
+}
+
+function uploadDocThen(callback) {
+  if (uploadedFileData) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        callback(res.success ? res.url : '');
+      })
+      .withFailureHandler(function() { callback(''); })
+      .uploadFile(uploadedFileData.data, uploadedFileData.name, uploadedFileData.type);
+  } else {
+    callback('');
+  }
+}
+
+function submitFormData(photoUrl, documentUrl) {
+  var guardianType = 'บิดา';
+  var radios = document.getElementsByName('guardianType');
+  for (var i = 0; i < radios.length; i++) {
+    if (radios[i].checked) { guardianType = radios[i].value; break; }
+  }
+
+  var studyPlan = 'วิทยาศาสตร์-คณิตศาสตร์';
+  var planRadios = document.getElementsByName('studyPlan');
+  for (var j = 0; j < planRadios.length; j++) {
+    if (planRadios[j].checked) { studyPlan = planRadios[j].value; break; }
+  }
+
+  var data = {
+    prefix: val('prefix'),
+    firstName: val('firstName'),
+    lastName: val('lastName'),
+    birthDate: val('birthDate'),
+    religion: val('religion'),
+    ethnicity: val('ethnicity'),
+    nationality: val('nationality'),
+    houseNo: val('houseNo'),
+    moo: val('moo'),
+    soi: val('soi'),
+    road: val('road'),
+    subDistrict: val('subDistrict'),
+    district: val('district'),
+    province: val('province'),
+    zipCode: val('zipCode'),
+    phone: val('phone'),
+    email: val('email'),
+    fatherName: val('fatherName'),
+    fatherJob: val('fatherJob'),
+    fatherPhone: val('fatherPhone'),
+    motherName: val('motherName'),
+    motherJob: val('motherJob'),
+    motherPhone: val('motherPhone'),
+    guardianType: guardianType,
+    guardianName: val('guardianName'),
+    guardianJob: val('guardianJob'),
+    guardianPhone: val('guardianPhone'),
+    guardianRelation: val('guardianRelation'),
+    prevSchool: val('prevSchool'),
+    prevSubDistrict: val('prevSubDistrict'),
+    prevDistrict: val('prevDistrict'),
+    prevProvince: val('prevProvince'),
+    grade: val('grade'),
+    studyPlan: studyPlan,
+    photoUrl: photoUrl,
+    documentUrl: documentUrl
+  };
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) {
+        Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: result.message, confirmButtonColor: '#6366F1' });
+        resetForm();
+      } else {
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: result.message, confirmButtonColor: '#6366F1' });
+      }
+    })
+    .withFailureHandler(handleError)
+    .processForm(data);
+}
+
+function val(id) {
+  var el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function validateForm() {
+  var isValid = true;
+  var requiredFields = ['prefix', 'firstName', 'lastName', 'grade', 'phone'];
+
+  document.querySelectorAll('.form-input.error').forEach(function(el) {
+    el.classList.remove('error');
+  });
+
+  requiredFields.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      if (el) el.classList.add('error');
+      isValid = false;
+    }
+  });
+
+  // Phone validation
+  var phoneVal = val('phone');
+  if (phoneVal && !/^[0-9]{9,10}$/.test(phoneVal)) {
+    document.getElementById('phone').classList.add('error');
+    isValid = false;
+  }
+
+  // Email validation (optional)
+  var emailVal = val('email');
+  if (emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+    document.getElementById('email').classList.add('error');
+    isValid = false;
+  }
+
+  if (!isValid) {
+    Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลให้ครบถ้วน', text: 'ตรวจสอบข้อมูลที่มีเครื่องหมาย * อีกครั้ง', confirmButtonColor: '#6366F1' });
+  }
+
+  return isValid;
+}
+
+function resetForm() {
+  document.getElementById('enrollForm').reset();
+  document.querySelectorAll('.form-input.error').forEach(function(el) { el.classList.remove('error'); });
+  document.getElementById('fileName').style.display = 'none';
+  var photoPreview = document.getElementById('photoPreview');
+  if (photoPreview) {
+    photoPreview.innerHTML = '<i class="fas fa-camera" style="font-size: 1.5rem; color: #94A3B8;"></i><span style="font-size: 0.7rem; color: #94A3B8; margin-top: 4px;">ติดรูปถ่าย<br>1 นิ้ว</span>';
+  }
+  var photoPreviewLarge = document.getElementById('photoPreviewLarge');
+  if (photoPreviewLarge) {
+    photoPreviewLarge.innerHTML = '<i class="fas fa-user-circle" style="font-size: 3rem; color: #CBD5E1;"></i><p style="font-size: 0.75rem; color: #94A3B8; margin-top: 6px;">คลิกเพื่ออัปโหลดรูปถ่าย</p>';
+  }
+  uploadedFileData = null;
+  uploadedPhotoData = null;
+}
+
+// ===== Admin / Data Table =====
+function loadAdminData() {
+  google.script.run
+    .withSuccessHandler(renderAdminTable)
+    .withFailureHandler(handleError)
+    .getEnrollments();
+}
+
+function renderAdminTable(result) {
+  if (!result || !result.success) {
+    var msg = (result && result.message) ? result.message : 'ไม่สามารถโหลดข้อมูลได้';
+    handleError(msg);
+    return;
+  }
+  allEnrollments = result.data;
+  renderFilteredTable(allEnrollments);
+}
+
+function renderFilteredTable(data) {
+  var tbody = document.getElementById('tableBody');
+
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block; color: #CBD5E1;"></i>ไม่พบข้อมูล</td></tr>';
+    document.getElementById('recordCount').textContent = 'แสดง 0 รายการ';
+    return;
+  }
+
+  var html = '';
+  data.forEach(function(row, idx) {
+    var displayName = escapeHtml(row.prefix) + escapeHtml(row.firstName) + ' ' + escapeHtml(row.lastName);
+    html += '<tr>'
+      + '<td>' + (idx + 1) + '</td>'
+      + '<td>' + escapeHtml(String(row.timestamp)) + '</td>'
+      + '<td>' + displayName + '</td>'
+      + '<td>' + escapeHtml(row.grade) + '</td>'
+      + '<td>' + escapeHtml(row.studyPlan) + '</td>'
+      + '<td>' + escapeHtml(row.phone) + '</td>'
+      + '<td>' + getStatusBadge(row.status) + '</td>'
+      + '<td>'
+      + '<div style="display: flex; gap: 4px; flex-wrap: wrap;">'
+      + '<button class="btn btn-warning btn-sm" onclick="editEnrollment(' + idx + ')" title="แก้ไขข้อมูล" style="background:#F59E0B;color:#fff;"><i class="fas fa-pencil-alt"></i></button>'
+      + '<button class="btn btn-primary btn-sm" onclick="viewA4(' + idx + ')" title="ดูแบบ A4"><i class="fas fa-eye"></i></button>'
+      + '<button class="btn btn-success btn-sm" onclick="changeStatus(' + row.rowIndex + ', \'อนุมัติ\')" title="อนุมัติ"><i class="fas fa-check"></i></button>'
+      + '<button class="btn btn-danger btn-sm" onclick="changeStatus(' + row.rowIndex + ', \'ไม่อนุมัติ\')" title="ไม่อนุมัติ"><i class="fas fa-times"></i></button>'
+      + '<button class="btn btn-sm" style="background:#64748B;color:#FFF;" onclick="confirmDelete(' + row.rowIndex + ')" title="ลบ"><i class="fas fa-trash"></i></button>'
+      + '</div></td></tr>';
+  });
+
+  tbody.innerHTML = html;
+  document.getElementById('recordCount').textContent = 'แสดง ' + data.length + ' รายการ';
+}
+
+function filterTable() {
+  var search = document.getElementById('searchInput').value.toLowerCase();
+  var gradeFilter = document.getElementById('filterGrade').value;
+  var statusFilter = document.getElementById('filterStatus').value;
+
+  var filtered = allEnrollments.filter(function(row) {
+    var nameStr = (row.firstName || '') + ' ' + (row.lastName || '');
+    var matchSearch = !search || nameStr.toLowerCase().indexOf(search) !== -1 || (row.phone && row.phone.indexOf(search) !== -1);
+    var matchGrade = !gradeFilter || row.grade === gradeFilter;
+    var matchStatus = !statusFilter || row.status === statusFilter;
+    return matchSearch && matchGrade && matchStatus;
+  });
+
+  renderFilteredTable(filtered);
+}
+
+function changeStatus(rowIndex, newStatus) {
+  Swal.fire({
+    title: 'ยืนยันการเปลี่ยนสถานะ?',
+    text: 'เปลี่ยนเป็น "' + newStatus + '"',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#6366F1',
+    cancelButtonColor: '#94A3B8',
+    confirmButtonText: 'ยืนยัน',
+    cancelButtonText: 'ยกเลิก'
+  }).then(function(result) {
+    if (result.isConfirmed) {
+      Swal.fire({ title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) { Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: res.message, confirmButtonColor: '#6366F1' }); loadAdminData(); }
+          else { Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: res.message, confirmButtonColor: '#6366F1' }); }
+        })
+        .withFailureHandler(handleError)
+        .updateStatus(rowIndex, newStatus);
+    }
+  });
+}
+
+function confirmDelete(rowIndex) {
+  Swal.fire({
+    title: 'ยืนยันการลบ?',
+    text: 'ข้อมูลนี้จะถูกลบถาวร',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#EF4444',
+    cancelButtonColor: '#94A3B8',
+    confirmButtonText: 'ลบ',
+    cancelButtonText: 'ยกเลิก'
+  }).then(function(result) {
+    if (result.isConfirmed) {
+      Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) { Swal.fire({ icon: 'success', title: 'ลบสำเร็จ!', confirmButtonColor: '#6366F1' }); loadAdminData(); }
+          else { Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: res.message, confirmButtonColor: '#6366F1' }); }
+        })
+        .withFailureHandler(handleError)
+        .deleteEnrollment(rowIndex);
+    }
+  });
+}
+
+// ===== A4 Print View =====
+var _schoolLogoData = localStorage.getItem('schoolLogoData') || '';
+
+function openLogoSettings() {
+  Swal.fire({
+    title: 'ตั้งค่าโลโก้โรงเรียน',
+    html: [
+      '<div style="text-align:center;">',
+      _schoolLogoData
+        ? '<img id="logoPreviewSwal" src="'+_schoolLogoData+'" style="width:80px;height:80px;object-fit:contain;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;">'
+        : '<div id="logoPreviewSwal" style="width:80px;height:80px;border:2px dashed #ccc;border-radius:8px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:#999;">ยังไม่มีโลโก้</div>',
+      '<label class="btn btn-outline btn-sm" style="cursor:pointer;"><i class="fas fa-upload"></i> อัปโหลดภาพโลโก้',
+      '<input type="file" id="logoFileInput" accept="image/*" style="display:none;" onchange="previewLogoSwal(this)"></label>',
+      _schoolLogoData ? '<br><button class="btn btn-sm" style="background:#EF4444;color:#fff;margin-top:8px;" onclick="clearLogo()"><i class="fas fa-trash"></i> ลบโลโก้</button>' : '',
+      '</div>'
+    ].join(''),
+    showCancelButton: true,
+    confirmButtonText: 'บันทึก',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#7C3AED'
+  }).then(function(r) {
+    if (r.isConfirmed) {
+      var newLogo = document.getElementById('logoPreviewSwal');
+      if (newLogo && newLogo.tagName === 'IMG') {
+        _schoolLogoData = newLogo.src;
+        localStorage.setItem('schoolLogoData', _schoolLogoData);
+        Swal.fire({ icon:'success', title:'บันทึกโลโก้สำเร็จ', timer:1500, showConfirmButton:false });
+      }
+    }
+  });
+}
+function previewLogoSwal(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var prev = document.getElementById('logoPreviewSwal');
+    if (prev) { prev.outerHTML = '<img id="logoPreviewSwal" src="'+e.target.result+'" style="width:80px;height:80px;object-fit:contain;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;">'; }
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function clearLogo() {
+  _schoolLogoData = '';
+  localStorage.removeItem('schoolLogoData');
+  Swal.close();
+  Swal.fire({ icon:'success', title:'ลบโลโก้แล้ว', timer:1200, showConfirmButton:false });
+}
+
+// ===== Edit Modal =====
+var _editingRowIndex = null;
+var _editingIdx = null;
+
+function editEnrollment(idx) {
+  var d = allEnrollments[idx];
+  if (!d) return;
+  _editingRowIndex = d.rowIndex;
+  _editingIdx = idx;
+
+  var set = function(id, val) { var el = document.getElementById(id); if (el) { if (el.tagName==='SELECT') el.value = val || el.options[0].value; else el.value = val || ''; } };
+  set('e_prefix',       d.prefix);
+  set('e_firstName',    d.firstName);
+  set('e_lastName',     d.lastName);
+  set('e_birthDate',    d.birthDate);
+  set('e_religion',     d.religion);
+  set('e_ethnicity',    d.ethnicity);
+  set('e_nationality',  d.nationality);
+  set('e_phone',        d.phone);
+  set('e_email',        d.email);
+  set('e_houseNo',      d.houseNo);
+  set('e_moo',          d.moo);
+  set('e_soi',          d.soi);
+  set('e_road',         d.road);
+  set('e_subDistrict',  d.subDistrict);
+  set('e_district',     d.district);
+  set('e_province',     d.province);
+  set('e_zipCode',      d.zipCode);
+  set('e_fatherName',   d.fatherName);
+  set('e_fatherJob',    d.fatherJob);
+  set('e_fatherPhone',  d.fatherPhone);
+  set('e_motherName',   d.motherName);
+  set('e_motherJob',    d.motherJob);
+  set('e_motherPhone',  d.motherPhone);
+  set('e_guardianType', d.guardianType);
+  set('e_guardianName', d.guardianName);
+  set('e_guardianJob',  d.guardianJob);
+  set('e_guardianPhone',d.guardianPhone);
+  set('e_guardianRelation', d.guardianRelation);
+  set('e_prevSchool',      d.prevSchool);
+  set('e_prevSubDistrict', d.prevSubDistrict);
+  set('e_prevDistrict',    d.prevDistrict);
+  set('e_prevProvince',    d.prevProvince);
+  set('e_grade',     d.grade);
+  set('e_studyPlan', d.studyPlan);
+  set('e_status',    d.status);
+
+  var sub = document.getElementById('editModalSubtitle');
+  if (sub) sub.textContent = d.prefix + d.firstName + ' ' + d.lastName + '  (แถวที่ ' + d.rowIndex + ')';
+
+  document.getElementById('editModal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function saveEdit() {
+  if (_editingRowIndex === null) return;
+  var d = allEnrollments[_editingIdx];
+  var get = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var updated = {
+    timestamp:    d.timestamp,
+    prefix:       get('e_prefix'),
+    firstName:    get('e_firstName'),
+    lastName:     get('e_lastName'),
+    birthDate:    get('e_birthDate'),
+    religion:     get('e_religion'),
+    ethnicity:    get('e_ethnicity'),
+    nationality:  get('e_nationality'),
+    houseNo:      get('e_houseNo'),
+    moo:          get('e_moo'),
+    soi:          get('e_soi'),
+    road:         get('e_road'),
+    subDistrict:  get('e_subDistrict'),
+    district:     get('e_district'),
+    province:     get('e_province'),
+    zipCode:      get('e_zipCode'),
+    phone:        get('e_phone'),
+    email:        get('e_email'),
+    fatherName:   get('e_fatherName'),
+    fatherJob:    get('e_fatherJob'),
+    fatherPhone:  get('e_fatherPhone'),
+    motherName:   get('e_motherName'),
+    motherJob:    get('e_motherJob'),
+    motherPhone:  get('e_motherPhone'),
+    guardianType:     get('e_guardianType'),
+    guardianName:     get('e_guardianName'),
+    guardianJob:      get('e_guardianJob'),
+    guardianPhone:    get('e_guardianPhone'),
+    guardianRelation: get('e_guardianRelation'),
+    prevSchool:      get('e_prevSchool'),
+    prevSubDistrict: get('e_prevSubDistrict'),
+    prevDistrict:    get('e_prevDistrict'),
+    prevProvince:    get('e_prevProvince'),
+    grade:       get('e_grade'),
+    studyPlan:   get('e_studyPlan'),
+    photoUrl:    d.photoUrl    || '',
+    documentUrl: d.documentUrl || '',
+    status:      get('e_status')
+  };
+
+  closeEditModal();
+  Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res && res.success) {
+        Swal.fire({ icon:'success', title:'บันทึกสำเร็จ!', text: res.message, confirmButtonColor:'#7C3AED', timer:1800, showConfirmButton:false });
+        loadAdminData();
+      } else {
+        handleError((res && res.message) || 'บันทึกไม่สำเร็จ');
+      }
+    })
+    .withFailureHandler(handleError)
+    .updateEnrollment(_editingRowIndex, updated);
+}
+
+function _a4Esc(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _a4Html(d) {
+  var months = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  var logoHtml = _schoolLogoData
+    ? '<img src="'+_schoolLogoData+'" style="width:60px;height:60px;object-fit:contain;">'
+    : '&#127979;';
+
+  // Parse birthDate from dd/MM/yyyy, or fallback JS Date string
+  function parseBD(raw) {
+    if (!raw) return { day:'', mon:'', yr:'' };
+    var s = String(raw).trim();
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+      var p = s.split('/');
+      return { day: p[0], mon: months[parseInt(p[1],10)] || '', yr: p[2] };
+    }
+    var dt = new Date(s);
+    if (!isNaN(dt.getTime())) {
+      return {
+        day: String(dt.getDate()).padStart(2,'0'),
+        mon: months[dt.getMonth()+1] || '',
+        yr:  String(dt.getFullYear() + 543)
+      };
+    }
+    return { day: s, mon: '', yr: '' };
+  }
+  var bd = parseBD(d.birthDate);
+  var bdDay = bd.day; var bdMon = bd.mon; var bdYr = bd.yr;
+
+  var grade = d.grade || 'ม.1';
+  var isUpper = grade.indexOf('ม.4')!==-1||grade.indexOf('ม.5')!==-1||grade.indexOf('ม.6')!==-1;
+  var gradeLabel = grade.replace('ม.','มัธยมศึกษาปีที่ ');
+  var plans = isUpper
+    ? ['วิทยาศาสตร์-คณิตศาสตร์','ศิลป์-ภาษา','ศิลป์-คำนวณ','ภาษาอังกฤษ-ภาษาจีน']
+    : ['วิทยาศาสตร์-คณิตศาสตร์','ศิลป์-ทั่วไป','ภาษาอังกฤษ','คอมพิวเตอร์'];
+
+  var a4Title   = (document.getElementById('headerTitle')   || {}).textContent || 'ใบสมัครเข้าเรียนต่อชั้น'+gradeLabel;
+  var a4School  = (document.getElementById('headerSchool')  || {}).textContent || 'โรงเรียนหนองบัวไชยวารพิทยาสรรพ์ จังหวัดกาฬสินธุ์';
+  var a4Sangkad = (document.getElementById('headerSangkad') || {}).textContent || 'สังกัดสำนักงานเขตพื้นที่การศึกษามัธยมศึกษากาฬสินธุ์';
+
+  var isFather = d.guardianType === 'บิดา';
+  var isMother = d.guardianType === 'มารดา';
+  var isOther  = !isFather && !isMother && !!d.guardianType;
+
+  function v(val) { return val ? '<span class="v">'+_a4Esc(val)+'</span>' : '<span class="v">&nbsp;</span>'; }
+  function chk(cond) { return cond ? '&#9745;' : '&#9744;'; }
+
+  var planRows = plans.map(function(p) {
+    var sel = d.studyPlan && (d.studyPlan===p || d.studyPlan.indexOf(p)!==-1 || p.indexOf(d.studyPlan)!==-1);
+    return '<div class="plan-row">'+chk(sel)+' แผนการเรียน'+_a4Esc(p)+'</div>';
+  }).join('');
+
+  // photoBase64 is a data: URI pre-fetched server-side to avoid CORS
+  var photoCell = d.photoBase64
+    ? '<img src="'+_a4Esc(d.photoBase64)+'" class="photo-img">'
+    : '<div class="photo-placeholder">ติดรูปถ่าย<br>1&nbsp;นิ้ว</div>';
+
+  // Only show logo if a custom image has been uploaded
+  var logoSection = _schoolLogoData
+    ? '  <div class="hdr-logo"><img src="'+_schoolLogoData+'" style="width:55px;height:55px;object-fit:contain;"></div>'
+    : '  <div class="hdr-logo-empty"></div>';
+
+  return [
+    '<div class="wrap">',
+    // ── HEADER ──
+    '<div class="hdr">',
+    logoSection,
+    '  <div class="hdr-center">',
+    '    <div class="hdr-title">'+_a4Esc(a4Title)+'</div>',
+    '    <div class="hdr-school">'+_a4Esc(a4School)+'</div>',
+    '    <div class="hdr-sangkad">'+_a4Esc(a4Sangkad)+'</div>',
+    '  </div>',
+    '  <div class="hdr-right">',
+    '    <div class="id-box">',
+    '      <div class="id-label">เลขที่ผู้สมัคร</div>',
+    '      <div class="id-cells"><span></span><span></span><span></span></div>',
+    '      <div class="id-note">(เฉพาะเจ้าหน้าที่)</div>',
+    '    </div>',
+    '    <div class="photo-box">'+photoCell+'</div>',
+    '  </div>',
+    '</div>',
+    // ── BODY ──
+    '<div class="body">',
+    '<div class="fl">ชื่อ (เด็กชาย, เด็กหญิง)&nbsp;'+v(d.prefix+d.firstName)+'<span class="dot"></span>นามสกุล&nbsp;'+v(d.lastName)+'<span class="dot"></span></div>',
+    '<div class="fl">เกิดวันที่&nbsp;'+v(bdDay)+'<span class="dot-s"></span>เดือน&nbsp;'+v(bdMon)+'<span class="dot-s"></span>พ.ศ.&nbsp;'+v(bdYr)+'<span class="dot-s"></span>ศาสนา&nbsp;'+v(d.religion)+'<span class="dot-s"></span>เชื้อชาติ&nbsp;'+v(d.ethnicity)+'<span class="dot-s"></span>สัญชาติ&nbsp;'+v(d.nationality)+'<span class="dot-s"></span></div>',
+    '<div class="fl">อยู่บ้านเลขที่&nbsp;'+v(d.houseNo)+'<span class="dot-s"></span>หมู่ที่&nbsp;'+v(d.moo)+'<span class="dot-s"></span>ซอย&nbsp;'+v(d.soi)+'<span class="dot-s"></span>ถนน&nbsp;'+v(d.road)+'<span class="dot"></span></div>',
+    '<div class="fl">ตำบล/แขวง&nbsp;'+v(d.subDistrict)+'<span class="dot"></span>อำเภอ/เขต&nbsp;'+v(d.district)+'<span class="dot"></span>จังหวัด&nbsp;'+v(d.province)+'<span class="dot-s"></span></div>',
+    '<div class="fl">รหัสไปรษณีย์&nbsp;'+v(d.zipCode)+'<span class="dot-s"></span>โทรศัพท์&nbsp;'+v(d.phone)+'<span class="dot"></span></div>',
+    '<div class="fl">ชื่อบิดา&nbsp;'+v(d.fatherName)+'<span class="dot"></span>อาชีพ&nbsp;'+v(d.fatherJob)+'<span class="dot"></span></div>',
+    '<div class="fl">โทรศัพท์&nbsp;'+v(d.fatherPhone)+'<span class="dot"></span></div>',
+    '<div class="fl">ชื่อมารดา&nbsp;'+v(d.motherName)+'<span class="dot"></span>อาชีพ&nbsp;'+v(d.motherJob)+'<span class="dot"></span></div>',
+    '<div class="fl">โทรศัพท์&nbsp;'+v(d.motherPhone)+'<span class="dot"></span></div>',
+    '<div class="fl">ผู้ปกครองคือ&nbsp;'+chk(isFather)+'&nbsp;บิดา&nbsp;&nbsp;'+chk(isMother)+'&nbsp;มารดา&nbsp;&nbsp;'+chk(isOther)+'&nbsp;บุคคลอื่น&nbsp;โปรดระบุความสัมพันธ์คือ&nbsp;'+v(isOther?d.guardianRelation:'')+'<span class="dot-s"></span></div>',
+    '<div class="fl">ชื่อผู้ปกครอง&nbsp;'+v(d.guardianName)+'<span class="dot"></span>อาชีพ&nbsp;'+v(d.guardianJob)+'<span class="dot"></span></div>',
+    '<div class="fl">โทรศัพท์&nbsp;'+v(d.guardianPhone)+'<span class="dot"></span></div>',
+    '<div class="fl indent">สำเร็จการศึกษาระดับชั้นประถมศึกษาปีที่&nbsp;6&nbsp;จากโรงเรียน&nbsp;'+v(d.prevSchool)+'<span class="dot"></span></div>',
+    '<div class="fl">ตำบล/แขวง&nbsp;'+v(d.prevSubDistrict)+'<span class="dot"></span>อำเภอ/เขต&nbsp;'+v(d.prevDistrict)+'<span class="dot"></span>จังหวัด&nbsp;'+v(d.prevProvince)+'<span class="dot-s"></span></div>',
+    '<div class="fl">มีความประสงค์จะสมัครเข้าเรียนต่อชั้น<b>&nbsp;'+_a4Esc(grade)+'&nbsp;</b>ในแผนการเรียนต่อไปนี้</div>',
+    '<div class="plans">'+planRows+'</div>',
+    '<div class="sig-area">',
+    '  <div class="sig-block">',
+    '    <div class="sig-line">ลงชื่อ<span class="sig-dot"></span>ผู้สมัคร (นักเรียน)</div>',
+    '    <div class="sig-paren">(<span class="sig-dot-s"></span>)</div>',
+    '    <div class="sig-date">........../.........../............</div>',
+    '  </div>',
+    '</div>',
+    '<div class="divider">*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*&nbsp;&nbsp;*</div>',
+    '<div class="docs">',
+    '  <div class="docs-title"><b>หลักฐาน</b></div>',
+    '  <div class="docs-grid">',
+    '    <div>&#9744;&nbsp;ใบรับรองผลการเรียน (ปพ.7)</div>',
+    '    <div>&#9744;&nbsp;รูปถ่ายขนาด 1 นิ้ว จำนวน 2 รูป</div>',
+    '    <div>&#9744;&nbsp;สำเนาทะเบียนบ้านของนักเรียน</div>',
+    '    <div>&#9744;&nbsp;สำเนาทะเบียนบ้านของบิดามารดา/ผู้ปกครอง</div>',
+    '    <div class="full">&#9744;&nbsp;แบบรายงานผลการทดสอบระดับชาติรายบุคคล</div>',
+    '  </div>',
+    '  <div class="sig-area" style="margin-top:8px;">',
+    '    <div class="sig-block">',
+    '      <div class="sig-line">ลงชื่อ<span class="sig-dot"></span>เจ้าหน้าที่ตรวจหลักฐาน</div>',
+    '      <div class="sig-paren">(<span class="sig-dot-s"></span>)</div>',
+    '    </div>',
+    '  </div>',
+    '</div>',
+    '</div>', // body
+    '</div>'  // wrap
+  ].join('\n');
+}
+
+function _a4Css() {
+  return [
+    '@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap");',
+    '*{box-sizing:border-box;margin:0;padding:0;}',
+    'body{font-family:"Sarabun",sans-serif;font-size:13px;color:#000;background:#fff;overflow-x:hidden;}',
+    /* strict A4 container — never overflow */
+    '.wrap{width:210mm;max-width:210mm;min-height:280mm;padding:10mm 14mm;margin:0 auto;background:#fff;overflow:hidden;word-break:break-word;word-wrap:break-word;}',
+    /* HEADER */
+    '.hdr{display:flex;align-items:flex-start;gap:4px;margin-bottom:8px;}',
+    '.hdr-logo{flex-shrink:0;width:56px;height:56px;}',
+    '.hdr-logo-empty{flex-shrink:0;width:0;}',
+    '.hdr-center{flex:1;text-align:center;line-height:1.5;overflow:hidden;}',
+    '.hdr-title{font-size:15px;font-weight:700;white-space:normal;word-break:break-word;}',
+    '.hdr-school{font-size:13px;font-weight:600;white-space:normal;word-break:break-word;}',
+    '.hdr-sangkad{font-size:12px;white-space:normal;word-break:break-word;}',
+    '.hdr-right{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}',
+    '.id-box{border:1.5px solid #000;padding:3px 5px;text-align:center;width:108px;}',
+    '.id-label{font-size:12px;font-weight:600;margin-bottom:2px;}',
+    '.id-cells{display:flex;gap:3px;justify-content:center;margin-bottom:2px;}',
+    '.id-cells span{display:inline-block;width:20px;height:20px;border:1px solid #000;}',
+    '.id-note{font-size:10px;color:#333;}',
+    '.photo-box{border:1.5px solid #000;width:88px;height:108px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;line-height:1.5;overflow:hidden;}',
+    '.photo-img{width:100%;height:100%;object-fit:cover;display:block;}',
+    '.photo-placeholder{padding:4px;font-size:11px;}',
+    /* BODY — strict font + line control */
+    '.body{line-height:1.75;overflow:hidden;}',
+    '.fl{display:flex;flex-wrap:wrap;align-items:baseline;margin-bottom:0;font-size:12.5px;overflow:hidden;}',
+    '.fl.indent{padding-left:16px;}',
+    '.v{display:inline-block;min-width:40px;max-width:180px;border-bottom:1px dotted #333;padding:0 2px;color:#000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+    '.dot{flex:1;min-width:10px;border-bottom:1px dotted #bbb;margin:0 3px;height:16px;}',
+    '.dot-s{display:inline-block;width:16px;border-bottom:1px dotted #bbb;margin:0 3px;height:16px;}',
+    /* PLANS */
+    '.plans{padding:1px 0 3px 16px;line-height:1.8;}',
+    '.plan-row{font-size:12.5px;}',
+    /* SIGNATURE */
+    '.sig-area{display:flex;justify-content:flex-end;margin:10px 0 6px;}',
+    '.sig-block{text-align:center;min-width:180px;}',
+    '.sig-line{font-size:12.5px;}',
+    '.sig-dot{display:inline-block;width:110px;border-bottom:1px dotted #333;vertical-align:bottom;margin:0 3px;}',
+    '.sig-paren{font-size:12.5px;margin-top:1px;}',
+    '.sig-dot-s{display:inline-block;width:120px;border-bottom:1px dotted #333;vertical-align:bottom;}',
+    '.sig-date{font-size:12px;margin-top:1px;}',
+    /* DIVIDER */
+    '.divider{text-align:center;color:#5a5a5a;font-size:11px;letter-spacing:3px;margin:5px 0;}',
+    /* DOCS */
+    '.docs{font-size:12px;}',
+    '.docs-title{font-size:12.5px;margin-bottom:3px;}',
+    '.docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px 12px;margin-bottom:2px;}',
+    '.docs-grid .full{grid-column:1/-1;}',
+    '@media print{',
+    '  @page{size:A4 portrait;margin:0;}',
+    '  html,body{width:210mm;height:297mm;overflow:hidden;}',
+    '  .wrap{width:210mm;max-width:210mm;padding:10mm 13mm;margin:0;overflow:hidden;font-size:12px;}',
+    '  .hdr-title{font-size:14px;}',
+    '  .hdr-school,.hdr-sangkad,.fl,.plan-row,.sig-line,.sig-paren,.docs{font-size:12px;}',
+    '}'
+  ].join('\n');
+}
+
+function generateA4Html(d) { return _a4Html(d); }
+
+function viewA4(idx) {
+  var d = allEnrollments[idx];
+  if (!d) return;
+
+  function openPreview(enriched) {
+    Swal.fire({
+      title: 'ดูใบสมัคร — ' + escapeHtml(d.firstName+' '+d.lastName),
+      html: '<iframe id="a4frame" style="width:100%;height:500px;border:none;background:#fff;"></iframe>',
+      width: '860px',
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-print"></i> พิมพ์',
+      cancelButtonText: 'ปิด',
+      confirmButtonColor: '#7C3AED',
+      didOpen: function() {
+        var frame = document.getElementById('a4frame');
+        var fdoc = frame.contentDocument || frame.contentWindow.document;
+        fdoc.open();
+        fdoc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><style>'+_a4Css()+'</style></head><body>'+_a4Html(enriched)+'</body></html>');
+        fdoc.close();
+      }
+    }).then(function(r) {
+      if (r.isConfirmed) printSingleA4(enriched);
+    });
+  }
+
+  if (d.photoUrl) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        openPreview(Object.assign({}, d, {photoBase64: res && res.dataUrl ? res.dataUrl : null}));
+      })
+      .withFailureHandler(function() { openPreview(d); })
+      .getPhotoBase64(d.photoUrl);
+  } else {
+    openPreview(d);
+  }
+}
+
+function printSingleA4(d) {
+  var win = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+  win.document.write([
+    '<!DOCTYPE html><html><head>',
+    '<meta charset="utf-8">',
+    '<title>ใบสมัคร — '+_a4Esc(d.firstName)+' '+_a4Esc(d.lastName)+'</title>',
+    '<style>'+_a4Css()+'</style>',
+    '</head><body>',
+    _a4Html(d),
+    '<scr'+'ipt>window.onload=function(){window.print();};<\/scr'+'ipt>',
+    '</body></html>'
+  ].join(''));
+  win.document.close();
+}
+
+function printA4() {
+  if (!allEnrollments || allEnrollments.length === 0) {
+    Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูล', text: 'ยังไม่มีข้อมูลผู้สมัคร', confirmButtonColor: '#7C3AED' });
+    return;
+  }
+  function doWrite(records) {
+    var win = window.open('', '_blank', 'width=900,height=700,scrollbars=yes');
+    var pages = records.map(function(d) {
+      return '<div style="page-break-after:always;">'+_a4Html(d)+'</div>';
+    }).join('');
+    win.document.write([
+      '<!DOCTYPE html><html><head>',
+      '<meta charset="utf-8"><title>ใบสมัครทั้งหมด</title>',
+      '<style>'+_a4Css()+'</style>',
+      '</head><body>',
+      pages,
+      '<scr'+'ipt>window.onload=function(){window.print();};<\/scr'+'ipt>',
+      '</body></html>'
+    ].join(''));
+    win.document.close();
+  }
+  var photoUrls = allEnrollments.map(function(d) { return d.photoUrl || ''; });
+  google.script.run
+    .withSuccessHandler(function(base64List) {
+      var enriched = allEnrollments.map(function(d, i) {
+        return Object.assign({}, d, {photoBase64: base64List[i] || null});
+      });
+      doWrite(enriched);
+    })
+    .withFailureHandler(function() { doWrite(allEnrollments); })
+    .getPhotosBase64(photoUrls);
+}
+
+// ===== Export =====
+function exportToExcel() {
+  if (allEnrollments.length === 0) {
+    Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูล', confirmButtonColor: '#6366F1' });
+    return;
+  }
+
+  var headers = ['#','วันที่','คำนำหน้า','ชื่อ','นามสกุล','วันเกิด','ศาสนา','เชื้อชาติ','สัญชาติ','เบอร์โทร','อีเมล','ระดับชั้น','แผนการเรียน','โรงเรียนเดิม','ชื่อบิดา','ชื่อมารดา','ผู้ปกครอง','สถานะ'];
+  var csv = [headers.map(function(h) { return '"' + h + '"'; }).join(',')];
+
+  allEnrollments.forEach(function(row, idx) {
+    var line = [
+      idx + 1,
+      '"' + String(row.timestamp).replace(/"/g, '""') + '"',
+      '"' + (row.prefix || '').replace(/"/g, '""') + '"',
+      '"' + (row.firstName || '').replace(/"/g, '""') + '"',
+      '"' + (row.lastName || '').replace(/"/g, '""') + '"',
+      '"' + (row.birthDate || '').replace(/"/g, '""') + '"',
+      '"' + (row.religion || '').replace(/"/g, '""') + '"',
+      '"' + (row.ethnicity || '').replace(/"/g, '""') + '"',
+      '"' + (row.nationality || '').replace(/"/g, '""') + '"',
+      '"' + (row.phone || '').replace(/"/g, '""') + '"',
+      '"' + (row.email || '').replace(/"/g, '""') + '"',
+      '"' + (row.grade || '').replace(/"/g, '""') + '"',
+      '"' + (row.studyPlan || '').replace(/"/g, '""') + '"',
+      '"' + (row.prevSchool || '').replace(/"/g, '""') + '"',
+      '"' + (row.fatherName || '').replace(/"/g, '""') + '"',
+      '"' + (row.motherName || '').replace(/"/g, '""') + '"',
+      '"' + (row.guardianName || '').replace(/"/g, '""') + '"',
+      '"' + (row.status || '').replace(/"/g, '""') + '"'
+    ];
+    csv.push(line.join(','));
+  });
+
+  var csvContent = '\uFEFF' + csv.join('\n');
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url;
+  link.download = 'enrollment_data_' + formatDate(new Date()) + '.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+
+  Swal.fire({ icon: 'success', title: 'ส่งออกสำเร็จ!', text: 'ดาวน์โหลดไฟล์ CSV แล้ว', confirmButtonColor: '#6366F1', timer: 3000 });
+}
+
+// ===== Utility =====
+function escapeHtml(text) {
+  if (!text) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(String(text)));
+  return div.innerHTML;
+}
+
+function getStatusBadge(status) {
+  var cls = 'badge-pending';
+  if (status === 'อนุมัติ') cls = 'badge-approved';
+  else if (status === 'ไม่อนุมัติ') cls = 'badge-rejected';
+  return '<span class="badge ' + cls + '">' + escapeHtml(status || 'รอตรวจสอบ') + '</span>';
+}
+
+function formatDate(date) {
+  var d = date.getDate().toString().padStart(2, '0');
+  var m = (date.getMonth() + 1).toString().padStart(2, '0');
+  return date.getFullYear() + '-' + m + '-' + d;
+}
+
+function handleError(error) {
+  console.error('handleError:', error);
+  var text = typeof error === 'string' ? error : (error && error.message ? error.message : JSON.stringify(error));
+  Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: text || 'ไม่ทราบสาเหตุ', confirmButtonColor: '#7C3AED' });
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', function() {
+  loadDashboard();
+});
+</script>
