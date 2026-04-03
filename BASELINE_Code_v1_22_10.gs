@@ -1,3 +1,8 @@
+// v1_22_10: เพิ่ม dailyTrend ใน getPublicStats() สำหรับ landing page
+// v1_22_9: LP_REG_URL/LABEL + LP_PLAN_REQS
+// v1_22_8: LP_DOCS (dynamic list) แทน LP_DOC1..4
+// v1_22_7: เพิ่ม LP_HERO_BG_URL, LP_HERO_THEME, LP_HERO_OVERLAY
+// v1_22_6: เพิ่ม LP_* settings keys สำหรับ Landing Page content
 // v1_22_5: getStats cache 30s + cache invalidation ใน write ops
 /* =============================================================
    ระบบรับสมัครนักเรียน โรงเรียนหนองนาคำวิทยาคม
@@ -210,15 +215,6 @@ const SETTINGS_DEFAULTS = [
   ['SCHOOL_DISTRICT',    'อำเภอหนองนาคำ'],
   ['SCHOOL_PROVINCE',    'จังหวัดขอนแก่น'],
   ['SCHOOL_PHONE',       ''],
-  ['SCHOOL_EMAIL',       ''],
-  ['LANDING_RULES_URL',  ''],
-  ['LANDING_HERO_BG_URL',''],
-  ['LANDING_DOCS_IMAGE_URL',''],
-  ['LANDING_MAP_EMBED_URL',''],
-  ['LANDING_MAP_LINK_URL',''],
-  ['LANDING_DOCS_DESC',  ''],
-  ['LANDING_DOCS_TEXT',  'รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว\nสำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)\nระเบียนแสดงผลการเรียน (ปพ.1)\nสำเนาทะเบียนบ้านฉบับเจ้าบ้าน'],
-  ['LANDING_TIMELINE_TEXT',''],
   ['PRINCIPAL_NAME',     ''],
   ['PRINCIPAL_TITLE',    'ผู้อำนวยการโรงเรียน'],
   ['ACADEMIC_YEAR',      '2568'],
@@ -286,6 +282,32 @@ const SETTINGS_DEFAULTS = [
   // โหมดทดสอบระบบ — 'true' = ข้ามตรวจ checksum บัตรประชาชน + ข้ามตรวจวันเปิด/ปิดรับสมัคร
   // *** ต้องเปลี่ยนกลับเป็น 'false' ก่อนใช้งานจริงทุกครั้ง ***
   ['TEST_MODE',          'false'],
+  // ── Landing Page content (แก้ได้จาก Admin → ตั้งค่า) ──
+  ['LP_HERO_BADGE',  'เปิดรับสมัคร ปีการศึกษา 2568'],
+  ['LP_M1_DESC',     'รับนักเรียนจบชั้นประถมศึกษาปีที่ 6 ทั้งในเขตและนอกเขตพื้นที่บริการ'],
+  ['LP_M4_DESC',     'รับนักเรียนจบชั้นมัธยมศึกษาปีที่ 3 สำหรับต่อเนื่องในแผนการเรียนที่สนใจ'],
+  ['LP_TL1_TITLE',   'เปิดรับสมัคร ม.1 และ ม.4'],
+  ['LP_TL1_DATE',    'มีนาคม 2568'],
+  ['LP_TL1_DESC',    'รับสมัครออนไลน์ผ่านระบบเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมก่อนสมัคร'],
+  ['LP_TL2_TITLE',   'ประกาศรายชื่อผู้มีสิทธิ์สอบ'],
+  ['LP_TL2_DATE',    'เมษายน 2568'],
+  ['LP_TL2_DESC',    'ผู้สมัครสามารถตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรเข้าสอบได้จากระบบออนไลน์'],
+  ['LP_TL3_TITLE',   'ประกาศผลและรายงานตัว'],
+  ['LP_TL3_DATE',    'เมษายน 2568'],
+  ['LP_TL3_DESC',    'ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ นักเรียนที่ผ่านต้องรายงานตัวตามวันที่กำหนด'],
+  // LP_DOCS: บรรทัดละ 1 รายการ เพิ่ม/ลบได้ไม่จำกัด
+  ['LP_DOCS',        'รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว\nสำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)\nระเบียนแสดงผลการเรียน (ปพ.1)\nสำเนาทะเบียนบ้านฉบับเจ้าบ้าน'],
+  // LP_DOC1..4 เก็บไว้เพื่อ backward compat — ไม่ใช้แล้ว
+  ['LP_DOC1',''],['LP_DOC2',''],['LP_DOC3',''],['LP_DOC4',''],
+  // Hero visual
+  ['LP_HERO_BG_URL',  ''],
+  ['LP_HERO_THEME',   'blue'],
+  ['LP_HERO_OVERLAY', 'medium'],
+  // ระเบียบการ + คุณสมบัติแผนการเรียน
+  ['LP_REG_URL',      ''],
+  ['LP_REG_LABEL',    'ดูระเบียบการรับสมัคร'],
+  // LP_PLAN_REQS: ชื่อแผน|ระดับ|คุณสมบัติ 1|คุณสมบัติ 2 (บรรทัดละ 1 แผน)
+  ['LP_PLAN_REQS',    ''],
 ];
 
 // ─── SUPABASE HELPERS ───
@@ -1305,6 +1327,34 @@ function getPublicStats() {
     serviceSchools: String(cfg.SERVICE_AREA_SCHOOLS||'').split('\n').map(s=>s.trim()).filter(Boolean),
     serviceZones:   String(cfg.SERVICE_AREA_ZONES||'').split('\n').map(s=>s.trim()).filter(Boolean),
   };
+
+  // เพิ่ม daily trend (10 วัน) สำหรับ landing page — ไม่มีข้อมูลส่วนตัว
+  (function() {
+    var openDate = cfg.M1_REG_START || cfg.M4_REG_START || '';
+    var startD;
+    if (openDate) {
+      startD = new Date(openDate);
+    } else {
+      startD = new Date();
+      startD.setDate(startD.getDate() - 9);
+    }
+    startD.setHours(0,0,0,0);
+    var days = {};
+    for (var i = 0; i < 10; i++) {
+      var d = new Date(startD);
+      d.setDate(d.getDate() + i);
+      if (d > new Date()) break;
+      days[d.toISOString().slice(0,10)] = { m1:0, m4:0, total:0 };
+    }
+    apps.forEach(function(a) {
+      var k = String(a.CREATED_AT||'').slice(0,10);
+      if (!days[k]) return;
+      days[k].total++;
+      if (a.LEVEL === 'ม.1') days[k].m1++;
+      else if (a.LEVEL === 'ม.4') days[k].m4++;
+    });
+    result.dailyTrend = days;
+  })();
 
   _CACHE.put(_PUB_STATS_CACHE, JSON.stringify(result), 60);
   return result;
@@ -2345,47 +2395,6 @@ function uploadLogo(token, base64Data) {
 
 
 // ─── UPLOAD LINE QR CODE ───
-function _uploadNamedImageToDrive(token, base64Data, fileBaseName, settingKey, auditAction) {
-  _requireAdmin(token);
-  if (!base64Data || typeof base64Data !== 'string') return { ok:false, msg:'ไม่ได้รับข้อมูลรูปภาพ' };
-  try {
-    const mimeMatch = base64Data.match(/^data:([^;]+);base64,/);
-    const type = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-    const rawExt = type.split('/')[1] || 'jpg';
-    const ext = rawExt === 'jpeg' ? 'jpg' : rawExt.replace(/[^a-z0-9]/g,'') || 'jpg';
-    const raw = base64Data.replace(/^data:[^;]+;base64,/, '');
-    if (!raw) return { ok:false, msg:'ข้อมูล base64 ว่างเปล่า' };
-    const bytes = Utilities.base64Decode(raw);
-    const blob = Utilities.newBlob(bytes, type, fileBaseName + '.' + ext);
-    let folder;
-    try { folder = _getPhotoFolder(); } catch(fe) { folder = DriveApp.getRootFolder(); }
-    ['png','jpg','jpeg','gif','webp'].forEach(function(e) {
-      const iter = folder.getFilesByName(fileBaseName + '.' + e);
-      while (iter.hasNext()) iter.next().setTrashed(true);
-    });
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    const fileId = file.getId();
-    const urls = _driveImageUrls(fileId);
-    const url = urls.thumbUrl;
-    const obj = {}; obj[settingKey] = url;
-    updateSettings(token, obj);
-    _logWithRole('ADMIN', 'ADMIN', auditAction || 'UPLOAD_IMAGE', 'fileId:' + fileId + ',setting:' + settingKey);
-    return { ok:true, url:url, thumbUrl:urls.thumbUrl, downloadUrl:urls.downloadUrl, fileId:fileId };
-  } catch(e) {
-    Logger.log('_uploadNamedImageToDrive error: ' + e);
-    return { ok:false, msg:'Upload ไม่สำเร็จ: ' + String(e) };
-  }
-}
-
-function uploadLandingHeroImage(token, base64Data) {
-  return _uploadNamedImageToDrive(token, base64Data, 'landing_hero_bg', 'LANDING_HERO_BG_URL', 'UPLOAD_LANDING_HERO');
-}
-
-function uploadLandingDocsImage(token, base64Data) {
-  return _uploadNamedImageToDrive(token, base64Data, 'landing_docs_image', 'LANDING_DOCS_IMAGE_URL', 'UPLOAD_LANDING_DOCS_IMAGE');
-}
-
 function uploadLineQr(token, base64Data) {
   _requireAdmin(token);
   if (!base64Data || typeof base64Data !== 'string')
@@ -3235,52 +3244,4 @@ function _pdfSafe(v) {
     .replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
-}
-
-// SAFE PATCH: public config wrapper for landing/home pages
-function getPublicConfig() {
-  var settings = getSettings();
-  var stats = getPublicStats();
-  var timelineRaw = String(settings.LANDING_TIMELINE_TEXT || '').trim();
-  var docsRaw = String(settings.LANDING_DOCS_TEXT || '').trim();
-  return {
-    settings: settings,
-    publicStats: stats,
-    landing: {
-      heroBgUrl: settings.LANDING_HERO_BG_URL || '',
-      docsImageUrl: settings.LANDING_DOCS_IMAGE_URL || '',
-      mapEmbedUrl: settings.LANDING_MAP_EMBED_URL || '',
-      mapLinkUrl: settings.LANDING_MAP_LINK_URL || '',
-      rulesUrl: settings.LANDING_RULES_URL || '',
-      docsDesc: settings.LANDING_DOCS_DESC || '',
-      docs: docsRaw ? docsRaw.split(/\n+/).map(function(t){ return String(t).trim(); }).filter(Boolean) : [],
-      timeline: timelineRaw ? timelineRaw.split(/\n+/).map(function(line){
-        var p = String(line).split('|');
-        return { title:String(p[0]||'').trim(), date:String(p[1]||'').trim(), description:String(p[2]||'').trim(), icon:String(p[3]||'').trim()||'•' };
-      }).filter(function(x){ return x.title; }) : []
-    },
-    timeline: [
-      {
-        title: 'เปิดรับสมัคร ม.1 และ ม.4',
-        date: settings.M1_REG_START || settings.M4_REG_START || '',
-        description: 'รับสมัครออนไลน์ผ่านเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมตามที่กำหนด'
-      },
-      {
-        title: 'ประกาศรายชื่อผู้มีสิทธิ์สอบ',
-        date: settings.M1_EXAM_DATE || settings.M4_EXAM_DATE || '',
-        description: 'ผู้สมัครสามารถเข้าตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรประจำตัวผู้เข้าสอบได้จากระบบ'
-      },
-      {
-        title: 'ประกาศผลและรายงานตัว',
-        date: settings.M1_RESULT_DATE || settings.M4_RESULT_DATE || '',
-        description: 'ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ และรายงานตัวตามกำหนดของโรงเรียน'
-      }
-    ],
-    documents: docsRaw ? docsRaw.split(/\n+/).map(function(t){ return String(t).trim(); }).filter(Boolean) : [
-      'รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว',
-      'สำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)',
-      'ระเบียนแสดงผลการเรียน (ปพ.1)',
-      'สำเนาทะเบียนบ้านฉบับเจ้าบ้าน'
-    ]
-  };
 }

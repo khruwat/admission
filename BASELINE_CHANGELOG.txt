@@ -1,0 +1,49 @@
+# BASELINE — ระบบรับสมัครนักเรียน หนองนาคำวิทยาคม
+# บันทึกวันที่: 3 เมษายน 2569
+# ══════════════════════════════════════════════════════
+
+## ไฟล์ใน Baseline นี้
+- BASELINE_index_v1_15_55.html  — Frontend (Google Apps Script Web App)
+- BASELINE_Code_v1_22_10.gs     — Backend (Google Apps Script)
+
+## สิ่งที่มีใน Baseline นี้
+
+### 🌐 Landing Page (หน้าหลักสำหรับผู้สมัคร)
+- Hero section: fixed background image + parallax scroll
+- Scroll-aware navbar: โปร่งใสบน Hero → solid เมื่อ scroll ลง
+- Quick Nav bar: ปุ่มด่วน (สมัคร / ตรวจสอบ / ประกาศผล / ระเบียบการ / แผนการเรียน / สถิติ)
+- Enrollment Cards: ม.1 / ม.4 พร้อม progress bar, สถานะ, countdown
+- Study Plans section: คุณสมบัติแต่ละแผนการเรียน (config ได้จาก Settings)
+- Timeline: ลำดับขั้นตอนสำคัญ (config ได้จาก Settings)
+- Stats section: ยอดรวมรายวัน + ตารางรายวัน auto-refresh 60s
+- Documents section: รายการเอกสาร เพิ่ม/ลบได้ไม่จำกัด
+- Contact section: แผนที่ Google Maps เต็มกรอบ + ข้อมูลติดต่อ
+- Footer: ข้อมูลโรงเรียน + นักพัฒนา
+
+### 🔒 ความปลอดภัย
+- ปุ่มสมัครทุกปุ่ม block เมื่อปิดรับสมัคร (5 entry points)
+- ย้ายเข้า = เปิดตลอด ม.1/ม.4 ปิดได้อิสระ
+- LINE กลุ่มแสดงเฉพาะหน้าตรวจสอบสถานะ หลังค้นหาสำเร็จ
+- Wizard step 1: ม.1/ม.4 gray-out เมื่อปิดรับสมัคร
+
+### ⚙️ Admin → Settings (🌐 ข้อความหน้าหลัก)
+- พื้นหลัง Hero: URL รูป, ธีมสี, ความเข้ม Overlay
+- Hero badge, คำอธิบาย ม.1/ม.4, Timeline 3 ขั้นตอน
+- รายการเอกสาร (dynamic, เพิ่ม/ลบได้)
+- ระเบียบการ: URL + ข้อความปุ่ม
+- คุณสมบัติแผนการเรียน: format ชื่อ|ระดับ|req1|req2...
+
+### 🎨 Design
+- Palette: น้ำเงิน (#001b4d) + ทอง (#d4a20a) ตามสีโรงเรียน
+- ปุ่ม: btn-cta-register (ทอง) + btn-cta-check (outline)
+- SVG icons ใน wizard (ม.1/ม.4/ย้ายเข้า)
+- Mobile bottom nav: dark glass + gold active
+- Section backgrounds: blue-tint / cool / warm gradient palette
+
+### 📊 GAS Functions
+- getPublicStats(): เพิ่ม dailyTrend (10 วัน) สำหรับ landing page
+- SETTINGS_DEFAULTS: LP_* keys ทั้งหมด + LP_REG_URL + LP_PLAN_REQS
+
+## Version
+- Frontend: v1.15.55
+- Backend:  v1.22.10

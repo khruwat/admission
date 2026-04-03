@@ -1,3 +1,8 @@
+// v1_22_10: เพิ่ม dailyTrend ใน getPublicStats() สำหรับ landing page
+// v1_22_9: LP_REG_URL/LABEL + LP_PLAN_REQS
+// v1_22_8: LP_DOCS (dynamic list) แทน LP_DOC1..4
+// v1_22_7: เพิ่ม LP_HERO_BG_URL, LP_HERO_THEME, LP_HERO_OVERLAY
+// v1_22_6: เพิ่ม LP_* settings keys สำหรับ Landing Page content
 // v1_22_5: getStats cache 30s + cache invalidation ใน write ops
 /* =============================================================
    ระบบรับสมัครนักเรียน โรงเรียนหนองนาคำวิทยาคม
@@ -264,22 +269,8 @@ const SETTINGS_DEFAULTS = [
   ['DEVELOPER_NAME',     ''],
   ['DEVELOPER_POSITION', ''],
   ['DEVELOPER_PHONE',    ''],
-  ['SYSTEM_VERSION',     'v1.22.10'],
-  ['CHANGELOG_TEXT',     'v1.22.10 – 2569-04-03 – Rebuild from v1.15.43: add landing settings keys only (safe, no admin UI)\nv1.22.5 – 2569-03-21 – Performance: getStats cache 30s + cache invalidation\nv1.22.4 – 2569-03-21 – เพิ่ม LINE_GROUP_URL, LINE_QR_URL (แสดงในหน้าตรวจสอบสถานะ)\nv1.22.3 – 2569-03-20 – ระบบ Sync Sheet→Supabase (Sheet เป็นหลัก) + Auto Trigger\nv1.22.2 – 2569-03-20 – Bugfix TEST_MODE: _isTestModeActive() อ่านจาก Sheet โดยตรง\nv1.22.1 – 2569-03-20 – โหมดทดสอบระบบ (TEST_MODE) ข้าม checksum + วันเปิด/ปิด\nv1.22.0 – 2569-03-20 – ใบลงชื่อเข้าห้องสอบ PDF แยกตามแผน/ห้องสอบ\nv1.21.1 – 2569-03-20 – ล็อคแก้ไขข้อมูลเมื่อสถานะผ่าน/รายงานตัวแล้ว\nv1.21.0 – 2569-03-20 – ดาวน์โหลดใบสมัคร+ใบมอบตัวเมื่อสถานะผ่าน/รายงานตัวแล้ว'],
-    // Landing page settings (safe rebuild from v1.15.43)
-  ['LANDING_HERO_BG_URL', ''],
-  ['LANDING_RULES_URL', ''],
-  ['LANDING_DOCS_IMAGE_URL', ''],
-  ['LANDING_MAP_EMBED_URL', ''],
-  ['LANDING_MAP_LINK_URL', ''],
-  ['LANDING_DOCS_DESC', ''],
-  ['LANDING_DOCS_NOTE', ''],
-  ['LANDING_DOCS_NOTE_SMALL', ''],
-  ['LANDING_DOCS_TEXT', ''],
-  ['LANDING_TIMELINE_TEXT', ''],
-  ['LANDING_CONTACT_PHONE', ''],
-  ['LANDING_CONTACT_EMAIL', ''],
-  ['LANDING_CONTACT_ADDRESS', ''],
+  ['SYSTEM_VERSION',     'v1.22.5'],
+  ['CHANGELOG_TEXT',     'v1.22.5 – 2569-03-21 – Performance: getStats cache 30s + cache invalidation\nv1.22.4 – 2569-03-21 – เพิ่ม LINE_GROUP_URL, LINE_QR_URL (แสดงในหน้าตรวจสอบสถานะ)\nv1.22.3 – 2569-03-20 – ระบบ Sync Sheet→Supabase (Sheet เป็นหลัก) + Auto Trigger\nv1.22.2 – 2569-03-20 – Bugfix TEST_MODE: _isTestModeActive() อ่านจาก Sheet โดยตรง\nv1.22.1 – 2569-03-20 – โหมดทดสอบระบบ (TEST_MODE) ข้าม checksum + วันเปิด/ปิด\nv1.22.0 – 2569-03-20 – ใบลงชื่อเข้าห้องสอบ PDF แยกตามแผน/ห้องสอบ\nv1.21.1 – 2569-03-20 – ล็อคแก้ไขข้อมูลเมื่อสถานะผ่าน/รายงานตัวแล้ว\nv1.21.0 – 2569-03-20 – ดาวน์โหลดใบสมัคร+ใบมอบตัวเมื่อสถานะผ่าน/รายงานตัวแล้ว'],
   ['ANNOUNCEMENT',       ''],
   ['ANNOUNCE_IMAGE',     ''],
   ['ANNOUNCE_POPUP',     'true'],
@@ -291,6 +282,32 @@ const SETTINGS_DEFAULTS = [
   // โหมดทดสอบระบบ — 'true' = ข้ามตรวจ checksum บัตรประชาชน + ข้ามตรวจวันเปิด/ปิดรับสมัคร
   // *** ต้องเปลี่ยนกลับเป็น 'false' ก่อนใช้งานจริงทุกครั้ง ***
   ['TEST_MODE',          'false'],
+  // ── Landing Page content (แก้ได้จาก Admin → ตั้งค่า) ──
+  ['LP_HERO_BADGE',  'เปิดรับสมัคร ปีการศึกษา 2568'],
+  ['LP_M1_DESC',     'รับนักเรียนจบชั้นประถมศึกษาปีที่ 6 ทั้งในเขตและนอกเขตพื้นที่บริการ'],
+  ['LP_M4_DESC',     'รับนักเรียนจบชั้นมัธยมศึกษาปีที่ 3 สำหรับต่อเนื่องในแผนการเรียนที่สนใจ'],
+  ['LP_TL1_TITLE',   'เปิดรับสมัคร ม.1 และ ม.4'],
+  ['LP_TL1_DATE',    'มีนาคม 2568'],
+  ['LP_TL1_DESC',    'รับสมัครออนไลน์ผ่านระบบเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมก่อนสมัคร'],
+  ['LP_TL2_TITLE',   'ประกาศรายชื่อผู้มีสิทธิ์สอบ'],
+  ['LP_TL2_DATE',    'เมษายน 2568'],
+  ['LP_TL2_DESC',    'ผู้สมัครสามารถตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรเข้าสอบได้จากระบบออนไลน์'],
+  ['LP_TL3_TITLE',   'ประกาศผลและรายงานตัว'],
+  ['LP_TL3_DATE',    'เมษายน 2568'],
+  ['LP_TL3_DESC',    'ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ นักเรียนที่ผ่านต้องรายงานตัวตามวันที่กำหนด'],
+  // LP_DOCS: บรรทัดละ 1 รายการ เพิ่ม/ลบได้ไม่จำกัด
+  ['LP_DOCS',        'รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว\nสำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)\nระเบียนแสดงผลการเรียน (ปพ.1)\nสำเนาทะเบียนบ้านฉบับเจ้าบ้าน'],
+  // LP_DOC1..4 เก็บไว้เพื่อ backward compat — ไม่ใช้แล้ว
+  ['LP_DOC1',''],['LP_DOC2',''],['LP_DOC3',''],['LP_DOC4',''],
+  // Hero visual
+  ['LP_HERO_BG_URL',  ''],
+  ['LP_HERO_THEME',   'blue'],
+  ['LP_HERO_OVERLAY', 'medium'],
+  // ระเบียบการ + คุณสมบัติแผนการเรียน
+  ['LP_REG_URL',      ''],
+  ['LP_REG_LABEL',    'ดูระเบียบการรับสมัคร'],
+  // LP_PLAN_REQS: ชื่อแผน|ระดับ|คุณสมบัติ 1|คุณสมบัติ 2 (บรรทัดละ 1 แผน)
+  ['LP_PLAN_REQS',    ''],
 ];
 
 // ─── SUPABASE HELPERS ───
@@ -1310,6 +1327,34 @@ function getPublicStats() {
     serviceSchools: String(cfg.SERVICE_AREA_SCHOOLS||'').split('\n').map(s=>s.trim()).filter(Boolean),
     serviceZones:   String(cfg.SERVICE_AREA_ZONES||'').split('\n').map(s=>s.trim()).filter(Boolean),
   };
+
+  // เพิ่ม daily trend (10 วัน) สำหรับ landing page — ไม่มีข้อมูลส่วนตัว
+  (function() {
+    var openDate = cfg.M1_REG_START || cfg.M4_REG_START || '';
+    var startD;
+    if (openDate) {
+      startD = new Date(openDate);
+    } else {
+      startD = new Date();
+      startD.setDate(startD.getDate() - 9);
+    }
+    startD.setHours(0,0,0,0);
+    var days = {};
+    for (var i = 0; i < 10; i++) {
+      var d = new Date(startD);
+      d.setDate(d.getDate() + i);
+      if (d > new Date()) break;
+      days[d.toISOString().slice(0,10)] = { m1:0, m4:0, total:0 };
+    }
+    apps.forEach(function(a) {
+      var k = String(a.CREATED_AT||'').slice(0,10);
+      if (!days[k]) return;
+      days[k].total++;
+      if (a.LEVEL === 'ม.1') days[k].m1++;
+      else if (a.LEVEL === 'ม.4') days[k].m4++;
+    });
+    result.dailyTrend = days;
+  })();
 
   _CACHE.put(_PUB_STATS_CACHE, JSON.stringify(result), 60);
   return result;
@@ -3199,51 +3244,4 @@ function _pdfSafe(v) {
     .replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
-}
-
-// SAFE PATCH: public config wrapper for landing/home pages
-function getPublicConfig() {
-  var settings = getSettings();
-  var stats = getPublicStats();
-  var docs = String(settings.LANDING_DOCS_TEXT || '').split(/\r?\n/).map(function(t){ return String(t||'').trim(); }).filter(Boolean);
-  var timeline = String(settings.LANDING_TIMELINE_TEXT || '').split(/\r?\n/).map(function(line){
-    var p = String(line||'').split('|');
-    return {
-      title: String(p[0] || '').trim(),
-      date: String(p[1] || '').trim(),
-      description: String(p[2] || '').trim(),
-      icon: String(p[3] || '').trim()
-    };
-  }).filter(function(r){ return r.title; });
-  if (!timeline.length) {
-    timeline = [
-      { title: 'เปิดรับสมัคร ม.1 และ ม.4', date: settings.M1_REG_START || settings.M4_REG_START || '', description: 'รับสมัครออนไลน์ผ่านเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมตามที่กำหนด', icon: '✏️' },
-      { title: 'ประกาศรายชื่อผู้มีสิทธิ์สอบ', date: settings.M1_EXAM_DATE || settings.M4_EXAM_DATE || '', description: 'ผู้สมัครสามารถเข้าตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรประจำตัวผู้เข้าสอบได้จากระบบ', icon: '🪪' },
-      { title: 'ประกาศผลและรายงานตัว', date: settings.M1_RESULT_DATE || settings.M4_RESULT_DATE || '', description: 'ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ และรายงานตัวตามกำหนดของโรงเรียน', icon: '🎉' }
-    ];
-  }
-  return {
-    settings: settings,
-    publicStats: stats,
-    timeline: timeline,
-    documents: docs.length ? docs : [
-      'รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว',
-      'สำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)',
-      'ระเบียนแสดงผลการเรียน (ปพ.1)',
-      'สำเนาทะเบียนบ้านฉบับเจ้าบ้าน'
-    ],
-    landing: {
-      heroBgUrl: settings.LANDING_HERO_BG_URL || '',
-      rulesUrl: settings.LANDING_RULES_URL || '',
-      docsImageUrl: settings.LANDING_DOCS_IMAGE_URL || '',
-      mapEmbedUrl: settings.LANDING_MAP_EMBED_URL || '',
-      mapLinkUrl: settings.LANDING_MAP_LINK_URL || '',
-      docsDesc: settings.LANDING_DOCS_DESC || '',
-      docsNote: settings.LANDING_DOCS_NOTE || '',
-      docsNoteSmall: settings.LANDING_DOCS_NOTE_SMALL || '',
-      contactPhone: settings.LANDING_CONTACT_PHONE || settings.SCHOOL_PHONE || '',
-      contactEmail: settings.LANDING_CONTACT_EMAIL || settings.SCHOOL_EMAIL || '',
-      contactAddress: settings.LANDING_CONTACT_ADDRESS || ''
-    }
-  };
 }

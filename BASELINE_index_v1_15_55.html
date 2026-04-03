@@ -4,7 +4,84 @@
    Student Enrollment System  v1.15.57  (index.html)
    ──────────────────────────────────────────────────
    CHANGELOG
-   v1.15.47 – 2569-03-21 – Performance & Bug fixes
+   v1.15.55 – 2569-03-21 – สถิติ landing page: ยอดรวม + ตารางรายวัน
+              _renderLpStats: summary card ม.1/ม.4 + progress bar + pills
+              daily table: รายวัน (วันเปิดรับสมัคร ~ วันปัจจุบัน)
+              auto-refresh ทุก 60 วินาที
+   v1.15.54 – 2569-03-21 – ระเบียบการ + คุณสมบัติแผนการเรียน
+              LP_REG_URL/LABEL: ปุ่มระเบียบการใน Quick Nav
+              LP_PLAN_REQS: section คุณสมบัติแผนการเรียน (format: ชื่อ|ระดับ|req1|req2)
+              ทั้งสองส่วนตั้งค่าได้ใน Admin → ตั้งค่า → 🌐 ข้อความหน้าหลัก
+   v1.15.53 – 2569-03-21 – Map full height + LINE security
+              map iframe: flex fill container (ไม่ครึ่งกรอบอีกต่อไป)
+              LINE card: ลบออกจาก Contact section landing page
+              LINE แสดงเฉพาะหน้าตรวจสอบสถานะ หลังค้นหาข้อมูลตัวเองสำเร็จ
+   v1.15.52 – 2569-03-21 – Nav btn & mobile bottom nav animation
+              nav-pub-btn: translateY removed → glow ring (ไม่ซ้อนแถบ)
+              mobile-bottom-nav: dark glass + gold active indicator
+              mbn hover: icon lift เฉพาะ icon ไม่ทั้งปุ่ม
+   v1.15.51 – 2569-03-21 – Scroll-aware navbar
+              โปร่งใสบน hero → solid เมื่อ scroll ลง
+              nav-transparent: gradient dark overlay + ปุ่มสีขาว
+              active button = gold บน transparent, navy บน solid
+   v1.15.50 – 2569-03-21 – Section color palette redesign
+              Enrollment: blue-tinted (#f0f5ff), Timeline: cool (#f5f8ff)
+              Stats: warm (#fafaf7), Contact: cool (#f5f8ff)
+              Documents dark: softened navy gradient
+              Quick nav: glassmorphism
+   v1.15.49 – 2569-03-21 – Hero bg fixed (background-attachment:fixed)
+              รูปพื้นหลังอยู่กับที่ ไม่เลื่อนตาม scroll
+              เปลี่ยนจาก <img> → CSS background-image
+              Mobile: fallback scroll บน iOS Safari
+   v1.15.48 – 2569-03-21 – Button & icon consistency
+              btn-cta-register (gold) + btn-cta-check (outline) — ใช้ทั่ว landing
+              lp-enroll-icon: emoji → SVG (ม.1/ม.4)
+              lp-enroll-reg-btn: unified gold
+              quick nav primary: gold
+   v1.15.47 – 2569-03-21 – Wizard level options: disable closed + SVG icons
+              .level-closed: gray-out + "ปิดรับสมัคร" badge + pointer-events:none
+              selectLevel: guard ป้องกันเลือก level ที่ปิด
+              icons: เปลี่ยนจาก emoji → SVG professional (ม.1/ม.4/ย้ายเข้า)
+   v1.15.46 – 2569-03-21 – Register guard: level-specific (ย้ายเข้าเปิดเสมอ)
+              _isLevelOpen(level): ม.1/ม.4 ตรวจ flag, ย้ายเข้า = true เสมอ
+              nav/hero buttons ไม่ถูก disable (มีย้ายเข้า)
+              เฉพาะ btn-reg-m1/m4 บน landing card ที่ disable ตาม level
+   v1.15.45 – 2569-03-21 – Fix: hero bg-img hidden when LP_HERO_BG_URL is empty
+              empty URL → restore default Unsplash bg (not hidden)
+              remove aggressive CSS [src=''] hide rule
+   v1.15.44 – 2569-03-21 – Fix hero flash on load (sessionStorage cache)
+              inline <script> reads sessionStorage → apply class before GAS call
+              applySettings saves theme/overlay/bgUrl to sessionStorage
+              CSS transitions on hero background (0.4s ease)
+   v1.15.43 – 2569-03-21 – Block ALL register entry points when closed
+              _isAnyRegOpen() + _guardRegister() helper
+              Guarded: goRegister, goPublicRegisterDirect, startRegister, proceedToRegister
+              Synced disabled: navbar + drawer + mobile bottom nav + quick nav + hero btn
+   v1.15.42 – 2569-03-21 – Fix div structure: restore LINE card closing + LP card correct level
+              canvas + 4 closing divs ถูก restore ให้ถูกต้อง
+              LP card ย้ายมาอยู่ระดับเดียวกับ card อื่นๆ ใน admin-settings
+   v1.15.41 – 2569-03-21 – Fix: Settings content leaked outside admin-settings div
+              ลบ orphaned closing divs ที่เป็น remnant ของ LINE card
+   v1.15.40 – 2569-03-21 – Card redesign (Tailwind) + fix register closed bug
+              lp-enroll-card: gradient accent + clean rows (no dark hover)
+              _startCountdown fallback: ห้าม re-enable เมื่อ manualOpen=false
+              goRegister(): เช็คสถานะก่อนเปิดฟอร์ม
+              quick nav btn: sync disabled state ตามสถานะเปิด/ปิด
+   v1.15.39 – 2569-03-21 – Fix nav scroll float + dynamic docs list
+              scrollTo instant (ไม่ลอยขึ้นใต้ navbar)
+              LP_DOCS: textarea เพิ่ม/ลบรายการได้ไม่จำกัด
+   v1.15.38 – 2569-03-21 – Hero: overlay lighter + BG URL + theme + overlay settings
+              LP_HERO_BG_URL / LP_HERO_THEME / LP_HERO_OVERLAY
+   v1.15.37 – 2569-03-21 – LP text configurable from Settings
+              เพิ่ม LP_* settings: hero badge, m1/m4 desc, 3 timeline, 4 docs
+              Admin Settings card 🌐 + fillSettings/saveSettings/applySettings
+   v1.15.36 – 2569-03-21 – Typography refinement: อ่านง่าย ทางการ สะอาดตา
+              Kanit 600/700 headings · Sarabun 400/500 body · weight:900→600/700
+              label 9px→11px · heading sizes ลดลง · line-height เพิ่ม
+   v1.15.35 – 2569-03-21 – Landing Page fix: remove inline <style> from body
+              แก้ blank page bug: ย้าย CSS ทั้งหมดไปไว้ใน <head>
+              ไม่มี inline <style> tag ใน body อีกต่อไป
+   v1.15.33 – 2569-03-21 – Performance & Bug fixes
               [FIX] refreshAppsFromSheet(): แก้ double GAS call
                 แยก _renderAppsTable(apps) ออกเป็น helper แยก
                 loadApplications() และ refreshAppsFromSheet() ใช้ร่วมกัน
@@ -448,17 +525,42 @@ input,select,textarea{font-family:'Kanit',sans-serif;outline:none}
 
 /* NAVBAR */
 #navbar{
-  background:#fff;color:#1e293b;
   position:fixed;top:0;left:0;right:0;
   z-index:500;
+  /* default = solid white */
+  background:#fff;
   border-bottom:1px solid #e2e8f0;
-  box-shadow:0 1px 4px rgba(0,0,0,.06)
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+  transition:background .35s ease,border-color .35s ease,box-shadow .35s ease
 }
+/* transparent state — บน hero เท่านั้น */
+#navbar.nav-transparent{
+  background:linear-gradient(to bottom,rgba(0,0,0,.35) 0%,transparent 100%);
+  border-bottom:1px solid transparent;
+  box-shadow:none
+}
+/* nav items สีขาวเมื่อ transparent */
+#navbar.nav-transparent .nav-logo{color:#fff}
+#navbar.nav-transparent #nav-school-name{color:#fff}
+#navbar.nav-transparent .nav-logo-icon{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25)}
+#navbar.nav-transparent .nav-pub-btn{
+  background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:#fff
+}
+#navbar.nav-transparent .nav-pub-btn:hover{background:rgba(255,255,255,.2)}
+#navbar.nav-transparent .nav-pub-btn.active{
+  background:rgba(212,175,55,.85);border-color:transparent;color:#001b4d;
+  box-shadow:0 2px 10px rgba(212,175,55,.3)
+}
+#navbar.nav-transparent .btn-admin-login{
+  background:rgba(212,175,55,.9);color:#001b4d;border:none
+}
+#navbar.nav-transparent .btn-admin-login:hover{background:#f0c430}
+#navbar.nav-transparent #nav-hamburger{color:#fff}
 /* ชดเชย fixed navbar ให้ทุก page */
 body{padding-top:var(--navbar-h)}
 #main-content{min-height:calc(100vh - var(--navbar-h));overflow:visible}.nav-inner{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:12px;height:62px}
 .nav-logo{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;flex:1;color:#1e40af}
-.nav-logo-icon{width:40px;height:40px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid #bfdbfe}
+.nav-logo-icon{width:38px;height:38px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid #bfdbfe;transition:background .3s,border-color .3s}
 .nav-right{display:flex;align-items:center;gap:8px}
 .btn-admin-login{background:#1e40af;color:#fff;padding:7px 16px;border-radius:20px;font-size:14px;font-weight:500;border:none;transition:all .2s;cursor:pointer}
 .btn-admin-login:hover{background:#1e3a8a}
@@ -471,7 +573,7 @@ body{padding-top:var(--navbar-h)}
 
 .nav-public-shortcuts{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:auto hidden;scrollbar-width:none}
 .nav-public-shortcuts::-webkit-scrollbar{display:none}
-.nav-pub-btn{background:#f8fafc;border:1px solid #dbe3ef;color:#1e3a8a;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:600;line-height:1;white-space:nowrap;cursor:pointer;transition:all .2s;flex:0 0 auto}
+.nav-pub-btn{background:#f8fafc;border:1px solid #dbe3ef;color:#1e3a8a;padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;line-height:1;white-space:nowrap;cursor:pointer;transition:all .3s;flex:0 0 auto}
 .nav-pub-btn:hover{background:#eff6ff;border-color:#93c5fd}
 .nav-pub-btn.active{background:#1e40af;color:#fff;border-color:#1e40af;box-shadow:0 4px 12px rgba(30,64,175,.18)}
 .nav-pub-btn span{display:inline-block;vertical-align:middle}
@@ -894,6 +996,10 @@ body{padding-top:var(--navbar-h)}
 .wizard-card-body{padding:28px 24px}
 .wizard-footer{padding:18px 24px;background:#f8fafc;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 
+
+.level-svg-icon{width:60px;height:60px;display:block;margin:0 auto;transition:transform .3s;}
+.level-option:hover .level-svg-icon{transform:scale(1.1) translateY(-3px);}
+.level-option.level-closed .level-svg-icon{filter:grayscale(1) opacity(.4);}
 .level-options{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
 .level-option{
   border:2px solid var(--border);border-radius:var(--r-lg);padding:24px 20px;
@@ -922,12 +1028,26 @@ body{padding-top:var(--navbar-h)}
 .level-option .level-name{font-size:22px;font-weight:800;margin:10px 0 4px;color:var(--primary)}
 #lo-m4 .level-name{color:#059669}
 .level-option .level-desc{font-size:12px;color:var(--gray)}
-.level-option .level-icon{font-size:44px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.12));transition:transform .3s;}
-.level-option:hover .level-icon{transform:scale(1.12) translateY(-3px);}
+.level-option .level-icon{display:flex;justify-content:center;align-items:center;transition:transform .3s;}
+
 .level-option input[type=radio]{position:absolute;opacity:0}
 .level-option .check-mark{position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .25s;font-size:13px}
 .level-option.selected .check-mark{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(30,64,175,.3);}
 #lo-m4.selected .check-mark{background:#059669;border-color:#059669;}
+/* disabled state — ปิดรับสมัคร */
+.level-option.level-closed{
+  opacity:.45;cursor:not-allowed;pointer-events:none;
+  background:#f8fafc;border-color:#e2e8f0;
+}
+.level-option.level-closed .level-name{color:#94a3b8}
+.level-option.level-closed .level-icon{filter:grayscale(1) opacity(.5)}
+.level-option.level-closed .check-mark{border-color:#e2e8f0;background:#f1f5f9}
+.level-option.level-closed::after{
+  content:'ปิดรับสมัคร';position:absolute;top:8px;left:8px;
+  background:#ef4444;color:#fff;font-size:10px;font-weight:600;
+  padding:2px 8px;border-radius:999px;letter-spacing:.03em;
+  font-family:'Sarabun',sans-serif
+}
 
 .type-options{display:grid;gap:10px}
 .type-option{border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px}
@@ -2555,21 +2675,30 @@ body { background: #eef2f7; }
 }
 .btn-outline:active { transform:translateY(1px)!important; box-shadow: inset 0 2px 4px rgba(30,64,175,.12)!important; }
 
-/* ── NAV pub btn 3D ── */
+/* ── NAV pub btn — hover: glow ring (ไม่ยกขึ้น) ── */
 .nav-pub-btn {
-  box-shadow: 0 2px 6px rgba(0,0,0,.07), inset 0 1px 0 rgba(255,255,255,.9);
+  box-shadow: 0 0 0 0 rgba(30,64,175,0);
+  transition: background .2s, border-color .2s, color .2s, box-shadow .25s;
 }
 .nav-pub-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(30,64,175,.15), inset 0 1px 0 rgba(255,255,255,.95);
+  background: #e8f0fe;
+  border-color: #7aa2f7;
+  color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30,64,175,.12);
 }
 .nav-pub-btn.active {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.2),
-    inset 0 -1px 0 rgba(0,0,0,.2),
-    0 4px 14px rgba(30,64,175,.38);
+  box-shadow: 0 0 0 3px rgba(30,64,175,.18), inset 0 1px 0 rgba(255,255,255,.15);
 }
-.nav-pub-btn:active { transform:translateY(0)!important; }
+.nav-pub-btn:active {
+  box-shadow: 0 0 0 4px rgba(30,64,175,.22);
+  background: #dbeafe;
+}
+/* transparent navbar: hover glow สีขาว */
+#navbar.nav-transparent .nav-pub-btn:hover {
+  background: rgba(255,255,255,.22);
+  border-color: rgba(255,255,255,.5);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.15);
+}
 
 /* ── HERO primary 3D ── */
 .btn-hero-primary {
@@ -3213,20 +3342,31 @@ select.form-control:focus {
    แสดงเฉพาะมือถือ ≤768px — ซ่อนใน admin
 ══════════════════════════════════════════ */
 #mobile-bottom-nav {
-  display: none; /* ซ่อนบน desktop */
+  display: none;
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 450;
-  background: #fff;
-  border-top: 1px solid #e2e8f0;
-  box-shadow: 0 -2px 16px rgba(0,0,0,.10);
+  /* glossy dark glass */
+  background: rgba(15,20,40,.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 -4px 24px rgba(0,0,0,.28), 0 -1px 0 rgba(255,255,255,.05);
   padding: 0;
-  padding-bottom: env(safe-area-inset-bottom); /* iPhone notch */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+/* แสงเงาด้านบน (highlight edge) */
+#mobile-bottom-nav::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12) 30%, rgba(212,175,55,.2) 50%, rgba(255,255,255,.12) 70%, transparent);
 }
 .mbn-inner {
   display: flex;
   align-items: stretch;
-  height: 58px;
+  height: 60px;
 }
 .mbn-btn {
   flex: 1;
@@ -3234,29 +3374,66 @@ select.form-control:focus {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: rgba(255,255,255,.45);
   cursor: pointer;
   font-family: 'Kanit', sans-serif;
   padding: 6px 4px 4px;
-  transition: color .15s, background .15s;
+  transition: color .2s, background .2s, transform .15s;
   -webkit-tap-highlight-color: transparent;
   position: relative;
+  overflow: hidden;
 }
-.mbn-btn:active { background: #f1f5f9; }
-.mbn-btn.active { color: #1e40af; }
-.mbn-btn.active::after {
+/* Ripple effect on tap */
+.mbn-btn::after {
   content: '';
   position: absolute;
-  top: 0; left: 20%; right: 20%;
-  height: 3px;
-  background: #1e40af;
-  border-radius: 0 0 3px 3px;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,.15) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity .2s;
 }
-.mbn-icon { font-size: 20px; line-height: 1; }
-.mbn-label { font-size: 10px; font-weight: 600; line-height: 1; white-space: nowrap; }
+.mbn-btn:active::after { opacity: 1; }
+.mbn-btn:active { transform: scale(.95); }
+
+/* hover (desktop/tablet) */
+@media(hover:hover){
+  .mbn-btn:hover {
+    color: rgba(255,255,255,.85);
+    background: rgba(255,255,255,.07);
+  }
+  .mbn-btn:hover .mbn-icon { transform: translateY(-2px) scale(1.1); }
+}
+
+/* active/selected state */
+.mbn-btn.active { color: #f0c430; }
+.mbn-btn.active .mbn-icon {
+  filter: drop-shadow(0 0 6px rgba(240,196,48,.5));
+}
+.mbn-btn.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 15%; right: 15%;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, #f0c430, transparent);
+  border-radius: 0 0 2px 2px;
+}
+
+.mbn-icon {
+  font-size: 21px;
+  line-height: 1;
+  transition: transform .2s;
+  display: block;
+}
+.mbn-label {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: .02em;
+}
 
 /* ชดเชย bottom nav ไม่ทับเนื้อหา */
 @media (max-width: 768px) {
@@ -3367,125 +3544,396 @@ select.form-control:focus {
 }
 
 
-/* ===== SAFE LANDING PATCH v1.15.43 ===== */
-.lp-hero{position:relative;min-height:640px;background:linear-gradient(135deg,#082968,#0d3f96);overflow:hidden}
-.lp-hero-bg{position:absolute;inset:0;background:linear-gradient(rgba(6,34,89,.50),rgba(6,34,89,.68)),url(https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1600&auto=format&fit=crop) center/cover no-repeat;filter:saturate(.9)}
-.lp-hero-overlay{position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(255,214,102,.12),transparent 35%)}
-.lp-hero-inner{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:88px 20px 140px;color:#fff}
-.lp-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,214,102,.4);background:rgba(255,255,255,.08);backdrop-filter:blur(8px);padding:10px 18px;border-radius:999px;color:#f4c94b;font-weight:700;margin-bottom:22px}
-.lp-hero-logo{display:none}
-.lp-hero h1{font-size:24px;font-weight:700;color:#dbeafe;margin-bottom:8px}
-.lp-hero h2{font-size:clamp(42px,7vw,74px);line-height:1.02;font-weight:800;max-width:760px;margin-bottom:18px;color:#fff;text-shadow:0 6px 24px rgba(0,0,0,.22)}
-.lp-hero p{font-size:clamp(18px,2.4vw,28px);max-width:780px;line-height:1.45;color:#e2e8f0;margin-bottom:28px}
-.lp-hero-btns{display:flex;gap:14px;flex-wrap:wrap}.lp-btn{border:none;border-radius:22px;padding:16px 28px;font-size:20px;font-weight:700;cursor:pointer;transition:.2s ease;box-shadow:0 10px 28px rgba(0,0,0,.18)}
-.lp-btn:hover{transform:translateY(-2px)}.lp-btn:active{transform:translateY(0) scale(.98)}
-.lp-btn-gold{background:linear-gradient(135deg,#f4c94b,#ddb43f);color:#082968}.lp-btn-glass{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.28)}
-.lp-btn-primary{background:#1e40af;color:#fff;width:100%;margin-top:12px}.lp-btn-success{background:#059669;color:#fff;width:100%;margin-top:12px}
-.lp-quickwrap{max-width:1200px;margin:-72px auto 0;padding:0 20px;position:relative;z-index:3}
-.lp-quicknav{background:#fff;border-radius:28px;box-shadow:0 20px 50px rgba(15,23,42,.12);display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px}
-.lp-qbtn{border:none;background:transparent;padding:16px 24px;border-radius:20px;font-size:18px;font-weight:700;color:#082968;cursor:pointer}.lp-qbtn.active,.lp-qbtn:hover{background:#0b3788;color:#fff}
-.lp-section{max-width:1200px;margin:0 auto;padding:80px 20px}.lp-titlebox{text-align:center;margin-bottom:32px}.lp-kicker{font-size:16px;font-weight:800;letter-spacing:.12em;color:#d4af37;margin-bottom:10px}.lp-kicker-dark{display:inline-block;border:1px solid rgba(255,214,102,.28);background:rgba(255,255,255,.08);padding:8px 14px;border-radius:999px}
-.lp-titlebox h3,.lp-contact h3,.lp-docs h3{font-size:clamp(34px,5vw,62px);line-height:1.08;color:#082968;font-weight:800;margin-bottom:8px}.lp-titlebox p,.lp-docs p{font-size:18px;color:#64748b}.lp-titleline{width:120px;height:8px;background:#d4af37;border-radius:999px;margin:0 auto}
-.lp-cardgrid{display:grid;gap:22px}.lp-cardgrid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lp-card{background:#fff;border:1px solid #e2e8f0;border-radius:34px;padding:28px;box-shadow:0 12px 30px rgba(2,6,23,.06);position:relative}.lp-card-ribbon{position:absolute;top:18px;right:18px;background:#eff6ff;color:#1e40af;border-radius:999px;padding:6px 12px;font-weight:700}.lp-card-ribbon-green{background:#ecfdf5;color:#047857}.lp-card-icon{width:64px;height:64px;border-radius:20px;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:18px}.lp-card-title{font-size:32px;font-weight:800;color:#082968;margin-bottom:8px}.lp-card-desc{font-size:18px;color:#64748b;margin-bottom:18px;line-height:1.5}.lp-infoitem{display:flex;justify-content:space-between;gap:10px;padding:14px 16px;background:#f8fafc;border-radius:18px;margin-bottom:10px;font-size:18px}.lp-infoitem span:first-child{color:#475569}.lp-countdownbox{margin-top:10px;background:#fff7ed;border-radius:16px;padding:12px}
-.lp-timeline-wrap{position:relative;max-width:980px;margin:0 auto;padding:10px 0}.lp-timeline-line{position:absolute;left:50%;top:0;bottom:0;width:4px;background:#e2e8f0;transform:translateX(-50%)}
-.lp-timeline-item{position:relative;display:flex;margin:28px 0}.lp-timeline-item.left{justify-content:flex-start;padding-right:52%}.lp-timeline-item.right{justify-content:flex-end;padding-left:52%}.lp-t-dot{position:absolute;left:50%;top:28px;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:22px;z-index:2;box-shadow:0 6px 18px rgba(2,6,23,.08)}.lp-t-dot.gold{background:#f4c94b}
-.lp-t-card{background:#fff;border:1px solid #e2e8f0;border-radius:30px;padding:24px 26px;box-shadow:0 10px 26px rgba(2,6,23,.05);width:100%}.lp-t-card h4{font-size:28px;color:#082968;font-weight:800;margin-bottom:8px}.lp-t-card p{font-size:18px;color:#64748b;line-height:1.5}.lp-t-date{display:inline-block;background:#f8fafc;border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700;color:#64748b;margin-bottom:10px}
-.lp-docs{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;background:#082968;color:#fff;border-radius:40px;overflow:hidden}.lp-docs-left{padding:34px}.lp-docs h3{color:#fff;margin-bottom:14px}.lp-docs p{color:#dbeafe;max-width:760px}.lp-doc-list{display:flex;flex-direction:column;gap:18px;margin-top:24px}.lp-doc-item{display:flex;align-items:center;gap:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);padding:18px 20px;border-radius:22px}.lp-doc-item span{width:54px;height:54px;border-radius:50%;background:#f4c94b;color:#082968;font-size:28px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}.lp-doc-item b{font-size:20px}
-.lp-docs-right{position:relative;min-height:540px;background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.02));display:flex;align-items:center;justify-content:center}.lp-docs-visual{width:78%;aspect-ratio:3/4;border-radius:36px;background:linear-gradient(135deg,#233f77,#3b82f6);transform:rotate(3deg);display:flex;align-items:center;justify-content:center;font-size:clamp(38px,4vw,64px);color:#fff;box-shadow:0 30px 50px rgba(0,0,0,.24)}.lp-doc-note{position:absolute;bottom:28px;left:20px;background:#f4c94b;color:#082968;border-radius:28px;padding:18px 22px;font-size:28px;font-weight:800;max-width:360px;box-shadow:0 18px 32px rgba(0,0,0,.18)}.lp-doc-note small{display:block;font-size:16px;line-height:1.4;font-weight:600;margin-top:6px}
-.lp-contact{display:grid;grid-template-columns:.85fr 1.15fr;gap:26px;align-items:center}.lp-contact-item{display:flex;gap:18px;align-items:flex-start;margin-top:22px}.lp-contact-item span{width:56px;height:56px;border-radius:18px;background:#fff;box-shadow:0 10px 22px rgba(2,6,23,.08);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}.lp-contact-item b{display:block;font-size:24px;color:#082968;margin-bottom:4px}.lp-contact-item p{font-size:20px;color:#64748b;line-height:1.5}.lp-contact-actions{display:flex;gap:12px;margin-top:22px}.lp-iconbtn{width:52px;height:52px;border-radius:16px;background:#0b3788;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 10px 24px rgba(11,55,136,.18)}.lp-mapbox{min-height:420px;border-radius:38px;background:linear-gradient(145deg,#d1fae5,#a7f3d0);box-shadow:0 18px 34px rgba(2,6,23,.10);display:flex;align-items:center;justify-content:center;color:#065f46;font-size:46px;font-weight:800;text-align:center;padding:24px}
-@media (max-width:900px){.lp-cardgrid-2,.lp-docs,.lp-contact{grid-template-columns:1fr}.lp-docs-right{min-height:360px}.lp-timeline-line{left:28px;transform:none}.lp-timeline-item.left,.lp-timeline-item.right{padding:0 0 0 72px;justify-content:flex-start}.lp-t-dot{left:28px;transform:translate(-50%,-50%)}.lp-mapbox{min-height:260px;font-size:32px}}
-@media (max-width:640px){.lp-hero{min-height:520px}.lp-hero-inner{padding:64px 14px 110px}.lp-hero h2{font-size:48px}.lp-hero p{font-size:17px}.lp-btn{width:100%;justify-content:center;font-size:18px;padding:14px 20px}.lp-quickwrap{margin-top:-54px;padding:0 14px}.lp-quicknav{justify-content:flex-start;overflow:auto;flex-wrap:nowrap}.lp-qbtn{white-space:nowrap;font-size:15px;padding:12px 16px}.lp-section{padding:56px 14px}.lp-card{padding:22px}.lp-card-title{font-size:26px}.lp-infoitem{font-size:16px}.lp-t-card h4{font-size:22px}.lp-t-card p,.lp-docs p,.lp-contact-item p{font-size:16px}.lp-doc-item b{font-size:16px}.lp-doc-note{font-size:22px;max-width:260px}}
+/* ══════════════════════════════════════════════════
+   LANDING PAGE STYLES (lp-)  v1.15.36
+   Typography: Kanit 600/700 headings · Sarabun 400/500 body
+   ══════════════════════════════════════════════════ */
 
+/* ── Base reset สำหรับ view-home ── */
+#view-home{padding:0;max-width:none;font-family:'Sarabun',sans-serif;font-size:16px;line-height:1.65;color:#1e293b}
+#view-home h1,#view-home h2,#view-home h3,#view-home h4{font-family:'Kanit',sans-serif;font-weight:600;line-height:1.3}
+#view-home p{font-weight:400;line-height:1.75}
 
-/* === Landing Source Rebuild + Global Theme === */
-:root{
-  --brand-primary:#001b4d;
-  --brand-primary-2:#00338d;
-  --brand-gold:#FFD700;
-  --brand-gold-soft:#FFF9C4;
-  --brand-text:#1e293b;
-  --brand-outline:#cbd5e1;
-  --brand-bg:#f8fafc;
+/* ── Hero ── */
+.lp-hero{
+  position:relative;min-height:600px;display:flex;align-items:center;overflow:visible;
+  background-color:#001b4d;
+  background-image:url('https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1600&q=80');
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+  transition:background-color .4s ease
 }
-body{font-family:'Sarabun',sans-serif;background:var(--brand-bg)!important;color:var(--brand-text)}
-h1,h2,h3,h4,h5,h6,.nav-pub-btn,.btn,.btn-admin-login,.wizard-card-header h3,.admin-page-header h2{font-family:'Kanit',sans-serif}
-#navbar{background:rgba(255,255,255,.95)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid #e2e8f0!important;box-shadow:0 1px 10px rgba(15,23,42,.06)!important}
-.nav-inner{max-width:1280px;height:82px!important;padding:0 22px!important;gap:18px!important}
-body{padding-top:82px!important} #main-content{min-height:calc(100vh - 82px)!important}
-.nav-logo{gap:14px!important;color:var(--brand-primary)!important}
-.nav-logo-icon{width:52px!important;height:52px!important;border-radius:16px!important;background:linear-gradient(135deg,#001b4d 0%,#00338d 100%)!important;border:2px solid rgba(212,175,55,.28)!important;box-shadow:0 10px 24px rgba(0,27,77,.18)!important;color:#fff!important;font-size:26px!important}
-.nav-logo-textwrap{display:flex;flex-direction:column;line-height:1.1}
-#nav-school-name{max-width:none!important;font-size:20px!important;font-weight:800!important;color:var(--brand-primary)!important;white-space:nowrap!important}
-#nav-school-tagline{font-size:11px;letter-spacing:.18em;color:#d4af37;font-weight:800}
-.nav-public-shortcuts{justify-content:center;gap:10px!important}
-.nav-pub-btn{background:transparent!important;border:none!important;border-bottom:2px solid transparent!important;border-radius:0!important;padding:10px 6px 8px!important;font-size:14px!important;font-weight:700!important;color:#64748b!important;box-shadow:none!important}
-.nav-pub-btn:hover{background:transparent!important;color:var(--brand-primary)!important}
-.nav-pub-btn.active{background:transparent!important;color:var(--brand-primary)!important;border-color:#d4af37!important}
-.btn-admin-login{background:linear-gradient(135deg,#001b4d 0%,#00338d 100%)!important;padding:12px 24px!important;border-radius:999px!important;box-shadow:0 10px 24px rgba(0,27,77,.18)!important;font-weight:800!important}
-#nav-user-info{background:#fff!important;border:1px solid #dbe7f7!important;border-radius:999px!important;padding:6px 10px 6px 8px!important}
-.btn,.btn-primary,.btn-success,.btn-warning,.btn-danger,.btn-outline,.btn-gray{border-radius:18px!important;font-weight:800!important;padding:12px 20px!important;box-shadow:0 8px 22px rgba(0,27,77,.08)!important}
-.btn-primary,.btn-success{background:linear-gradient(135deg,#001b4d 0%,#00338d 100%)!important;color:#fff!important}
-.btn-outline{border:1px solid rgba(255,255,255,.35)!important;background:rgba(255,255,255,.08)!important;color:#fff!important}
-.card,.wizard-card,.pub-level-card,.reg-card,.stat-card,.modal-body,.exam-config-card,.filter-bar,.dash-filter-bar{border-radius:24px!important;border:1px solid rgba(226,232,240,.8)!important;box-shadow:0 10px 30px -10px rgba(0,0,0,.05)!important;background:#fff!important}
-.card-header,.wizard-card-header,.modal-header{border-bottom:1px solid #eef2f7!important}
-.wizard-card-header,.card-header{background:#fff!important;color:var(--brand-primary)!important}
-.form-control, .filter-bar select,.filter-bar input,.dash-filter-bar select,.dash-filter-bar input, .subject-row input{border:1px solid #dbe5f2!important;border-radius:16px!important;min-height:48px!important;background:#fff!important;color:#0f172a!important;box-shadow:inset 0 1px 2px rgba(15,23,42,.03)}
-.form-control:focus{border-color:#d4af37!important;box-shadow:0 0 0 4px rgba(255,215,0,.18)!important}
-.badge-blue,.badge-green,.badge-amber,.badge-red,.badge-info,.badge-purple{border-radius:999px!important;padding:5px 12px!important;font-weight:700!important}
-#site-footer{background:#001b4d!important;border-top:8px solid #d4af37!important;color:#fff!important}
-.footer-inner{max-width:1280px!important;padding:72px 28px 28px!important;display:grid!important;grid-template-columns:1.2fr .8fr .8fr !important;gap:32px!important;align-items:start!important}
-.footer-line{display:flex!important;align-items:center;gap:10px;justify-content:flex-start!important;text-align:left!important;font-size:14px!important;color:#cbd5e1!important;flex-wrap:wrap}
-.footer-line:nth-child(1){grid-column:1/2;font-size:16px!important;color:#fff!important;font-weight:800!important}
-.footer-line:nth-child(2){grid-column:1/2;color:#94a3b8!important;font-size:13px!important;line-height:1.8!important}
-.footer-line:nth-child(3){grid-column:2/4;justify-content:space-between!important;border-top:1px solid rgba(255,255,255,.06);padding-top:18px!important;margin-top:18px!important}
-.footer-ver-btn{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.14)!important;color:#ffd966!important;padding:6px 12px!important;border-radius:999px!important}
-@media (max-width:900px){.footer-inner{grid-template-columns:1fr!important;padding:40px 18px 18px!important}.footer-line:nth-child(3){grid-column:auto;justify-content:flex-start!important}.nav-inner{height:74px!important}body{padding-top:74px!important}}
-.landing-source-hero{position:relative;min-height:750px;display:flex;align-items:center;overflow:hidden;background:linear-gradient(135deg,#001b4d 0%,#00338d 100%)}
-.landing-source-hero-bg{position:absolute;inset:0;z-index:0;background:url('https://lh3.googleusercontent.com/aida-public/AB6AXuC28voAzcC12wY7tnb7iPo4jqg38GL1UyNqBi_IOidclVzbohqzKTUFLh4ghn-Tns43uZi_BsIoKBu7F4BaFy6fHziz8BAsfPbSm38T5EJHBiq7lK-iykM0Xt3nxpxV1qNHkyVwy6Kwynp_9sdR9Zt66gn2qPNizaPCxnru2uAEV2KnE7rr_y_gkKvBq8Enj6Sz2WRl7V90HYmV6p1EPXedqXNh2-BqU3T-tXJMjANtGmbfW_ZYBJztpDtV5LSaMGo_TbbE67IeBk2K') center/cover no-repeat;opacity:.30;mix-blend-mode:overlay;transform:scale(1.05);animation:lpPulse 10s ease-in-out infinite}
-.landing-source-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,27,77,.9),transparent)}
-.landing-source-hero-inner{position:relative;z-index:10;max-width:1280px;margin:0 auto;padding:96px 24px 120px;width:100%}
-.landing-source-badge{display:inline-flex;align-items:center;gap:12px;padding:10px 20px;margin-bottom:32px;background:rgba(255,255,255,.10);backdrop-filter:blur(12px);border:1px solid rgba(255,215,0,.40);border-radius:999px;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#FFD700}
-.landing-source-hero-title{font-family:'Kanit',sans-serif;font-size:clamp(54px,8vw,102px);line-height:1.02;font-weight:800;margin:0 0 22px;text-shadow:0 4px 12px rgba(0,0,0,.30)}
-.landing-source-hero-title .line-white{color:#fff}.landing-source-hero-title .line-gold{background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.landing-source-hero p{font-size:clamp(24px,3vw,32px);margin:0 0 42px;color:rgba(226,232,240,.92);max-width:980px;line-height:1.45;font-weight:300}
-.landing-source-hero-actions{display:flex;gap:18px;flex-wrap:wrap}
-.landing-pill-btn{display:inline-flex;align-items:center;gap:14px;padding:20px 36px;border-radius:24px;font-size:22px;font-weight:900;border:none;cursor:pointer;transition:all .25s ease;text-decoration:none}
-.landing-pill-btn.gold{background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);color:#001b4d;box-shadow:0 20px 40px -15px rgba(212,175,55,.45)}
-.landing-pill-btn.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.30);color:#fff}
-.landing-pill-btn:hover{transform:translateY(-6px)}
-.landing-source-quickwrap{max-width:1280px;margin:-64px auto 0;padding:0 24px;position:relative;z-index:20}
-.landing-source-quicknav{background:#fff;border-radius:2rem;padding:12px;box-shadow:0 24px 48px rgba(0,27,77,.12);display:flex;flex-wrap:wrap;justify-content:center;gap:14px;border:1px solid #f1f5f9}
-.landing-source-qbtn{display:flex;align-items:center;gap:12px;padding:18px 34px;border:none;border-radius:24px;background:transparent;color:#001b4d;font-weight:800;font-size:20px;cursor:pointer;transition:.2s}
-.landing-source-qbtn.active{background:linear-gradient(135deg,#001b4d 0%,#00338d 100%);color:#fff;box-shadow:0 12px 26px rgba(0,27,77,.18)}
-.landing-source-qbtn:hover{background:#f8fafc}
-.landing-source-section{padding:120px 24px;max-width:1280px;margin:0 auto}
-.landing-source-titlebox{text-align:center;margin-bottom:80px}.landing-source-titlebox .kicker{display:block;color:#d4af37;font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:14px;margin-bottom:18px}.landing-source-titlebox h2{font-size:clamp(48px,5vw,76px);font-weight:900;color:#001b4d;margin:0 0 18px}.landing-source-titlebox p{margin:0;color:#94a3b8;font-size:18px}.landing-source-titlebox .titleline{height:8px;width:132px;background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);border-radius:999px;margin:0 auto}
-.landing-source-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:48px;max-width:1100px;margin:0 auto}
-.landing-source-round-card{background:#fff;border:1px solid rgba(226,232,240,.8);box-shadow:0 10px 30px -10px rgba(0,0,0,.05);transition:all .4s cubic-bezier(.4,0,.2,1);border-radius:2.5rem;padding:40px;position:relative;overflow:hidden}
-.landing-source-round-card:hover{transform:translateY(-8px);box-shadow:0 20px 40px -15px rgba(0,0,0,.1);border-color:#d4af37}
-.landing-source-round-card .top-badge{position:absolute;top:0;right:0;background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);color:#001b4d;font-size:12px;padding:10px 24px;font-weight:900;border-bottom-left-radius:1.5rem}
-.landing-source-round-card .top-strip{position:absolute;top:0;left:0;width:100%;height:12px;background:#e2e8f0}
-.landing-source-round-card .round-icon{width:64px;height:64px;border-radius:1rem;background:rgba(0,27,77,.05);display:flex;align-items:center;justify-content:center;color:#001b4d;font-size:34px;margin-bottom:24px}
-.landing-source-round-card h3{font-size:52px;font-weight:900;color:#001b4d;margin:0 0 14px;line-height:1.08}
-.landing-source-round-card p{font-size:18px;color:#64748b;line-height:1.6;margin:0 0 28px;font-weight:500}
-.round-meta{display:flex;align-items:center;gap:20px;padding:22px;border-radius:24px;background:#f8fafc;border:1px solid #f1f5f9;margin-bottom:16px;transition:all .5s}.round-meta span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#001b4d}.round-meta strong{display:block;font-size:32px;color:#334155;line-height:1.25}.round-meta.dark{background:#001b4d;border-color:#001b4d}.round-meta.dark span{color:#d4af37}.round-meta.dark strong{color:#fff}
-.landing-source-readrules{display:block;width:100%;padding:18px 20px;text-align:center;border-radius:24px;background:#f1f5f9;color:#001b4d;font-size:28px;font-weight:900;text-decoration:none;transition:.3s;margin-top:34px}.landing-source-readrules:hover{background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);box-shadow:0 18px 34px rgba(212,175,55,.22)}.landing-source-readrules.muted{color:#64748b;background:#f1f5f9}
-.landing-source-timeline{background:#fff;position:relative}.landing-source-timeline-wrap{position:relative;max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:88px}.landing-source-timeline-line{position:absolute;inset:0 auto 0 50%;width:4px;transform:translateX(-50%);background:linear-gradient(to bottom,transparent,#e2e8f0,transparent)}
-.timeline-row{position:relative;display:flex}.timeline-row.odd{justify-content:flex-end;padding-left:calc(50% + 48px)}.timeline-row.even{justify-content:flex-start;padding-right:calc(50% + 48px)}
-.timeline-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:16px;background:#f1f5f9;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-size:24px;z-index:2;box-shadow:0 12px 22px rgba(15,23,42,.08)}.timeline-dot.gold{background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);color:#001b4d;box-shadow:0 12px 28px rgba(212,175,55,.25)}
-.timeline-card{width:100%;max-width:460px;padding:34px;border-radius:3rem;background:#fff;border:1px solid rgba(226,232,240,.85);box-shadow:0 10px 30px -10px rgba(0,0,0,.05)}
-.timeline-card-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}.timeline-card h4{font-size:34px;font-weight:900;color:#001b4d;line-height:1.15;margin:0}.timeline-card p{margin:0;color:#64748b;font-size:18px;line-height:1.6}.date-pill{background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);color:#001b4d;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:900;white-space:nowrap}.date-pill.muted{background:#f1f5f9;color:#94a3b8}
-.landing-source-docs{display:grid;grid-template-columns:1fr 1fr;gap:96px;align-items:center;padding:120px 24px;background:linear-gradient(135deg,#001b4d 0%,#00338d 100%);color:#fff;overflow:hidden;position:relative}.landing-source-docs::before{content:'';position:absolute;top:0;right:-140px;width:520px;height:520px;background:rgba(255,215,0,.10);border-radius:50%;filter:blur(120px)}.landing-source-docs::after{content:'';position:absolute;bottom:-120px;left:-120px;width:420px;height:420px;background:#002870;border-radius:50%;filter:blur(100px)}
-.landing-source-docs>*{position:relative;z-index:1}.docs-kicker{display:inline-block;padding:6px 16px;margin-bottom:28px;border-radius:12px;background:rgba(255,215,0,.20);border:1px solid rgba(255,215,0,.30);color:#ffd966;text-transform:uppercase;font-size:12px;font-weight:900;letter-spacing:.16em}.landing-source-docs h2{font-size:clamp(46px,5vw,74px);line-height:1.08;font-weight:900;margin:0 0 26px}.landing-source-docs h2 span{color:#FFD700}.landing-source-docs p{font-size:22px;color:#cbd5e1;line-height:1.65;margin:0 0 36px;font-weight:300}
-.landing-source-doclist{display:flex;flex-direction:column;gap:18px}.doc-row{display:flex;align-items:center;gap:22px;padding:22px 28px;border-radius:32px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10)}.doc-row span{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);display:flex;align-items:center;justify-content:center;color:#001b4d;font-weight:900;font-size:26px;flex-shrink:0}.doc-row strong{font-size:28px;line-height:1.45}
-.landing-source-docs-right{position:relative;min-height:720px}.landing-source-docvisual{position:absolute;top:0;right:0;left:0;bottom:0;border-radius:3rem;overflow:hidden;border:12px solid rgba(255,255,255,.10);box-shadow:0 28px 60px rgba(0,0,0,.26);transform:rotate(3deg);background:linear-gradient(180deg,#203b78,#7ca5d7);display:flex;align-items:flex-start;justify-content:center;padding-top:86px;font-size:34px;color:#fff}.landing-source-docnote{position:absolute;left:-18px;bottom:34px;max-width:320px;padding:38px;border-radius:2.5rem;background:linear-gradient(135deg,#FFD700 0%,#FFF9C4 50%,#FFD700 100%);color:#001b4d;box-shadow:0 24px 44px rgba(212,175,55,.25);font-size:36px;font-weight:900;line-height:1.15}.landing-source-docnote small{display:block;margin-top:14px;font-size:18px;font-weight:500;line-height:1.6;color:rgba(0,27,77,.85)}
-.landing-source-contact{max-width:1280px;margin:0 auto;padding:120px 24px;display:grid;grid-template-columns:5fr 7fr;gap:64px;align-items:center}.landing-source-contact .kicker{display:block;color:#d4af37;font-size:14px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px}.landing-source-contact h2{font-size:clamp(48px,5vw,74px);font-weight:900;color:#001b4d;margin:0 0 40px}.contact-item{display:flex;gap:24px;align-items:flex-start;margin-bottom:30px}.contact-item .icon{width:56px;height:56px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 16px 28px rgba(15,23,42,.10);border:1px solid #f1f5f9;font-size:26px;flex-shrink:0}.contact-item b{display:block;font-size:28px;color:#0f172a;margin-bottom:6px}.contact-item p{margin:0;color:#64748b;font-size:22px;line-height:1.55}.contact-actions{display:flex;gap:14px;margin-top:44px}.contact-actions .iconbtn{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#001b4d 0%,#00338d 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;text-decoration:none;box-shadow:0 12px 22px rgba(0,27,77,.18)}
-.contact-map{min-height:560px;border-radius:3rem;overflow:hidden;box-shadow:0 20px 44px rgba(15,23,42,.10);border:16px solid #fff;background:#c7d2fe;display:flex;align-items:center;justify-content:center;font-size:42px;color:#001b4d;position:relative}
-.landing-compat-hidden{display:none!important}
-@keyframes lpPulse{0%,100%{transform:scale(1.05)}50%{transform:scale(1.08)}}
-@media (max-width:1100px){.landing-source-grid-2,.landing-source-docs,.landing-source-contact{grid-template-columns:1fr}.landing-source-docs-right{min-height:520px}.landing-source-docnote{left:18px;bottom:18px;max-width:280px;font-size:28px}.timeline-row.odd,.timeline-row.even{padding-left:84px;padding-right:0;justify-content:flex-start}.landing-source-timeline-line{left:30px;transform:none}.timeline-dot{left:30px}.timeline-card{max-width:none}.timeline-card h4{font-size:28px}.contact-map{min-height:380px}}
-@media (max-width:768px){#nav-school-name{font-size:16px!important}#nav-school-tagline{font-size:9px}.nav-public-shortcuts{display:none!important}#nav-hamburger{display:flex!important}.nav-inner{height:68px!important}body{padding-top:68px!important}.landing-source-hero{min-height:660px}.landing-source-hero-inner{padding:84px 16px 120px}.landing-source-hero-title{font-size:56px}.landing-source-hero p{font-size:18px}.landing-pill-btn{width:100%;justify-content:center;font-size:18px;padding:16px 20px}.landing-source-quickwrap{margin-top:-46px;padding:0 16px}.landing-source-quicknav{overflow:auto;flex-wrap:nowrap;justify-content:flex-start}.landing-source-qbtn{white-space:nowrap;padding:16px 20px;font-size:16px}.landing-source-section,.landing-source-docs,.landing-source-contact{padding:72px 16px}.landing-source-round-card,.timeline-card{padding:24px;border-radius:2rem}.landing-source-round-card h3{font-size:32px}.round-meta strong,.doc-row strong,.contact-item b{font-size:20px}.landing-source-docs h2,.landing-source-contact h2,.landing-source-titlebox h2{font-size:42px}.landing-source-docs p,.contact-item p,.timeline-card p{font-size:16px}.doc-row{padding:18px 20px}.doc-row span{width:46px;height:46px;font-size:20px}.landing-source-docnote{position:static;margin-top:18px}.contact-map{min-height:260px;font-size:28px}.footer-inner{padding-top:40px!important}}
+.lp-hero-bg-img{display:none!important}
+.lp-hero-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(150deg,rgba(0,27,77,.65) 0%,rgba(0,53,128,.55) 100%);
+  transition:background .4s ease,opacity .4s ease
+}
+.lp-hero-inner{position:relative;z-index:2;transition:opacity .3s ease}
+.lp-hero-inner{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:72px 32px 88px;width:100%}
 
+.lp-hero-badge{
+  display:inline-flex;align-items:center;gap:8px;padding:7px 18px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(212,175,55,.35);
+  border-radius:6px;color:#e8c84a;font-size:12px;font-weight:500;
+  letter-spacing:.04em;margin-bottom:24px;font-family:'Sarabun',sans-serif
+}
+.ping-dot{position:relative;display:inline-flex;width:8px;height:8px}
+.ping-ring{position:absolute;inset:0;border-radius:50%;background:rgba(212,175,55,.6);animation:lp-ping 1.4s cubic-bezier(0,0,.2,1) infinite}
+.ping-core{position:relative;width:8px;height:8px;border-radius:50%;background:#e8c84a}
+@keyframes lp-ping{75%,100%{transform:scale(2.4);opacity:0}}
+
+.lp-hero-logo-wrap{margin-bottom:18px}
+.lp-hero-title{font-size:clamp(2rem,4.5vw,3.2rem);font-weight:700;color:#fff;line-height:1.2;margin-bottom:12px;text-shadow:0 2px 8px rgba(0,0,0,.25);font-family:'Kanit',sans-serif}
+.lp-hero-sub{font-size:clamp(1.1rem,2.2vw,1.5rem);font-weight:600;color:#e8c84a;margin-bottom:12px;font-family:'Kanit',sans-serif}
+.lp-hero-desc{font-size:1rem;color:rgba(226,232,240,.8);font-weight:400;margin-bottom:32px;line-height:1.7}
+
+.lp-hero-btns{display:flex;flex-wrap:wrap;gap:12px}
+.lp-btn-gold{
+  background:linear-gradient(135deg,#d4a20a 0%,#f0c430 100%);
+  color:#001b4d;padding:13px 32px;border-radius:8px;font-size:15px;
+  font-weight:600;border:none;cursor:pointer;
+  box-shadow:0 4px 16px rgba(212,175,55,.3);
+  transition:all .25s;display:inline-flex;align-items:center;gap:8px;
+  font-family:'Sarabun',sans-serif
+}
+.lp-btn-gold:hover{filter:brightness(1.06);transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,175,55,.35)}
+.lp-btn-outline{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.3);
+  color:#fff;padding:13px 32px;border-radius:8px;font-size:15px;
+  font-weight:500;cursor:pointer;transition:all .25s;
+  display:inline-flex;align-items:center;gap:8px;font-family:'Sarabun',sans-serif
+}
+.lp-btn-outline:hover{background:rgba(255,255,255,.14)}
+/* ── Shared CTA button styles ── */
+.btn-cta-register{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,#d4a20a 0%,#f0c430 100%);
+  color:#001b4d;padding:12px 28px;border-radius:10px;
+  font-size:14px;font-weight:700;border:none;cursor:pointer;
+  box-shadow:0 4px 14px rgba(212,175,55,.3);transition:all .25s;
+  font-family:'Sarabun',sans-serif;white-space:nowrap
+}
+.btn-cta-register:hover:not(:disabled){filter:brightness(1.07);transform:translateY(-2px);box-shadow:0 8px 22px rgba(212,175,55,.38)}
+.btn-cta-register:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.btn-cta-register.large{padding:16px 36px;font-size:1rem;border-radius:12px}
+.btn-cta-check{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:#001b4d;
+  padding:12px 28px;border-radius:10px;
+  font-size:14px;font-weight:700;
+  border:1.5px solid rgba(0,27,77,.3);cursor:pointer;
+  transition:all .25s;font-family:'Sarabun',sans-serif;white-space:nowrap
+}
+.btn-cta-check:hover{background:rgba(0,27,77,.06);border-color:#001b4d}
+.btn-cta-check.on-dark{color:#fff;border-color:rgba(255,255,255,.35)}
+.btn-cta-check.on-dark:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.6)}
+.btn-cta-check.large{padding:16px 36px;font-size:1rem;border-radius:12px}
+
+/* ── Quick Nav ── */
+.lp-quicknav-wrap{max-width:860px;margin:-36px auto 0;padding:0 24px;position:relative;z-index:20}
+.lp-quicknav{
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:18px;padding:10px;
+  box-shadow:0 8px 32px rgba(0,27,77,.10);border:1px solid rgba(220,232,245,.9);
+  display:flex;flex-wrap:wrap;justify-content:center;gap:6px
+}
+.lp-qnav-btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 24px;
+  border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;
+  transition:all .2s;border:none;white-space:nowrap;font-family:'Sarabun',sans-serif
+}
+.lp-qnav-btn.primary{background:linear-gradient(135deg,#d4a20a,#f0c430);color:#001b4d;font-weight:700;box-shadow:0 4px 12px rgba(212,175,55,.25)}
+.lp-qnav-btn.primary:hover{filter:brightness(1.07)}
+.lp-qnav-btn.secondary{background:transparent;color:#334155}
+.lp-qnav-btn.secondary:hover{background:#f1f5f9;color:#001b4d}
+.lp-qnav-icon{font-size:16px}
+
+/* ── Sections ── */
+.lp-section{padding:72px 24px}
+.lp-section-inner{max-width:1100px;margin:0 auto}
+.lp-section-label{
+  display:inline-block;color:#6b7280;font-weight:500;
+  letter-spacing:.06em;font-size:12px;margin-bottom:10px;
+  font-family:'Sarabun',sans-serif;text-transform:uppercase
+}
+.lp-section-title{
+  font-size:clamp(1.6rem,3vw,2.2rem);font-weight:600;
+  color:#001b4d;margin-bottom:16px;font-family:'Kanit',sans-serif
+}
+.lp-divider{height:3px;width:48px;border-radius:999px;background:#d4a20a;margin-bottom:40px}
+.lp-section-bg-gray{background:linear-gradient(180deg,#f0f5ff 0%,#eef3fc 100%)}
+.lp-section-bg-dark{background:linear-gradient(150deg,#0a1f4e 0%,#0f2d6b 60%,#0a2255 100%)}
+.lp-section-bg-warm{background:linear-gradient(180deg,#fafaf7 0%,#f5f7f0 100%)}
+.lp-section-bg-cool{background:linear-gradient(180deg,#f5f8ff 0%,#eef2fc 100%)}
+
+/* ── Enrollment Cards — Tailwind/Canva professional style ── */
+.lp-enroll-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;margin:0 auto}
+.lp-enroll-card{
+  background:#ffffff;
+  border-radius:16px;
+  border:1px solid #dce8f5;
+  box-shadow:0 2px 8px rgba(0,27,77,.04),0 8px 24px rgba(0,27,77,.05);
+  padding:28px 28px 24px;
+  transition:box-shadow .25s,transform .25s,border-color .25s;
+  position:relative;overflow:hidden
+}
+/* gradient accent top bar per level */
+.lp-enroll-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#1e40af 0%,#60a5fa 100%)
+}
+.lp-enroll-card.card-m4::before{
+  background:linear-gradient(90deg,#166534 0%,#4ade80 100%)
+}
+.lp-enroll-card:hover{
+  box-shadow:0 4px 20px rgba(0,0,0,.07),0 12px 36px rgba(0,0,0,.05);
+  transform:translateY(-4px);border-color:#d1dae8
+}
+.lp-enroll-card-badge{
+  position:absolute;top:14px;right:16px;
+  background:#eff6ff;color:#1e40af;
+  font-size:10px;font-weight:600;
+  padding:3px 10px;border-radius:20px;letter-spacing:.02em;
+  font-family:'Sarabun',sans-serif
+}
+.lp-enroll-card.card-m4 .lp-enroll-card-badge{background:#f0fdf4;color:#166534}
+.lp-enroll-icon{display:flex;align-items:center;margin-bottom:12px}
+.lp-enroll-title{font-size:1.2rem;font-weight:600;color:#0f172a;margin-bottom:4px;font-family:'Kanit',sans-serif}
+.lp-enroll-desc{font-size:13px;color:#64748b;font-weight:400;margin-bottom:18px;line-height:1.65}
+/* Info rows: clean table-like, NO dark hover */
+.lp-info-rows{
+  border:1px solid #f1f5f9;border-radius:10px;
+  overflow:hidden;margin-bottom:20px;
+  display:flex;flex-direction:column
+}
+.lp-info-row{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;background:#fff;
+  border-bottom:1px solid #f8fafc;transition:background .15s
+}
+.lp-info-row:last-child{border-bottom:none}
+.lp-info-row:hover{background:#f9fafb}
+/* Override: ห้าม card hover เปลี่ยนสี info-row */
+.lp-enroll-card:hover .lp-info-row{background:#fff}
+.lp-enroll-card:hover .lp-info-row:hover{background:#f9fafb}
+.lp-enroll-card:hover .lp-info-label{color:#94a3b8}
+.lp-enroll-card:hover .lp-info-value{color:#1e293b}
+.lp-info-row-icon{
+  width:32px;height:32px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  background:#eff6ff
+}
+.card-m4 .lp-info-row-icon{background:#f0fdf4}
+.lp-info-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:.05em;
+  font-weight:600;color:#94a3b8;margin-bottom:1px;font-family:'Sarabun',sans-serif
+}
+.lp-info-value{
+  font-size:14px;font-weight:600;color:#1e293b;font-family:'Sarabun',sans-serif
+}
+/* Register buttons */
+.lp-enroll-reg-btn{
+  width:100%;padding:12px;border-radius:10px;
+  font-size:14px;font-weight:600;cursor:pointer;border:none;
+  transition:all .2s;font-family:'Sarabun',sans-serif
+}
+.lp-enroll-reg-btn.m1,.lp-enroll-reg-btn.m4{background:linear-gradient(135deg,#d4a20a 0%,#f0c430 100%);color:#001b4d}
+.lp-enroll-reg-btn.m1:hover:not(:disabled),.lp-enroll-reg-btn.m4:hover:not(:disabled){filter:brightness(1.07);box-shadow:0 4px 14px rgba(212,175,55,.35)}
+.lp-enroll-reg-btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+
+/* ── Timeline ── */
+.lp-timeline-wrap{position:relative;display:flex;flex-direction:column;gap:40px;padding:0 0 0 32px}
+.lp-timeline-wrap::before{content:'';position:absolute;top:0;bottom:0;left:18px;width:1px;background:linear-gradient(to bottom,#d4a20a,#e2e8f0)}
+.lp-tl-item{display:flex;gap:24px;align-items:flex-start;position:relative}
+.lp-tl-dot{
+  width:36px;height:36px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  position:absolute;left:-50px;background:#001b4d;color:#e8c84a;
+  box-shadow:0 2px 8px rgba(0,27,77,.2)
+}
+.lp-tl-dot.inactive{background:#f1f5f9;color:#94a3b8;box-shadow:none}
+.lp-tl-content{
+  background:#fff;border-radius:10px;border:1px solid #e2e8f0;
+  box-shadow:0 2px 8px rgba(0,0,0,.03);padding:24px;flex:1;transition:all .3s
+}
+.lp-tl-content:hover{box-shadow:0 6px 24px rgba(0,0,0,.07);border-color:#c5a900}
+.lp-tl-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.lp-tl-label{
+  font-size:11px;font-weight:600;letter-spacing:.04em;
+  padding:3px 10px;border-radius:4px;font-family:'Sarabun',sans-serif
+}
+.lp-tl-label.gold{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.lp-tl-label.gray{background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0}
+.lp-tl-title{font-size:15px;font-weight:600;color:#1e293b;font-family:'Kanit',sans-serif}
+.lp-tl-desc{font-size:14px;color:#6b7280;line-height:1.7;font-weight:400;font-family:'Sarabun',sans-serif}
+
+/* ── Documents ── */
+.lp-docs-grid{display:flex;flex-direction:column;gap:12px}
+.lp-doc-item{
+  display:flex;align-items:center;gap:16px;padding:16px 20px;
+  border-radius:8px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);transition:all .25s
+}
+.lp-doc-item:hover{background:rgba(255,255,255,.1);border-color:rgba(212,175,55,.3)}
+.lp-doc-num{
+  width:40px;height:40px;border-radius:8px;flex-shrink:0;
+  background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);
+  color:#e8c84a;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:600;font-family:'Sarabun',sans-serif
+}
+.lp-doc-text{font-size:14px;font-weight:400;color:rgba(255,255,255,.9);font-family:'Sarabun',sans-serif;line-height:1.5}
+
+/* ── Contact ── */
+.lp-contact-grid{display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:start}
+.lp-contact-items{display:flex;flex-direction:column;gap:24px}
+.lp-contact-item{display:flex;gap:16px;align-items:flex-start}
+.lp-contact-icon-wrap{
+  width:44px;height:44px;border-radius:8px;flex-shrink:0;
+  background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06);
+  border:1px solid #e2e8f0;display:flex;align-items:center;
+  justify-content:center;font-size:18px
+}
+.lp-contact-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;margin-bottom:3px;font-family:'Sarabun',sans-serif}
+.lp-contact-value{font-size:15px;font-weight:400;color:#334155;font-family:'Sarabun',sans-serif;line-height:1.5}
+.lp-map-wrap{border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(0,0,0,.06);min-height:420px;height:100%;background:#f1f5f9;display:flex;flex-direction:column}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .lp-enroll-grid{grid-template-columns:1fr}
+  .lp-contact-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .lp-hero-inner{padding:56px 20px 72px}
+  .lp-section{padding:52px 18px}
+  .lp-quicknav-wrap{padding:0 16px}
+  .lp-qnav-btn{padding:10px 16px;font-size:13px}
+  .lp-timeline-wrap{padding-left:24px}
+  .lp-timeline-wrap::before{left:14px}
+  .lp-tl-dot{left:-42px;width:28px;height:28px;font-size:14px;border-radius:6px}
+}
+@media(max-width:768px){
+  .lp-section-bg-dark .lp-section-inner>div{grid-template-columns:1fr!important;gap:28px!important}
+}
+/* Hero theme variants */
+.lp-hero.theme-yellow{background-color:#1a1a00}
+.lp-hero.theme-yellow .lp-hero-overlay{background:linear-gradient(150deg,rgba(26,26,0,.7) 0%,rgba(61,51,0,.6) 100%)}
+.lp-hero.theme-yellow .lp-hero-badge{border-color:rgba(255,214,0,.5);color:#ffd600}
+.lp-hero.theme-yellow .lp-hero-sub{color:#ffd600}
+.lp-hero.theme-yellow .lp-btn-gold{background:linear-gradient(135deg,#ffd600,#ffe566);color:#1a1a00}
+.lp-hero.theme-light{background-color:#e8edf5}
+.lp-hero.theme-light .lp-hero-overlay{background:linear-gradient(150deg,rgba(232,237,245,.4) 0%,rgba(200,215,235,.3) 100%)}
+.lp-hero.theme-light .lp-hero-title{color:#001b4d;text-shadow:0 1px 4px rgba(255,255,255,.5)}
+.lp-hero.theme-light .lp-hero-sub{color:#a88700}
+.lp-hero.theme-light .lp-hero-desc{color:rgba(30,41,59,.75)}
+.lp-hero.theme-light .lp-hero-badge{background:rgba(0,27,77,.07);border-color:rgba(0,27,77,.2);color:#001b4d}
+.lp-hero.theme-light .lp-btn-outline{background:rgba(0,27,77,.07);border-color:rgba(0,27,77,.25);color:#001b4d}
+/* Overlay intensity */
+.lp-hero.overlay-light .lp-hero-overlay{opacity:.3}
+.lp-hero.overlay-medium .lp-hero-overlay{opacity:.55}
+.lp-hero.overlay-dark .lp-hero-overlay{opacity:.82}
+/* ── LP Regulations button ── */
+.lp-reg-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:#fff;color:#001b4d;
+  border:1.5px solid #c7d9f5;border-radius:10px;
+  padding:11px 22px;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .25s;text-decoration:none;
+  font-family:'Sarabun',sans-serif;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,27,77,.06)
+}
+.lp-reg-btn:hover{border-color:#001b4d;background:#f0f4ff;box-shadow:0 4px 14px rgba(0,27,77,.1)}
+.lp-reg-btn svg{flex-shrink:0}
+
+/* ── LP Study Plans section ── */
+.lp-plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:1100px;margin:0 auto}
+.lp-plan-card{
+  background:#fff;border-radius:14px;
+  border:1px solid #dce8f5;
+  box-shadow:0 2px 10px rgba(0,27,77,.05);
+  overflow:hidden;transition:all .3s
+}
+.lp-plan-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,27,77,.1);border-color:#001b4d}
+.lp-plan-header{
+  padding:16px 20px;
+  display:flex;align-items:center;gap:12px
+}
+.lp-plan-level-badge{
+  font-size:11px;font-weight:700;padding:3px 10px;
+  border-radius:20px;white-space:nowrap;flex-shrink:0
+}
+.lp-plan-level-badge.m1{background:#dbeafe;color:#1e40af}
+.lp-plan-level-badge.m4{background:#dcfce7;color:#166534}
+.lp-plan-title{font-size:15px;font-weight:700;color:#001b4d;font-family:'Kanit',sans-serif}
+.lp-plan-body{padding:0 20px 18px;display:flex;flex-direction:column;gap:8px}
+.lp-plan-req{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:13px;color:#475569;line-height:1.6
+}
+.lp-plan-req-dot{
+  width:6px;height:6px;border-radius:50%;background:#d4a20a;
+  flex-shrink:0;margin-top:6px
+}
+.lp-plan-empty{
+  text-align:center;padding:32px 20px;color:#94a3b8;font-size:13px
+}
+@media(max-width:640px){.lp-plans-grid{grid-template-columns:1fr}}
+
+/* ── LP Stats Section ── */
+.lp-stats-wrap{max-width:1000px;margin:0 auto}
+.lp-stats-summary{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px}
+.lp-stat-card{
+  background:#fff;border-radius:14px;border:1px solid #dce8f5;
+  box-shadow:0 2px 10px rgba(0,27,77,.05);padding:24px;
+  display:flex;flex-direction:column;gap:12px
+}
+.lp-stat-card-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lp-stat-level{font-size:13px;font-weight:700;padding:3px 12px;border-radius:20px}
+.lp-stat-level.m1{background:#dbeafe;color:#1e40af}
+.lp-stat-level.m4{background:#dcfce7;color:#166534}
+.lp-stat-total{font-size:2rem;font-weight:700;color:#001b4d;line-height:1;font-family:'Kanit',sans-serif}
+.lp-stat-quota{font-size:12px;color:#94a3b8}
+.lp-stat-bar-wrap{background:#f1f5f9;border-radius:999px;height:8px;overflow:hidden}
+.lp-stat-bar{height:100%;border-radius:999px;background:linear-gradient(90deg,#1e40af,#60a5fa);transition:width .8s ease}
+.lp-stat-bar.m4{background:linear-gradient(90deg,#166534,#4ade80)}
+.lp-stat-pills{display:flex;flex-wrap:wrap;gap:6px}
+.lp-stat-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.lp-stat-pill.pending{background:#fef3c7;color:#92400e}
+.lp-stat-pill.exam{background:#dbeafe;color:#1e40af}
+.lp-stat-pill.pass{background:#dcfce7;color:#166534}
+.lp-stat-pill.fail{background:#fee2e2;color:#991b1b}
+
+/* Daily trend table */
+.lp-daily-wrap{background:#fff;border-radius:14px;border:1px solid #dce8f5;
+  box-shadow:0 2px 10px rgba(0,27,77,.05);overflow:hidden}
+.lp-daily-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;
+  display:flex;align-items:center;justify-content:space-between}
+.lp-daily-title{font-size:14px;font-weight:700;color:#001b4d;font-family:'Kanit',sans-serif}
+.lp-daily-table{width:100%;border-collapse:collapse;font-size:13px}
+.lp-daily-table th{
+  background:#f8faff;color:#64748b;font-weight:600;
+  padding:9px 12px;text-align:center;border-bottom:1px solid #e2e8f0;
+  white-space:nowrap;font-size:12px
+}
+.lp-daily-table th:first-child{text-align:left}
+.lp-daily-table td{
+  padding:8px 12px;text-align:center;border-bottom:1px solid #f8fafc;
+  color:#334155;font-size:13px
+}
+.lp-daily-table td:first-child{text-align:left;font-weight:500;color:#475569}
+.lp-daily-table tr:last-child td{
+  font-weight:700;color:#001b4d;background:#f0f5ff;border-top:1px solid #dce8f5
+}
+.lp-daily-table .zero{color:#cbd5e1}
+.lp-daily-table .nonzero{color:#001b4d;font-weight:600}
+.lp-daily-loading{text-align:center;padding:40px;color:#94a3b8;font-size:14px}
+
+@media(max-width:640px){.lp-stats-summary{grid-template-columns:1fr}}
+
+/* Mobile: fixed bg ไม่ work บน iOS → fallback scroll */
+@media(max-width:768px){.lp-hero{background-attachment:scroll}}
+/* ══════════════════════════════════════════════════ */
 </style>
 </head>
 <body>
@@ -3530,11 +3978,8 @@ body{padding-top:82px!important} #main-content{min-height:calc(100vh - 82px)!imp
     <!-- Logo -->
     <div class="nav-logo" onclick="showView('home')" style="cursor:pointer">
       <div class="nav-logo-icon" id="nav-logo-icon-wrap">🏫</div>
-      <img id="nav-logo-img" src="" alt="" style="display:none;width:48px;height:48px;object-fit:contain;border-radius:14px;border:2px solid rgba(212,175,55,.25);box-shadow:0 8px 18px rgba(0,27,77,.15)">
-      <div class="nav-logo-textwrap">
-        <span id="nav-school-name">หนองนาคำวิทยาคม</span>
-        <span id="nav-school-tagline">ACADEMIC EXCELLENCE</span>
-      </div>
+      <img id="nav-logo-img" src="" alt="" style="display:none;width:36px;height:36px;object-fit:contain;border-radius:50%;border:1px solid var(--border)">
+      <span id="nav-school-name">ระบบรับสมัครนักเรียน</span>
     </div>
 
     <!-- Desktop: public shortcuts (ซ่อนบน mobile) -->
@@ -3562,146 +4007,351 @@ body{padding-top:82px!important} #main-content{min-height:calc(100vh - 82px)!imp
 
 <!-- ── HOME ── -->
 <div id="view-home" class="view">
-  <section class="landing-source-hero">
-    <div class="landing-source-hero-bg" id="landing-hero-bg-layer"></div>
-    <div class="landing-source-hero-overlay"></div>
-    <div class="landing-source-hero-inner">
-      <div class="landing-source-badge">● ENROLLMENT OPEN YEAR <span id="landing-badge-year">2568</span></div>
-      <span id="hero-school" style="display:none">โรงเรียนหนองนาคำวิทยาคม</span>
-      <h1 class="landing-source-hero-title">
-        <span class="line-white" id="hero-system">รับสมัครนักเรียนใหม่</span><br>
-        <span class="line-gold" id="landing-hero-year">ปีการศึกษา 2568</span>
-      </h1>
-      <p id="hero-subtitle">ระดับมัธยมศึกษาปีที่ 1 และ 4 ก้าวเข้าสู่รั้วน้ำเงิน-เหลือง มุ่งสู่ความเป็นเลิศทางวิชาการและทักษะแห่งอนาคต</p>
-      <div class="landing-source-hero-actions">
-        <button class="landing-pill-btn gold" onclick="goRegister()"><span>📝</span>สมัครเรียนออนไลน์</button>
-        <button class="landing-pill-btn glass" onclick="goPublicCheckDirect()"><span>🔍</span>ตรวจสอบสถานะ</button>
-      </div>
-    </div>
-  </section>
 
-  <div id="announce-area" class="announce-bar" style="display:none">
-    <div class="announce-box">
-      <span class="announce-icon">📢</span>
-      <div class="announce-text" id="announce-text"></div>
+<!-- ██ HERO ██ -->
+<section class="lp-hero overlay-medium" id="lp-hero-section">
+<script>
+(function(){
+  try {
+    var t = sessionStorage.getItem('lp_hero_theme')   || '';
+    var o = sessionStorage.getItem('lp_hero_overlay') || 'medium';
+    var u = sessionStorage.getItem('lp_hero_bg_url')  || '';
+    var cls = 'lp-hero overlay-' + o + (t && t !== 'blue' ? ' theme-' + t : '');
+    var sec = document.getElementById('lp-hero-section');
+    if (sec) sec.className = cls;
+    if (u && sec) {
+      sec.style.backgroundImage = "url('" + u + "')";
+    }
+  } catch(e) {}
+})();
+</script>
+  <img class="lp-hero-bg-img" id="lp-hero-bg-img"
+    src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1600&q=80"
+    alt="" loading="lazy">
+  <div class="lp-hero-overlay"></div>
+  <div class="lp-hero-inner">
+    <div id="hero-logo-wrap" class="lp-hero-logo-wrap">
+      <img id="hero-logo-img" src="" alt=""
+        style="display:none;width:80px;height:80px;object-fit:contain;
+               border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.2);margin-bottom:14px">
+      <span id="hero-logo-fallback" style="font-size:52px;display:block;margin-bottom:12px">🏫</span>
+    </div>
+    <div class="lp-hero-badge">
+      <span class="ping-dot"><span class="ping-ring"></span><span class="ping-core"></span></span>
+      <span id="lp-hero-badge-text">เปิดรับสมัคร ปีการศึกษา 2568</span>
+    </div>
+    <h1 id="hero-school" class="lp-hero-title">โรงเรียนหนองนาคำวิทยาคม</h1>
+    <h2 id="hero-system" class="lp-hero-sub">รับสมัครนักเรียนใหม่ ปีการศึกษา 2568</h2>
+    <p  id="hero-subtitle" class="lp-hero-desc">ระดับชั้นมัธยมศึกษาปีที่ 1 และ 4</p>
+    <div class="lp-hero-btns">
+      <button class="lp-btn-gold large btn-cta-register" onclick="goRegister()">สมัครเรียนออนไลน์</button>
+      <button class="lp-btn-outline large btn-cta-check on-dark" onclick="goPublicCheckDirect()">ตรวจสอบสถานะ</button>
     </div>
   </div>
+</section>
 
-  <section class="landing-source-quickwrap">
-    <div class="landing-source-quicknav">
-      <button class="landing-source-qbtn active" onclick="goRegister()"><span>🧑‍🎓</span>สมัครเรียน</button>
-      <button class="landing-source-qbtn" onclick="goPublicCheckDirect()"><span>🪪</span>ตรวจสอบสถานะ</button>
-      <button class="landing-source-qbtn" onclick="showView('results')"><span>📣</span>ประกาศผล</button>
-      <button class="landing-source-qbtn" onclick="scrollToLandingSection('landing-compat-timeline-anchor')"><span>📊</span>สถิติ</button>
-    </div>
-  </section>
-
-  <section class="landing-source-section landing-source-rounds" id="landing-rounds">
-    <div class="landing-source-titlebox">
-      <span class="kicker">Selection Periods</span>
-      <h2>กำหนดการรับสมัคร</h2>
-      <div class="titleline"></div>
-    </div>
-    <div class="landing-source-grid-2">
-      <div class="landing-source-round-card popular">
-        <div class="top-badge">MOST POPULAR</div>
-        <div class="round-icon">📅</div>
-        <h3>รอบปกติ (Normal)</h3>
-        <p>การคัดเลือกทั่วไปสำหรับนักเรียนในเขตพื้นที่และนอกเขตพื้นที่บริการ</p>
-        <div class="round-meta dark"><span>APPLICATION PERIOD</span><strong id="timeline-open-date">มีนาคม 2568</strong></div>
-        <div class="round-meta dark"><span>SELECTION METHOD</span><strong>สอบคัดเลือกและสัมภาษณ์</strong></div>
-        <a id="landing-rules-link" class="landing-source-readrules" href="javascript:void(0)" target="_blank" rel="noopener">อ่านระเบียบการ</a>
-      </div>
-      <div class="landing-source-round-card additional">
-        <div class="top-strip"></div>
-        <div class="round-icon">➕</div>
-        <h3>รอบเพิ่มเติม (Additional)</h3>
-        <p>สำหรับรับสมัครเพิ่มเติมในแผนการเรียนที่ยังมีที่นั่งว่างจากการสละสิทธิ์</p>
-        <div class="round-meta"><span>APPLICATION PERIOD</span><strong>พฤษภาคม 2568</strong></div>
-        <div class="round-meta"><span>REQUIREMENTS</span><strong>พิจารณาตามความเหมาะสม</strong></div>
-        <a class="landing-source-readrules muted" href="javascript:void(0)">อ่านระเบียบการ</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="landing-source-section landing-source-timeline" id="landing-compat-timeline-anchor">
-    <div class="landing-source-titlebox">
-      <span class="kicker">Academic Roadmap</span>
-      <h2>ลำดับขั้นตอนสำคัญ</h2>
-      <p>Timeline การดำเนินงานประจำปีการศึกษา <span id="landing-timeline-year">2568</span></p>
-    </div>
-    <div class="landing-source-timeline-wrap" id="landing-timeline-wrap-render">
-      <div class="landing-source-timeline-line"></div>
-      <div class="timeline-row odd">
-        <div class="timeline-dot gold">✏️</div>
-        <div class="timeline-card">
-          <div class="timeline-card-head"><h4>เปิดรับสมัคร ม.1 และ ม.4</h4><span class="date-pill">มีนาคม 2568</span></div>
-          <p>รับสมัครออนไลน์ผ่านระบบเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมตามที่กำหนด</p>
-        </div>
-      </div>
-      <div class="timeline-row even">
-        <div class="timeline-dot">🪪</div>
-        <div class="timeline-card">
-          <div class="timeline-card-head"><h4>ประกาศรายชื่อผู้มีสิทธิ์สอบ</h4><span class="date-pill muted">เมษายน 2568</span></div>
-          <p>ผู้สมัครสามารถเข้าตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรประจำตัวผู้เข้าสอบได้จากระบบ</p>
-        </div>
-      </div>
-      <div class="timeline-row odd">
-        <div class="timeline-dot">🎉</div>
-        <div class="timeline-card">
-          <div class="timeline-card-head"><h4>ประกาศผลและรายงานตัว</h4><span class="date-pill muted">เมษายน 2568</span></div>
-          <p>ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ และต้องรายงานตัวผ่านระบบออนไลน์และที่โรงเรียนตามกำหนด</p>
-        </div>
-      </div>
-    </div>
-    <div id="pub-timeline-wrap" style="display:none"><div id="pub-timeline-grid"></div></div>
-  </section>
-
-  <section class="landing-source-docs">
-    <div class="landing-source-docs-left">
-      <div class="docs-kicker">Required Documents</div>
-      <h2>เตรียมความพร้อม<br><span>หลักฐานการสมัครเรียน</span></h2>
-      <p id="landing-docs-desc">โปรดสแกนเอกสารต้นฉบับให้ชัดเจน (PDF หรือ JPG) เพื่ออัปโหลดเข้าสู่ระบบ หรือนำเอกสารตัวจริงมาในวันรายงานตัว</p>
-      <div class="landing-source-doclist" id="landing-docs-list">
-        <div class="doc-row"><span>1</span><strong>รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว</strong></div>
-        <div class="doc-row"><span>2</span><strong>สำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)</strong></div>
-        <div class="doc-row"><span>3</span><strong>ระเบียนแสดงผลการเรียน (ปพ.1)</strong></div>
-        <div class="doc-row"><span>4</span><strong>สำเนาทะเบียนบ้านฉบับเจ้าบ้าน</strong></div>
-      </div>
-    </div>
-    <div class="landing-source-docs-right">
-      <div class="landing-source-docvisual" id="landing-docs-visual">Application Form</div>
-      <div class="landing-source-docnote"><div id="landing-doc-note">ตรวจสอบให้ครบถ้วน</div><small id="landing-doc-note-small">ความถูกต้องของข้อมูลช่วยให้การพิจารณาเป็นไปได้อย่างรวดเร็ว</small></div>
-    </div>
-  </section>
-
-  <section class="landing-source-contact">
-    <div class="contact-left">
-      <span class="kicker">Contact us</span>
-      <h2>ช่องทางการติดต่อ</h2>
-      <div class="contact-item"><div class="icon">📍</div><div><b>ที่ตั้งโรงเรียน</b><p id="landing-contact-address">–</p></div></div>
-      <div class="contact-item"><div class="icon">☎️</div><div><b>เบอร์โทรศัพท์</b><p id="landing-contact-phone">–</p></div></div>
-      <div class="contact-item"><div class="icon">✉️</div><div><b>อีเมล</b><p id="landing-contact-email">–</p></div></div>
-      <div class="contact-actions"><a id="landing-phone-link" href="javascript:void(0)" class="iconbtn">📞</a><a id="landing-line-link" href="javascript:void(0)" target="_blank" rel="noopener" class="iconbtn">💬</a></div>
-    </div>
-    <div class="contact-map" id="landing-mapbox">Map view</div>
-  </section>
-
-  <div class="landing-compat-hidden" aria-hidden="true">
-    <span id="m1-quota-text">–</span>
-    <span id="m4-quota-text">–</span>
-    <span id="m1-exam-date-text">–</span>
-    <span id="m4-exam-date-text">–</span>
-    <span id="m1-result-date-text">–</span>
-    <span id="m4-result-date-text">–</span>
-    <span id="m1-open-badge">–</span>
-    <span id="m4-open-badge">–</span>
-    <button id="btn-reg-m1" type="button"></button>
-    <button id="btn-reg-m4" type="button"></button>
-    <div id="m1-countdown-box"></div>
-    <div id="m4-countdown-box"></div>
+<!-- ██ ANNOUNCE ██ -->
+<div id="announce-area" class="announce-bar" style="display:none">
+  <div class="announce-box">
+    <span class="announce-icon">📢</span>
+    <div class="announce-text" id="announce-text"></div>
   </div>
 </div>
+
+<!-- ██ QUICK NAV ██ -->
+<div class="lp-quicknav-wrap">
+  <div class="lp-quicknav">
+    <button class="lp-qnav-btn primary" onclick="goRegister()">
+      <span class="lp-qnav-icon">👤</span> สมัครเรียน
+    </button>
+    <button class="lp-qnav-btn secondary" onclick="goPublicCheckDirect()">
+      <span class="lp-qnav-icon">✅</span> ตรวจสอบสถานะ
+    </button>
+    <button class="lp-qnav-btn secondary" onclick="showView('results')">
+      <span class="lp-qnav-icon">📋</span> ประกาศผล
+    </button>
+    <button class="lp-qnav-btn secondary" id="lp-qnav-reg-btn" style="display:none"
+      onclick="var u=document.getElementById('lp-qnav-reg-btn').dataset.url;if(u)window.open(u,'_blank')">
+      <span class="lp-qnav-icon">📄</span> ระเบียบการ
+    </button>
+    <button class="lp-qnav-btn secondary"
+      onclick="var el=document.getElementById('lp-plans-section');if(el)el.scrollIntoView({behavior:'smooth'})">
+      <span class="lp-qnav-icon">📚</span> แผนการเรียน
+    </button>
+    <button class="lp-qnav-btn secondary"
+      onclick="var el=document.getElementById('lp-stats-section');if(el)el.scrollIntoView({behavior:'smooth'})">
+      <span class="lp-qnav-icon">📊</span> สถิติ
+    </button>
+  </div>
+</div>
+
+<!-- ██ ENROLLMENT ROUNDS ██ -->
+<section class="lp-section lp-section-bg-gray" style="padding-top:80px;border-top:1px solid #e4ecf7">
+  <div class="lp-section-inner">
+    <div style="text-align:center;margin-bottom:56px">
+      <span class="lp-section-label">Selection Periods</span>
+      <h2 class="lp-section-title">กำหนดการรับสมัคร</h2>
+      <div class="lp-divider" style="margin:0 auto"></div>
+    </div>
+    <div class="lp-enroll-grid">
+      <!-- ม.1 -->
+      <div class="lp-enroll-card card-m1">
+        <div class="lp-enroll-card-badge">MOST POPULAR</div>
+        <span class="lp-enroll-icon"><svg viewBox="0 0 40 40" fill="none" style="width:40px;height:40px">
+  <rect x="6" y="4" width="24" height="32" rx="3" fill="#dbeafe" stroke="#1e40af" stroke-width="1.5"/>
+  <rect x="10" y="9" width="16" height="2" rx="1" fill="#1e40af" opacity=".45"/>
+  <rect x="10" y="13" width="16" height="2" rx="1" fill="#1e40af" opacity=".45"/>
+  <rect x="10" y="17" width="11" height="2" rx="1" fill="#1e40af" opacity=".45"/>
+  <path d="M24 4v14l-4-2.5-4 2.5V4" fill="#1e40af" opacity=".8"/>
+</svg></span>
+        <div class="lp-enroll-title">มัธยมศึกษาปีที่ 1</div>
+        <div class="lp-enroll-desc" id="lp-m1-desc">รับนักเรียนจบชั้นประถมศึกษาปีที่ 6 ทั้งในเขตและนอกเขตพื้นที่บริการ</div>
+        <div class="lp-info-rows">
+          <div class="lp-info-row"><span class="lp-info-row-icon">📅</span><div>
+            <div class="lp-info-label">จำนวนรับ</div>
+            <div class="lp-info-value" id="m1-quota-text">–</div></div></div>
+          <div class="lp-info-row"><span class="lp-info-row-icon">🗓</span><div>
+            <div class="lp-info-label">วันสอบคัดเลือก</div>
+            <div class="lp-info-value" id="m1-exam-date-text">–</div></div></div>
+          <div class="lp-info-row"><span class="lp-info-row-icon">🏆</span><div>
+            <div class="lp-info-label">วันประกาศผล</div>
+            <div class="lp-info-value" id="m1-result-date-text">–</div></div></div>
+          <div class="lp-info-row"><span class="lp-info-row-icon">🔔</span><div>
+            <div class="lp-info-label">สถานะ</div>
+            <div id="m1-open-badge" style="margin-top:2px"><span class="badge badge-gray">–</span></div></div></div>
+        </div>
+        <div id="m1-countdown-box" style="display:none;margin-bottom:16px;padding:12px;border-radius:14px;text-align:center;background:#eff6ff;border:1px solid #bfdbfe"></div>
+        <button id="btn-reg-m1" class="lp-enroll-reg-btn m1" onclick="startRegister('ม.1')">สมัครเรียน ม.1</button>
+      </div>
+      <!-- ม.4 -->
+      <div class="lp-enroll-card card-m4">
+        <span class="lp-enroll-icon"><svg viewBox="0 0 40 40" fill="none" style="width:40px;height:40px">
+  <ellipse cx="20" cy="18" rx="13" ry="7" fill="#dcfce7" stroke="#059669" stroke-width="1.5"/>
+  <path d="M7 18l13 7 13-7" stroke="#059669" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+  <rect x="11" y="11" width="18" height="7" rx="1.5" fill="#bbf7d0"/>
+  <path d="M20 11V5" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M12 5h16" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+  <path d="M31 22v7M28 29h6" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/>
+</svg></span>
+        <div class="lp-enroll-title">มัธยมศึกษาปีที่ 4</div>
+        <div class="lp-enroll-desc" id="lp-m4-desc">รับนักเรียนจบชั้นมัธยมศึกษาปีที่ 3 สำหรับต่อเนื่องในแผนการเรียนที่สนใจ</div>
+        <div class="lp-info-rows">
+          <div class="lp-info-row"><span class="lp-info-row-icon">📅</span><div>
+            <div class="lp-info-label">จำนวนรับ</div>
+            <div class="lp-info-value" id="m4-quota-text">–</div></div></div>
+          <div class="lp-info-row"><span class="lp-info-row-icon">🗓</span><div>
+            <div class="lp-info-label">วันสอบคัดเลือก</div>
+            <div class="lp-info-value" id="m4-exam-date-text">–</div></div></div>
+          <div class="lp-info-row"><span class="lp-info-row-icon">🏆</span><div>
+            <div class="lp-info-label">วันประกาศผล</div>
+            <div class="lp-info-value" id="m4-result-date-text">–</div></div></div>
+          <div class="lp-info-row"><span class="lp-info-row-icon">🔔</span><div>
+            <div class="lp-info-label">สถานะ</div>
+            <div id="m4-open-badge" style="margin-top:2px"><span class="badge badge-gray">–</span></div></div></div>
+        </div>
+        <div id="m4-countdown-box" style="display:none;margin-bottom:16px;padding:12px;border-radius:14px;text-align:center;background:#f0fdf4;border:1px solid #bbf7d0"></div>
+        <button id="btn-reg-m4" class="lp-enroll-reg-btn m4" onclick="startRegister('ม.4')">สมัครเรียน ม.4</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ██ STUDY PLANS REQUIREMENTS ██ -->
+<section id="lp-plans-section" class="lp-section" style="background:#fff;display:none">
+  <div class="lp-section-inner">
+    <div style="text-align:center;margin-bottom:40px">
+      <span class="lp-section-label">Study Plans</span>
+      <h2 class="lp-section-title">คุณสมบัติและแผนการเรียน</h2>
+      <div class="lp-divider" style="margin:0 auto 16px"></div>
+      <!-- ปุ่มระเบียบการ (แสดงเฉพาะเมื่อตั้ง URL) -->
+      <div id="lp-reg-btn-wrap" style="display:none;margin-top:4px">
+        <a id="lp-reg-link" href="#" target="_blank" class="lp-reg-btn" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/>
+          </svg>
+          <span id="lp-reg-btn-label">ดูระเบียบการรับสมัคร</span>
+        </a>
+      </div>
+    </div>
+    <div class="lp-plans-grid" id="lp-plans-grid">
+      <div class="lp-plan-empty">⏳ กำลังโหลดข้อมูลแผนการเรียน...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ██ TIMELINE ██ -->
+<section class="lp-section lp-section-bg-cool">
+  <div class="lp-section-inner" style="max-width:820px">
+    <div style="text-align:center;margin-bottom:56px">
+      <span class="lp-section-label">Academic Roadmap</span>
+      <h2 class="lp-section-title">ลำดับขั้นตอนสำคัญ</h2>
+      <div class="lp-divider" style="margin:0 auto"></div>
+    </div>
+    <div class="lp-timeline-wrap">
+      <div class="lp-tl-item">
+        <div class="lp-tl-dot">&#9999;&#65039;</div>
+        <div class="lp-tl-content">
+          <div class="lp-tl-header">
+            <div class="lp-tl-title" id="lp-tl1-title">เปิดรับสมัคร ม.1 และ ม.4</div>
+            <span class="lp-tl-label gold" id="lp-tl1-date">มีนาคม 2568</span>
+          </div>
+          <p class="lp-tl-desc" id="lp-tl1-desc">รับสมัครออนไลน์ผ่านระบบเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมก่อนสมัคร</p>
+        </div>
+      </div>
+      <div class="lp-tl-item">
+        <div class="lp-tl-dot inactive">&#128203;</div>
+        <div class="lp-tl-content">
+          <div class="lp-tl-header">
+            <div class="lp-tl-title" id="lp-tl2-title">ประกาศรายชื่อผู้มีสิทธิ์สอบ</div>
+            <span class="lp-tl-label gray" id="lp-tl2-date">เมษายน 2568</span>
+          </div>
+          <p class="lp-tl-desc" id="lp-tl2-desc">ผู้สมัครสามารถตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรเข้าสอบได้จากระบบออนไลน์</p>
+        </div>
+      </div>
+      <div class="lp-tl-item">
+        <div class="lp-tl-dot inactive">&#127881;</div>
+        <div class="lp-tl-content">
+          <div class="lp-tl-header">
+            <div class="lp-tl-title" id="lp-tl3-title">ประกาศผลและรายงานตัว</div>
+            <span class="lp-tl-label gray" id="lp-tl3-date">เมษายน 2568</span>
+          </div>
+          <p class="lp-tl-desc" id="lp-tl3-desc">ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ นักเรียนที่ผ่านต้องรายงานตัวตามวันที่กำหนด</p>
+        </div>
+      </div>
+    </div>
+    <div class="pub-timeline" id="pub-timeline-wrap" style="display:none;margin-top:40px">
+      <h3 style="font-size:16px;font-weight:700;color:#001b4d;margin-bottom:16px">&#128197; กำหนดการ</h3>
+      <div class="timeline-grid" id="pub-timeline-grid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ██ STATS (anchor) ██ -->
+<div id="lp-stats-section" class="lp-section-bg-warm" style="padding:48px 20px 60px">
+  <div style="max-width:1000px;margin:0 auto;text-align:center;margin-bottom:32px">
+    <span class="lp-section-label">Live Statistics</span>
+    <h2 class="lp-section-title">สถิติผู้สมัครแบบเรียลไทม์</h2>
+    <div class="lp-divider" style="margin:0 auto"></div>
+  </div>
+  <div class="lp-stats-wrap">
+    <!-- Summary cards -->
+    <div class="lp-stats-summary" id="lp-stats-summary">
+      <div class="lp-stat-card"><div class="lp-daily-loading">⏳ กำลังโหลด...</div></div>
+      <div class="lp-stat-card"><div class="lp-daily-loading">⏳ กำลังโหลด...</div></div>
+    </div>
+    <!-- Daily trend table -->
+    <div class="lp-daily-wrap">
+      <div class="lp-daily-head">
+        <div class="lp-daily-title">📅 จำนวนผู้สมัครรายวัน</div>
+        <div id="lp-daily-updated" style="font-size:11px;color:#94a3b8"></div>
+      </div>
+      <div id="lp-daily-table-wrap">
+        <div class="lp-daily-loading">⏳ กำลังโหลดข้อมูล...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ██ DOCUMENTS ██ -->
+<section class="lp-section lp-section-bg-dark" style="position:relative">
+  <div class="lp-section-inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center">
+      <div>
+        <div style="display:inline-block;padding:6px 16px;margin-bottom:20px;border-radius:8px;
+            background:rgba(212,175,55,.2);border:1px solid rgba(212,175,55,.3);
+            color:#d4af37;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em">
+          Required Documents
+        </div>
+        <h2 style="font-size:clamp(1.8rem,3vw,2.4rem);font-weight:900;color:#fff;
+            margin-bottom:16px;line-height:1.2">
+          เตรียมความพร้อม<br>
+          <span style="color:#FFD700">หลักฐานการสมัคร</span>
+        </h2>
+        <p style="color:rgba(226,232,240,.75);font-size:15px;line-height:1.8;margin-bottom:28px;font-weight:300">
+          เตรียมเอกสารต่อไปนี้ให้พร้อมทั้งไฟล์ดิจิทัล (PDF/JPG) เพื่ออัปโหลด และตัวจริงสำหรับวันรายงานตัว
+        </p>
+        <div class="lp-docs-grid" id="lp-docs-grid">
+          <!-- filled by applySettings() from LP_DOCS setting -->
+          <div class="lp-doc-item"><div class="lp-doc-num">1</div><div class="lp-doc-text">รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว</div></div>
+          <div class="lp-doc-item"><div class="lp-doc-num">2</div><div class="lp-doc-text">สำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)</div></div>
+          <div class="lp-doc-item"><div class="lp-doc-num">3</div><div class="lp-doc-text">ระเบียนแสดงผลการเรียน (ปพ.1)</div></div>
+          <div class="lp-doc-item"><div class="lp-doc-num">4</div><div class="lp-doc-text">สำเนาทะเบียนบ้านฉบับเจ้าบ้าน</div></div>
+        </div>
+        <div style="margin-top:28px">
+          <button class="btn-cta-register" onclick="goRegister()">สมัครเรียนออนไลน์</button>
+        </div>
+      </div>
+      <div>
+        <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+            border-radius:28px;padding:36px;text-align:center">
+          <div style="font-size:72px;margin-bottom:20px">&#127891;</div>
+          <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+              border-radius:18px;padding:24px">
+            <div style="color:#d4af37;font-size:11px;font-weight:900;text-transform:uppercase;
+                letter-spacing:.06em;margin-bottom:10px">&#10003; ตรวจสอบให้ครบถ้วน</div>
+            <div style="color:#fff;font-size:18px;font-weight:900;margin-bottom:8px">ก้าวสู่รั้วน้ำเงิน-เหลือง</div>
+            <div style="color:rgba(226,232,240,.7);font-size:13px;line-height:1.7">
+              ความถูกต้องและครบถ้วนของข้อมูล<br>ช่วยให้การพิจารณาดำเนินไปได้รวดเร็ว
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ██ CONTACT ██ -->
+<section class="lp-section lp-section-bg-cool" style="border-top:1px solid #dce8f5">
+  <div class="lp-section-inner">
+    <div class="lp-contact-grid">
+      <div>
+        <span class="lp-section-label">Contact Us</span>
+        <h2 class="lp-section-title">ช่องทางการติดต่อ</h2>
+        <div class="lp-divider"></div>
+        <div class="lp-contact-items">
+          <div class="lp-contact-item">
+            <div class="lp-contact-icon-wrap">&#128205;</div>
+            <div>
+              <div class="lp-contact-label">ที่ตั้งโรงเรียน</div>
+              <div class="lp-contact-value" id="lp-contact-address">ต.บ้านโคก อ.หนองนาคำ จ.ขอนแก่น</div>
+            </div>
+          </div>
+          <div class="lp-contact-item" id="lp-contact-phone-row" style="display:none">
+            <div class="lp-contact-icon-wrap">&#128222;</div>
+            <div>
+              <div class="lp-contact-label">เบอร์โทรศัพท์</div>
+              <div class="lp-contact-value">
+                <a id="lp-contact-phone-link" href="javascript:void(0)" style="color:inherit;text-decoration:none">
+                  <span id="lp-contact-phone">–</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- LINE card แสดงเฉพาะหน้าตรวจสอบสถานะ (ป้องกันมิจฉาชีพ) -->
+        </div>
+        <div style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
+          <button onclick="goRegister()" class="btn-cta-register">สมัครเรียน</button>
+          <button onclick="goPublicCheckDirect()" class="btn-cta-check">ตรวจสอบสถานะ</button>
+        </div>
+      </div>
+      <div>
+        <div class="lp-map-wrap">
+          <iframe
+            src="https://www.google.com/maps?q=โรงเรียนหนองนาคำวิทยาคม+ขอนแก่น&output=embed"
+            width="100%" height="100%" style="border:0;display:block;flex:1;min-height:420px"
+            allowfullscreen="" loading="lazy" title="แผนที่โรงเรียน">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /view-home -->
+
+
 
 <!-- ── REGISTER (Wizard 5 Steps) ── -->
 <div id="view-register" class="view">
@@ -3729,21 +4379,43 @@ body{padding-top:82px!important} #main-content{min-height:calc(100vh - 82px)!imp
             <div class="level-options">
               <label class="level-option" id="lo-m1" onclick="selectLevel('ม.1')">
                 <input type="radio" name="reg-level" value="ม.1">
-                <div class="level-icon">📘</div>
+                <div class="level-icon"><svg class="level-svg-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="8" y="6" width="28" height="36" rx="4" fill="#dbeafe" stroke="#1e40af" stroke-width="2"/>
+  <rect x="12" y="10" width="20" height="2.5" rx="1.25" fill="#1e40af" opacity=".5"/>
+  <rect x="12" y="15" width="20" height="2.5" rx="1.25" fill="#1e40af" opacity=".5"/>
+  <rect x="12" y="20" width="14" height="2.5" rx="1.25" fill="#1e40af" opacity=".5"/>
+  <path d="M30 6v16l-4-3-4 3V6" fill="#1e40af" opacity=".85"/>
+</svg></div>
                 <div class="level-name">ม.1</div>
                 <div class="level-desc">รับนักเรียนจบชั้น ป.6</div>
                 <div class="check-mark">✓</div>
               </label>
               <label class="level-option" id="lo-m4" onclick="selectLevel('ม.4')">
                 <input type="radio" name="reg-level" value="ม.4">
-                <div class="level-icon">📗</div>
+                <div class="level-icon"><svg class="level-svg-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="24" cy="22" rx="16" ry="9" fill="#dcfce7" stroke="#059669" stroke-width="2"/>
+  <rect x="14" y="13" width="20" height="9" rx="2" fill="#d1fae5"/>
+  <path d="M8 22l16 9 16-9" stroke="#059669" stroke-width="2" stroke-linejoin="round" fill="none"/>
+  <path d="M24 13V6" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+  <path d="M14 6h20" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="38" cy="26" r="3" fill="#059669"/>
+  <path d="M38 29v8" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+  <path d="M35 37h6" stroke="#059669" stroke-width="2" stroke-linecap="round"/>
+</svg></div>
                 <div class="level-name">ม.4</div>
                 <div class="level-desc">รับนักเรียนจบชั้น ม.3</div>
                 <div class="check-mark">✓</div>
               </label>
               <label class="level-option" id="lo-transfer" onclick="selectLevel('ย้ายเข้า')" style="grid-column:1/-1">
                 <input type="radio" name="reg-level" value="ย้ายเข้า">
-                <div class="level-icon">🔄</div>
+                <div class="level-icon"><svg class="level-svg-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="10" width="18" height="28" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <rect x="26" y="10" width="18" height="28" rx="4" fill="#eff6ff" stroke="#1e40af" stroke-width="2"/>
+  <path d="M16 20l8 4-8 4" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M32 20l-8 4 8 4" stroke="#1e40af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="13" cy="24" r="2.5" fill="#d97706" opacity=".6"/>
+  <circle cx="35" cy="24" r="2.5" fill="#1e40af" opacity=".6"/>
+</svg></div>
                 <div class="level-name" style="font-size:16px">ย้ายเข้าระหว่างปี</div>
                 <div class="level-desc">สำหรับนักเรียนย้ายโรงเรียนระหว่างปีการศึกษา (ม.1–ม.6)</div>
                 <div class="check-mark">✓</div>
@@ -5392,6 +6064,168 @@ body{padding-top:82px!important} #main-content{min-height:calc(100vh - 82px)!imp
           </div>
         </div>
       </div>
+
+      <!-- ── 🌐 Landing Page Content ── -->
+      <div class="card" style="margin-top:8px">
+        <div class="card-header" style="background:linear-gradient(135deg,#001b4d,#003580);color:#fff;border-radius:var(--r-lg) var(--r-lg) 0 0">
+              <h2 style="color:#fff">🌐 ข้อความหน้าหลัก (Landing Page)</h2>
+            </div>
+        <div class="card-body">
+              <p style="font-size:13px;color:#64748b;margin-bottom:20px">
+                แก้ไขข้อความที่แสดงบนหน้าหลักสำหรับผู้สมัคร ไม่ต้องแก้โค้ด
+              </p>
+
+              <!-- Hero background & theme -->
+              <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;font-weight:600;color:#001b4d;margin-bottom:12px">🖼 พื้นหลัง Hero</div>
+                <div class="form-group" style="margin-bottom:12px">
+                  <label>URL รูปพื้นหลัง <span style="font-weight:400;color:#94a3b8">(เว้นว่าง = ใช้รูปเริ่มต้น)</span></label>
+                  <input type="url" id="cfg-lp-hero-bg-url" class="form-control"
+                    placeholder="https://drive.google.com/uc?id=... หรือ URL รูปภาพ">
+                  <div class="form-hint">รองรับ Google Drive (uc?id=...), Imgur, หรือ URL รูปภาพอื่นๆ</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div class="form-group" style="margin:0">
+                    <label>ธีมสี</label>
+                    <select id="cfg-lp-hero-theme" class="form-control">
+                      <option value="blue">🔵 น้ำเงิน (ค่าเริ่มต้น)</option>
+                      <option value="yellow">🟡 เหลือง-ดำ (สีโรงเรียน)</option>
+                      <option value="light">⬜ สว่าง (Light)</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label>ความเข้มของ Overlay</label>
+                    <select id="cfg-lp-hero-overlay" class="form-control">
+                      <option value="light">อ่อน (เห็นรูปชัด)</option>
+                      <option value="medium" selected>กลาง (แนะนำ)</option>
+                      <option value="dark">เข้ม (อ่านง่าย)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Regulations -->
+              <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;font-weight:600;color:#001b4d;margin-bottom:12px">📄 ระเบียบการรับสมัคร</div>
+                <div class="form-group" style="margin-bottom:8px">
+                  <label>URL ระเบียบการ / ประกาศรับสมัคร</label>
+                  <input type="url" id="cfg-lp-reg-url" class="form-control"
+                    placeholder="https://drive.google.com/... หรือ URL เอกสาร">
+                  <div class="form-hint">ปุ่ม "ดูระเบียบการ" จะแสดงใน Quick Nav เฉพาะเมื่อมี URL</div>
+                </div>
+                <div class="form-group" style="margin:0">
+                  <label>ข้อความปุ่ม</label>
+                  <input type="text" id="cfg-lp-reg-label" class="form-control"
+                    placeholder="ดูระเบียบการรับสมัคร">
+                </div>
+              </div>
+
+              <!-- Study plans requirements -->
+              <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;font-weight:600;color:#001b4d;margin-bottom:6px">📚 คุณสมบัติแผนการเรียน</div>
+                <p style="font-size:12px;color:#64748b;margin-bottom:10px">
+                  รูปแบบ: <code>ชื่อแผน|ระดับชั้น|คุณสมบัติ 1|คุณสมบัติ 2|...</code><br>
+                  ตัวอย่าง: <code>วิทยาศาสตร์-คณิตศาสตร์|ม.4|เกรดเฉลี่ยไม่ต่ำกว่า 2.50|คะแนนสอบ ≥ 60%</code><br>
+                  แต่ละบรรทัด = 1 แผนการเรียน  (ว่าง = ซ่อน section)
+                </p>
+                <textarea id="cfg-lp-plan-reqs" class="form-control" rows="5"
+                  placeholder="วิทยาศาสตร์-คณิตศาสตร์|ม.4|เกรดเฉลี่ยรวมไม่ต่ำกว่า 2.50|คะแนนสอบไม่ต่ำกว่า 60%&#10;ศิลปะ-ภาษา|ม.4|เกรดเฉลี่ยรวมไม่ต่ำกว่า 2.00&#10;แผนการเรียนทั่วไป|ม.1|สำเร็จการศึกษาชั้น ป.6|ผ่านการสอบคัดเลือก"></textarea>
+              </div>
+
+              <!-- Hero badge -->
+              <div class="form-group">
+                <label>ข้อความ Badge บน Hero</label>
+                <input type="text" id="cfg-lp-hero-badge" class="form-control"
+                  placeholder="เปิดรับสมัคร ปีการศึกษา 2568">
+                <div class="form-hint">แสดงในกรอบเล็กเหนือชื่อโรงเรียน</div>
+              </div>
+
+              <!-- Card descriptions -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                <div class="form-group" style="margin:0">
+                  <label>คำอธิบายการ์ด ม.1</label>
+                  <textarea id="cfg-lp-m1-desc" class="form-control" rows="2"
+                    placeholder="รับนักเรียนจบชั้น ป.6 ทั้งในเขต/นอกเขต"></textarea>
+                </div>
+                <div class="form-group" style="margin:0">
+                  <label>คำอธิบายการ์ด ม.4</label>
+                  <textarea id="cfg-lp-m4-desc" class="form-control" rows="2"
+                    placeholder="รับนักเรียนจบชั้น ม.3 ทุกแผนการเรียน"></textarea>
+                </div>
+              </div>
+
+              <!-- Timeline -->
+              <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;font-weight:600;color:#001b4d;margin-bottom:12px">📅 ลำดับขั้นตอน (Timeline)</div>
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <!-- TL1 -->
+                  <div style="border-left:3px solid #d4a20a;padding-left:12px">
+                    <div style="font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px">ขั้นตอนที่ 1</div>
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:6px">
+                      <input type="text" id="cfg-lp-tl1-title" class="form-control"
+                        placeholder="เปิดรับสมัคร ม.1 และ ม.4" style="font-size:13px">
+                      <input type="text" id="cfg-lp-tl1-date" class="form-control"
+                        placeholder="มีนาคม 2568" style="width:130px;font-size:13px">
+                    </div>
+                    <textarea id="cfg-lp-tl1-desc" class="form-control" rows="2"
+                      placeholder="คำอธิบายขั้นตอนที่ 1" style="font-size:13px"></textarea>
+                  </div>
+                  <!-- TL2 -->
+                  <div style="border-left:3px solid #94a3b8;padding-left:12px">
+                    <div style="font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px">ขั้นตอนที่ 2</div>
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:6px">
+                      <input type="text" id="cfg-lp-tl2-title" class="form-control"
+                        placeholder="ประกาศรายชื่อผู้มีสิทธิ์สอบ" style="font-size:13px">
+                      <input type="text" id="cfg-lp-tl2-date" class="form-control"
+                        placeholder="เมษายน 2568" style="width:130px;font-size:13px">
+                    </div>
+                    <textarea id="cfg-lp-tl2-desc" class="form-control" rows="2"
+                      placeholder="คำอธิบายขั้นตอนที่ 2" style="font-size:13px"></textarea>
+                  </div>
+                  <!-- TL3 -->
+                  <div style="border-left:3px solid #94a3b8;padding-left:12px">
+                    <div style="font-size:12px;font-weight:600;color:#6b7280;margin-bottom:6px">ขั้นตอนที่ 3</div>
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:6px">
+                      <input type="text" id="cfg-lp-tl3-title" class="form-control"
+                        placeholder="ประกาศผลและรายงานตัว" style="font-size:13px">
+                      <input type="text" id="cfg-lp-tl3-date" class="form-control"
+                        placeholder="เมษายน 2568" style="width:130px;font-size:13px">
+                    </div>
+                    <textarea id="cfg-lp-tl3-desc" class="form-control" rows="2"
+                      placeholder="คำอธิบายขั้นตอนที่ 3" style="font-size:13px"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Documents: dynamic list -->
+              <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                  <div style="font-size:13px;font-weight:600;color:#001b4d">📄 รายการเอกสาร</div>
+                  <span style="font-size:11px;color:#94a3b8">เพิ่ม/ลบได้ไม่จำกัด</span>
+                </div>
+
+                <!-- Dynamic rows -->
+                <div id="cfg-lp-docs-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+                  <!-- rows generated by JS -->
+                </div>
+
+                <!-- Add button -->
+                <button type="button" onclick="_lpDocAddRow()"
+                  style="width:100%;padding:9px;border:1.5px dashed #cbd5e1;border-radius:8px;
+                    background:transparent;color:#64748b;font-size:13px;cursor:pointer;
+                    transition:all .2s;font-family:'Kanit',sans-serif"
+                  onmouseover="this.style.borderColor='#001b4d';this.style.color='#001b4d'"
+                  onmouseout="this.style.borderColor='#cbd5e1';this.style.color='#64748b'">
+                  + เพิ่มรายการเอกสาร
+                </button>
+
+                <input type="hidden" id="cfg-lp-docs">
+              </div>
+
+            </div><!-- /card-body -->
+      </div><!-- /LP card -->
+
+
       <div class="card mt-16">
         <div class="card-header">📍 <h2>เขตพื้นที่บริการ</h2></div>
         <div class="card-body">
@@ -7225,7 +8059,7 @@ body{padding-top:82px!important} #main-content{min-height:calc(100vh - 82px)!imp
 <script>
 /* ── Built-in Changelog (auto-generated from header) ── */
 var _BUILTIN_CHANGELOG = [
-"v1.15.47 – 2569-03-21 – Performance & Bug fixes: _renderAppsTable, run() wrapper, cache guard, parallel init",
+"v1.15.33 – 2569-03-21 – Performance & Bug fixes: _renderAppsTable, run() wrapper, cache guard, parallel init",
 "v1.15.32 – 2569-03-21 – Fix: Changelog popup ดึงจาก _BUILTIN_CHANGELOG โดยตรง",
 "v1.15.31 – 2569-03-21 – Footer: ย้ายโลโก้มาอยู่หน้า © ในบรรทัดแรก",
 "v1.15.30 – 2569-03-21 – Footer เปลี่ยนเป็น 3 บรรทัด compact",
@@ -7317,6 +8151,38 @@ function setAppLoading(step, percent) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // ── Scroll-aware navbar ──
+  (function(){
+    var nb = document.getElementById('navbar');
+    var heroH = 0;
+    function getHeroH(){
+      var hero = document.getElementById('lp-hero-section');
+      return hero ? hero.offsetHeight : 400;
+    }
+    function updateNav(){
+      var view = document.getElementById('view-home');
+      var isHome = view && view.classList.contains('active');
+      var isAdmin = S && S.token;
+      if (!isHome || isAdmin) {
+        if (nb) nb.classList.remove('nav-transparent');
+        return;
+      }
+      heroH = getHeroH();
+      var atTop = window.scrollY < heroH * 0.5;
+      if (nb) nb.classList.toggle('nav-transparent', atTop);
+    }
+    window.addEventListener('scroll', updateNav, {passive:true});
+    // expose ให้ showView เรียกได้
+    window._updateNavTransparency = updateNav;
+    // Auto-refresh public stats ทุก 60s
+    setInterval(function(){
+      if (!document.getElementById('lp-stats-section')) return;
+      run('getPublicStats', null, function(s) {
+        if (s) { S.publicStats = s; _renderLpStats(s); }
+      });
+    }, 60000);
+    setTimeout(updateNav, 300); // รอ GAS load
+  })();
   unlockBodyScroll(true);
   showNavAdmin(!!S.token);
   showView(S.token ? 'admin-main' : 'home');
@@ -7653,66 +8519,6 @@ function onLogoFileSelected(input) {
   reader.readAsDataURL(file);
 }
 
-
-function scrollToLandingSection(id){
-  var el=document.getElementById(id); if(!el) return; el.scrollIntoView({behavior:'smooth', block:'start'});
-}
-function _splitLines(v){ return String(v||'').split(/\r?\n/).map(function(t){return String(t||'').trim();}).filter(Boolean); }
-function _applyLandingHeroBg(url){
-  var bg=document.querySelector('.lp-hero-bg');
-  if(!bg) return;
-  if(url){ bg.style.background='linear-gradient(rgba(6,34,89,.50),rgba(6,34,89,.68)),url('+url+') center/cover no-repeat'; }
-  else{ bg.style.background='linear-gradient(rgba(6,34,89,.50),rgba(6,34,89,.68)),url(https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1600&auto=format&fit=crop) center/cover no-repeat'; }
-}
-function _renderLandingDocs(text){
-  var wrap=document.getElementById('landing-docs-list'); if(!wrap) return;
-  var items=_splitLines(text);
-  if(!items.length) return;
-  wrap.innerHTML=items.map(function(t,i){ return '<div class=\"doc-row\"><span>'+(i+1)+'</span><strong>'+escapeHtml(t)+'</strong></div>'; }).join('');
-}
-function _renderLandingTimeline(text, yr){
-  var wrap=document.getElementById('landing-timeline-wrap-render'); if(!wrap) return;
-  var rows=_splitLines(text).map(function(line){ var p=line.split('|'); return {title:(p[0]||'').trim(), date:(p[1]||'').trim(), desc:(p[2]||'').trim(), icon:(p[3]||'📌').trim()}; }).filter(function(r){ return r.title; });
-  if(!rows.length) return;
-  wrap.innerHTML='<div class=\"landing-source-timeline-line\"></div>'+rows.map(function(r,i){ var side=(i%2===0?'odd':'even'); var dot=(i===0?' gold':''); var pill=(i===0?'':' muted'); return '<div class=\"timeline-row '+side+'\"><div class=\"timeline-dot'+dot+'\">'+escapeHtml(r.icon||'📌')+'</div><div class=\"timeline-card\"><div class=\"timeline-card-head\"><h4>'+escapeHtml(r.title)+'</h4><span class=\"date-pill'+pill+'\">'+escapeHtml(r.date||('เมษายน '+(yr||'')))+'</span></div><p>'+escapeHtml(r.desc||'')+'</p></div></div>'; }).join('');
-}
-function _renderLandingMap(embedUrl, linkUrl){
-  var box=document.getElementById('landing-mapbox'); if(!box) return;
-  if(embedUrl){
-    box.innerHTML='<iframe src="'+String(embedUrl).replace(/"/g,'&quot;')+'" style="width:100%;height:100%;border:0;border-radius:38px" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
-    box.style.padding='0'; box.style.overflow='hidden'; box.style.cursor='default'; return;
-  }
-  box.style.padding='24px'; box.style.overflow='hidden';
-  box.innerHTML='Map view';
-  if(linkUrl){ box.style.cursor='pointer'; box.onclick=function(){ window.open(linkUrl,'_blank'); }; } else { box.onclick=null; box.style.cursor='default'; }
-}
-
-function syncLandingFromSettings(){
-  var c=S.settings||{}; var yr=c.ACADEMIC_YEAR||'2568';
-  setText('landing-badge-year', yr);
-  setText('landing-timeline-year', yr);
-  var addr=[]; if(c.SCHOOL_SUBDISTRICT) addr.push('ต.'+c.SCHOOL_SUBDISTRICT); if(c.SCHOOL_DISTRICT) addr.push('อ.'+c.SCHOOL_DISTRICT); if(c.SCHOOL_PROVINCE) addr.push('จ.'+c.SCHOOL_PROVINCE); if(c.SCHOOL_POSTCODE) addr.push(c.SCHOOL_POSTCODE);
-  setText('landing-contact-address', c.LANDING_CONTACT_ADDRESS || addr.join(' ')||'–');
-  setText('landing-contact-phone', c.LANDING_CONTACT_PHONE || c.SCHOOL_PHONE||'–');
-  setText('landing-contact-email', c.LANDING_CONTACT_EMAIL || c.SCHOOL_EMAIL||c.EMAIL||'–');
-  setText('landing-docs-desc', c.LANDING_DOCS_DESC || 'โปรดสแกนเอกสารต้นฉบับให้ชัดเจน (PDF หรือ JPG) เพื่ออัปโหลดเข้าสู่ระบบ หรือนำเอกสารตัวจริงมาในวันรายงานตัว');
-  setText('landing-doc-note', c.LANDING_DOCS_NOTE || 'ตรวจสอบให้ครบถ้วน');
-  setText('landing-doc-note-small', c.LANDING_DOCS_NOTE_SMALL || 'ความถูกต้องของข้อมูลช่วยให้การพิจารณาเป็นไปได้อย่างรวดเร็ว');
-  _applyLandingHeroBg(c.LANDING_HERO_BG_URL || c.LANDING_HERO_BG || '');
-  _renderLandingDocs(c.LANDING_DOCS_TEXT || '');
-  _renderLandingTimeline(c.LANDING_TIMELINE_TEXT || '', yr);
-  _renderLandingMap(c.LANDING_MAP_EMBED_URL || '', c.LANDING_MAP_LINK_URL || '');
-  var docsVisual=document.getElementById('landing-docs-visual');
-  if(docsVisual && (c.LANDING_DOCS_IMAGE_URL || c.LANDING_DOCS_IMAGE)){
-    docsVisual.style.background='linear-gradient(135deg,rgba(8,41,104,.15),rgba(59,130,246,.10)),url('+(c.LANDING_DOCS_IMAGE_URL||c.LANDING_DOCS_IMAGE)+') center/cover no-repeat';
-    docsVisual.textContent='';
-  }
-  var rules=document.getElementById('landing-rules-link');
-  if(rules){ if(c.LANDING_RULES_URL){ rules.href=c.LANDING_RULES_URL; rules.style.display='inline-flex'; } else { rules.style.display='none'; } }
-  var phoneLink=document.getElementById('landing-phone-link'); if(phoneLink && (c.LANDING_CONTACT_PHONE || c.SCHOOL_PHONE)){ phoneLink.href='tel:'+String(c.LANDING_CONTACT_PHONE||c.SCHOOL_PHONE).replace(/[^0-9+]/g,''); }
-  var lineLink=document.getElementById('landing-line-link'); if(lineLink){ if(c.LINE_GROUP_URL){ lineLink.href=c.LINE_GROUP_URL; lineLink.style.display='flex'; } else { lineLink.style.display='none'; }}
-}
-
 function applySettings() {
   const c  = S.settings;
   const fn = c.SCHOOL_FULLNAME || 'โรงเรียนหนองนาคำวิทยาคม';
@@ -7720,12 +8526,10 @@ function applySettings() {
   const systemName = c.SYSTEM_NAME || 'ระบบรับสมัครนักเรียน';
   // ชื่อย่อสำหรับ sidebar = ตัดคำว่า "โรงเรียน" ออก
   const shortName = fn.replace(/^โรงเรียน/, '');
-  setText('nav-school-name',  shortName || fn);
-  setText('nav-school-tagline', 'ACADEMIC EXCELLENCE');
+  setText('nav-school-name',  systemName);
   setText('hero-school',      fn);
-  setText('hero-system',      'รับสมัครนักเรียนใหม่');
-  setText('landing-hero-year','ปีการศึกษา ' + yr);
-  setText('hero-subtitle',    'ระดับมัธยมศึกษาปีที่ 1 และ 4 ก้าวเข้าสู่รั้วน้ำเงิน-เหลือง มุ่งสู่ความเป็นเลิศทางวิชาการและทักษะแห่งอนาคต');
+  setText('hero-system',      'รับสมัครนักเรียนใหม่ ปีการศึกษา ' + yr);
+  setText('hero-subtitle',    'ระดับชั้นมัธยมศึกษาปีที่ 1 และ 4');
   setText('login-school-name', shortName + ' — ' + systemName);
   setText('sidebar-school',    shortName);
   setText('m1-quota-text',    (c.M1_QUOTA || '–') + ' คน');
@@ -7749,6 +8553,36 @@ function applySettings() {
   const b4 = document.getElementById('btn-reg-m4');
   if (b1) b1.disabled = !m1o && !m1o2;
   if (b4) b4.disabled = !m4o && !m4o2;
+  // ── Sync btn-reg-m1 / btn-reg-m4 (level-specific) ──
+  // nav/hero buttons ไม่ปิด เพราะมี ย้ายเข้า เสมอ
+  // btn-reg-m1/m4 บน landing card ปิดตาม level
+  if (b1) {
+    b1.disabled = !m1o && !m1o2;
+    b1.textContent = (!m1o && !m1o2) ? 'ปิดรับสมัคร ม.1' : 'สมัครเรียน ม.1';
+  }
+  if (b4) {
+    b4.disabled = !m4o && !m4o2;
+    b4.textContent = (!m4o && !m4o2) ? 'ปิดรับสมัคร ม.4' : 'สมัครเรียน ม.4';
+  }
+  // ── Wizard step 1: gray-out ม.1/ม.4 ถ้าปิด ──
+  var loM1 = document.getElementById('lo-m1');
+  var loM4 = document.getElementById('lo-m4');
+  if (loM1) {
+    loM1.classList.toggle('level-closed', !m1o && !m1o2);
+    if (!m1o && !m1o2) {
+      loM1.onclick = function(e){ e.preventDefault(); toast('ปิดรับสมัคร ม.1 แล้ว','warning'); };
+    } else {
+      loM1.onclick = function(){ selectLevel('ม.1'); };
+    }
+  }
+  if (loM4) {
+    loM4.classList.toggle('level-closed', !m4o && !m4o2);
+    if (!m4o && !m4o2) {
+      loM4.onclick = function(e){ e.preventDefault(); toast('ปิดรับสมัคร ม.4 แล้ว','warning'); };
+    } else {
+      loM4.onclick = function(){ selectLevel('ม.4'); };
+    }
+  }
   refreshTransferLevelOptions();
   const ann     = c.ANNOUNCEMENT  || '';
   const annImg  = c.ANNOUNCE_IMAGE || '';
@@ -7819,7 +8653,7 @@ function applySettings() {
   }
 
   // Changelog / version / updated date
-  const INDEX_VERSION = 'v1.15.47';
+  const INDEX_VERSION = 'v1.15.33';
   // ดึง changelog จาก _BUILTIN_CHANGELOG ที่ embed ไว้ใน JS
   // fallback ไป CHANGELOG_TEXT จาก Settings ถ้าไม่มี
   var _clLines = (typeof _BUILTIN_CHANGELOG !== 'undefined' && _BUILTIN_CHANGELOG.length)
@@ -7867,6 +8701,88 @@ function applySettings() {
     if (heroFb)   heroFb.style.display   = '';
   }
 
+  // ── Landing Page static text (from Settings) ──
+  (function(){
+    // Hero background, theme, overlay
+    var heroSec = document.getElementById('lp-hero-section');
+    var heroBg  = document.getElementById('lp-hero-bg-img');
+    var _theme   = c.LP_HERO_THEME   || 'blue';
+    var _overlay = c.LP_HERO_OVERLAY || 'medium';
+    var _bgUrl   = c.LP_HERO_BG_URL  || '';
+    if (heroSec) {
+      heroSec.className = 'lp-hero overlay-' + _overlay
+        + (_theme && _theme !== 'blue' ? ' theme-' + _theme : '');
+    }
+    // CSS background-image (รองรับ background-attachment:fixed)
+    if (heroSec) {
+      var bgUrl = _bgUrl || 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1600&q=80';
+      heroSec.style.backgroundImage = "url('" + bgUrl + "')";
+    }
+    // บันทึก cache ไว้ใน sessionStorage เพื่อใช้ครั้งถัดไป
+    try {
+      sessionStorage.setItem('lp_hero_theme',   _theme);
+      sessionStorage.setItem('lp_hero_overlay', _overlay);
+      // บันทึก bgUrl เฉพาะเมื่อมีการ custom URL จริง (ว่าง = ใช้ default ไม่ต้อง cache)
+      if (_bgUrl) sessionStorage.setItem('lp_hero_bg_url', _bgUrl);
+      else        sessionStorage.removeItem('lp_hero_bg_url');
+    } catch(e) {}
+    var lp = [
+      ['lp-hero-badge-text', c.LP_HERO_BADGE  || 'เปิดรับสมัคร ปีการศึกษา 2568'],
+      ['lp-m1-desc',  c.LP_M1_DESC  || 'รับนักเรียนจบชั้นประถมศึกษาปีที่ 6 ทั้งในเขตและนอกเขตพื้นที่บริการ'],
+      ['lp-m4-desc',  c.LP_M4_DESC  || 'รับนักเรียนจบชั้นมัธยมศึกษาปีที่ 3 สำหรับต่อเนื่องในแผนการเรียนที่สนใจ'],
+      ['lp-tl1-title',c.LP_TL1_TITLE|| 'เปิดรับสมัคร ม.1 และ ม.4'],
+      ['lp-tl1-date', c.LP_TL1_DATE || 'มีนาคม 2568'],
+      ['lp-tl1-desc', c.LP_TL1_DESC || 'รับสมัครออนไลน์ผ่านระบบเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมก่อนสมัคร'],
+      ['lp-tl2-title',c.LP_TL2_TITLE|| 'ประกาศรายชื่อผู้มีสิทธิ์สอบ'],
+      ['lp-tl2-date', c.LP_TL2_DATE || 'เมษายน 2568'],
+      ['lp-tl2-desc', c.LP_TL2_DESC || 'ผู้สมัครสามารถตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรเข้าสอบได้จากระบบออนไลน์'],
+      ['lp-tl3-title',c.LP_TL3_TITLE|| 'ประกาศผลและรายงานตัว'],
+      ['lp-tl3-date', c.LP_TL3_DATE || 'เมษายน 2568'],
+      ['lp-tl3-desc', c.LP_TL3_DESC || 'ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ นักเรียนที่ผ่านต้องรายงานตัวตามวันที่กำหนด'],
+      // LP_DOCS rendered separately below
+    ];
+    lp.forEach(function(p){ var el=document.getElementById(p[0]); if(el) el.textContent=p[1]; });
+
+    // ── render LP_DOCS (dynamic) ──
+    (function(){
+      var grid = document.getElementById('lp-docs-grid');
+      if (!grid) return;
+      var raw = c.LP_DOCS || '';
+      var items;
+      if (raw.trim()) {
+        items = raw.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+      } else {
+        items = [
+          c.LP_DOC1 || 'รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว',
+          c.LP_DOC2 || 'สำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)',
+          c.LP_DOC3 || 'ระเบียนแสดงผลการเรียน (ปพ.1)',
+          c.LP_DOC4 || 'สำเนาทะเบียนบ้านฉบับเจ้าบ้าน',
+        ].filter(Boolean);
+      }
+      grid.innerHTML = items.map(function(text, i){
+        return '<div class="lp-doc-item">'+
+          '<div class="lp-doc-num">'+(i+1)+'</div>'+
+          '<div class="lp-doc-text">'+_escHtml(text)+'</div>'+
+          '</div>';
+      }).join('');
+    })();
+  })();
+
+  // ── LP Contact Section (landing page) ──
+  (function(){
+    var addr=[]; 
+    if(schoolSub)  addr.push('ต.'+schoolSub);
+    if(schoolDist) addr.push('อ.'+schoolDist);
+    if(schoolProv) addr.push('จ.'+schoolProv);
+    var el=document.getElementById('lp-contact-address');
+    if(el&&addr.length) el.textContent=addr.join(' ');
+    var pRow=document.getElementById('lp-contact-phone-row');
+    var pEl =document.getElementById('lp-contact-phone');
+    var pLnk=document.getElementById('lp-contact-phone-link');
+    if(schoolTel&&pRow){if(pEl)pEl.textContent=schoolTel;if(pLnk)pLnk.href='tel:'+schoolTel.replace(/[^0-9+]/g,'');pRow.style.display='';}
+    // LINE แสดงเฉพาะหน้าตรวจสอบสถานะ (lp-contact-line-row ถูกลบออกแล้ว)
+  })();
+
   // ── Countdown ──
   _startCountdown(
     'ม.1', 'm1',
@@ -7880,7 +8796,6 @@ function applySettings() {
     c.M4_REG_END,   c.M4_REG_CLOSE_TIME || '16:30',
     m4o
   );
-  syncLandingFromSettings();
 }
 
 /* ─── COUNTDOWN ─── */
@@ -7945,9 +8860,17 @@ function _startCountdown(levelName, prefix, startDate, openTime, endDate, closeT
       return;
     }
 
-    // ไม่มีวันกำหนด
+    // ไม่มีวันกำหนด — ตรวจ manualOpen ก่อน re-enable
     box.style.display = 'none';
-    if (btn) { btn.disabled = false; btn.textContent = 'สมัครเรียน ' + levelName; }
+    if (btn) {
+      if (manualOpen) {
+        btn.disabled = false;
+        btn.textContent = 'สมัครเรียน ' + levelName;
+      } else {
+        btn.disabled = true;
+        btn.textContent = 'ปิดรับสมัคร';
+      }
+    }
   }
 
   tick();
@@ -8196,6 +9119,7 @@ function repairPublicCheckInteractivity(){
 }
 
 function goPublicRegisterDirect(){
+  // ไม่ block — มีย้ายเข้าเสมอ
   forceClosePublicBlockingOverlays();
   unlockBodyScroll(true);
   showView('register');
@@ -8230,7 +9154,8 @@ function showView(id) {
   if (id === 'register' || id === 'check') { setTimeout(bindPublicHotfixActions, 0); setTimeout(bindPublicHotfixActions, 120); }
   if (id === 'register') { setTimeout(repairPublicRegisterInteractivity, 0); setTimeout(repairPublicRegisterInteractivity, 120); }
   if (id === 'check') { setTimeout(repairPublicCheckInteractivity, 0); setTimeout(repairPublicCheckInteractivity, 120); }
-  window.scrollTo(0, 0);
+  window.scrollTo({top:0,left:0,behavior:"instant"});
+  if (window._updateNavTransparency) window._updateNavTransparency();
 }
 
 
@@ -8363,7 +9288,7 @@ function showAdminPage(p) {
   };
   if (titleEl) titleEl.textContent = _pageTitle[p] || '';
   closeSidebar();
-  window.scrollTo(0, 0); // scroll to top on page change
+  window.scrollTo({top:0,left:0,behavior:"instant"}); // scroll to top on page change
   if (p === 'dash'  && _shouldReloadPage('dash'))  { loadDashboard();   _markPageLoaded('dash'); }
   if (p === 'apps')                                   loadApplications(); // ไม่ cache — filter อาจเปลี่ยน
   if (p === 'log'   && _shouldReloadPage('log'))   { loadAuditLog();    _markPageLoaded('log'); }
@@ -8398,7 +9323,38 @@ function showNavAdmin(on) {
   }
 }
 
-function goRegister() { showRegisterChecklist(null); }
+function goRegister() {
+  // ไม่ block — มีย้ายเข้าเสมอ; level-specific guard ทำงานใน startRegister
+  showRegisterChecklist(null);
+}
+
+
+/* ── Registration open guard ── */
+function _isLevelOpen(level) {
+  // ย้ายเข้า = เปิดตลอด (ไม่มีวันปิด)
+  if (!level || level === 'ย้ายเข้า') return true;
+  if (!S.settings) return true; // settings ยังไม่โหลด → allow
+  var c = S.settings;
+  if (String(c.TEST_MODE) === 'true') return true;
+  if (level === 'ม.1') return String(c.REG_OPEN_M1) !== 'false' || String(c.REG2_OPEN_M1) === 'true';
+  if (level === 'ม.4') return String(c.REG_OPEN_M4) !== 'false' || String(c.REG2_OPEN_M4) === 'true';
+  return true; // ระดับอื่นๆ → allow
+}
+
+function _isAnyRegOpen() {
+  // มี ย้ายเข้า เสมอ → return true เสมอ
+  // (ใช้ _isLevelOpen('ม.1') และ _isLevelOpen('ม.4') สำหรับตรวจระดับเฉพาะ)
+  return true;
+}
+
+function _guardRegister(cb, level) {
+  // level ระบุ = ตรวจเฉพาะระดับนั้น, ไม่ระบุ = เปิดเสมอ (มีย้ายเข้า)
+  if (!_isLevelOpen(level)) {
+    toast('ปิดรับสมัคร ม.' + (level === 'ม.1' ? '1' : '4') + ' แล้ว', 'warning');
+    return;
+  }
+  if (cb) cb();
+}
 
 /* ─── REGISTER CHECKLIST MODAL ─── */
 var _checklistLevel = null;
@@ -8418,6 +9374,12 @@ function closeRegisterChecklist() {
 }
 
 function proceedToRegister() {
+  // ตรวจเฉพาะ level ที่เลือกใน checklist (ถ้ามี)
+  if (_checklistLevel && !_isLevelOpen(_checklistLevel)) {
+    closeRegisterChecklist();
+    toast('ปิดรับสมัคร ' + _checklistLevel + ' แล้ว', 'warning');
+    return;
+  }
   closeRegisterChecklist();
   showView('register');
   resetWizard();
@@ -8466,7 +9428,11 @@ function resetWizard() {
   });
 }
 
-function startRegister(level) { showRegisterChecklist(level); }
+function startRegister(level) {
+  // ส่ง level ให้ _guardRegister ตรวจเฉพาะ ม.1 หรือ ม.4
+  // ย้ายเข้า และ null → ผ่านเสมอ
+  _guardRegister(function(){ showRegisterChecklist(level); }, level);
+}
 
 function isRoundOpen(flag1, flag2) {
   return String(flag1) !== 'false' || String(flag2) === 'true';
@@ -8510,6 +9476,11 @@ function refreshTransferLevelOptions() {
 }
 
 function selectLevel(level) {
+  // ป้องกันเลือก level ที่ปิด
+  if ((level === 'ม.1' || level === 'ม.4') && !_isLevelOpen(level)) {
+    toast('ปิดรับสมัคร ' + level + ' แล้ว', 'warning');
+    return;
+  }
   S.regData.LEVEL = level;
   document.querySelectorAll('input[name="reg-level"]').forEach(function(r){ r.checked = (r.value === level); });
   document.getElementById('lo-m1').classList.toggle('selected', level === 'ม.1');
@@ -8876,6 +9847,7 @@ function _ensurePublicStatsForStudyPlan() {
   run('getPublicStats', null, function(s) {
     if (s) {
       S.publicStats = s;
+      _renderLpStats(s);
       loadStudyPlans();
     } else {
       if (spEl) spEl.innerHTML = '<option value="">-- เลือกแผนการเรียน --</option><option value="แผนการเรียนทั่วไป">แผนการเรียนทั่วไป</option>';
@@ -8941,7 +9913,7 @@ function wizBack(s) { showStep(s-1); }
 
 function showStep(n) {
   for (let i = 1; i <= 6; i++) { const s = document.getElementById('step'+i); if(s) s.classList.toggle('active', i === n); }
-  S.regStep = n; updateProgress(n); window.scrollTo(0, 0);
+  S.regStep = n; updateProgress(n); window.scrollTo({top:0,left:0,behavior:"instant"});
   // step 4 — ต้องมี publicStats สำหรับแผนการเรียน
   if (n === 4) _ensurePublicStatsForStudyPlan();
 }
@@ -10818,6 +11790,8 @@ function closeChangelogPopup() {
 
 /* ─── LINE GROUP CARD (แสดงในหน้าตรวจสอบสถานะ) ─── */
 function _renderLineGroupCard() {
+  // แสดงเฉพาะในหน้าตรวจสอบสถานะ หลังนักเรียนค้นหาข้อมูลตัวเองสำเร็จแล้ว
+  // ป้องกันมิจฉาชีพนำลิงก์ไปใช้งาน — ไม่แสดงในหน้าหลัก/ที่สาธารณะ
   var lineUrl = (S.settings && S.settings.LINE_GROUP_URL) || '';
   var qrUrl   = _fixDriveImgUrl((S.settings && S.settings.LINE_QR_URL) || '');
   if (!lineUrl && !qrUrl) return ''; // ไม่แสดงถ้าไม่ได้ตั้งค่า
@@ -11576,6 +12550,231 @@ function doAssignExam(level) {
 }
 
 /* ─── ADMIN SETTINGS ─── */
+
+/* ── LP Docs dynamic rows (Settings) ── */
+var _LP_DOC_DEFAULTS = [
+  'รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว',
+  'สำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)',
+  'ระเบียนแสดงผลการเรียน (ปพ.1)',
+  'สำเนาทะเบียนบ้านฉบับเจ้าบ้าน'
+];
+
+function _lpDocRenderRows(items) {
+  var container = document.getElementById('cfg-lp-docs-rows');
+  if (!container) return;
+  container.innerHTML = '';
+  (items || _LP_DOC_DEFAULTS).forEach(function(text, i) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px';
+    row.innerHTML =
+      '<span style="width:24px;height:24px;border-radius:6px;background:#001b4d;color:#e8c84a;'+
+      'display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+(i+1)+'</span>'+
+      '<input type="text" class="form-control lp-doc-row-input" value="'+_escHtml(text)+'" '+
+      'style="font-size:13px;flex:1" placeholder="รายการเอกสาร" oninput="_lpDocSync()">'+
+      '<button type="button" onclick="_lpDocRemoveRow(this)" title="ลบรายการ" '+
+      'style="width:28px;height:28px;border:none;background:#fee2e2;color:#dc2626;border-radius:6px;'+
+      'cursor:pointer;font-size:14px;flex-shrink:0;line-height:1">×</button>';
+    container.appendChild(row);
+  });
+  _lpDocSync();
+  _lpDocRenumber();
+}
+
+function _lpDocAddRow() {
+  var container = document.getElementById('cfg-lp-docs-rows');
+  if (!container) return;
+  var i = container.children.length;
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:8px';
+  row.innerHTML =
+    '<span style="width:24px;height:24px;border-radius:6px;background:#001b4d;color:#e8c84a;'+
+    'display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+(i+1)+'</span>'+
+    '<input type="text" class="form-control lp-doc-row-input" value="" '+
+    'style="font-size:13px;flex:1" placeholder="รายการเอกสาร" oninput="_lpDocSync()">'+
+    '<button type="button" onclick="_lpDocRemoveRow(this)" title="ลบรายการ" '+
+    'style="width:28px;height:28px;border:none;background:#fee2e2;color:#dc2626;border-radius:6px;'+
+    'cursor:pointer;font-size:14px;flex-shrink:0;line-height:1">×</button>';
+  container.appendChild(row);
+  row.querySelector('input').focus();
+  _lpDocSync();
+}
+
+function _lpDocRemoveRow(btn) {
+  var row = btn.parentElement;
+  row.parentElement.removeChild(row);
+  _lpDocRenumber();
+  _lpDocSync();
+}
+
+function _lpDocRenumber() {
+  var container = document.getElementById('cfg-lp-docs-rows');
+  if (!container) return;
+  Array.from(container.children).forEach(function(row, i) {
+    var num = row.querySelector('span');
+    if (num) num.textContent = i+1;
+  });
+}
+
+function _lpDocSync() {
+  var container = document.getElementById('cfg-lp-docs-rows');
+  var hidden = document.getElementById('cfg-lp-docs');
+  if (!container || !hidden) return;
+  var lines = Array.from(container.querySelectorAll('.lp-doc-row-input'))
+    .map(function(inp){ return inp.value.trim(); })
+    .filter(Boolean);
+  hidden.value = lines.join('\n');
+}
+
+function _escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+
+/* ── LP Study Plans ── */
+function _renderLpPlans() {
+  var section = document.getElementById('lp-plans-section');
+  var grid    = document.getElementById('lp-plans-grid');
+  if (!grid) return;
+
+  var raw = (S.settings && S.settings.LP_PLAN_REQS) || '';
+  var regUrl   = (S.settings && S.settings.LP_REG_URL)    || '';
+  var regLabel = (S.settings && S.settings.LP_REG_LABEL)  || 'ดูระเบียบการรับสมัคร';
+
+  // sync reg button (quick nav)
+  var qBtn = document.getElementById('lp-qnav-reg-btn');
+  if (qBtn) {
+    if (regUrl) { qBtn.dataset.url = regUrl; qBtn.style.display = ''; }
+    else { qBtn.style.display = 'none'; }
+  }
+
+  // sync reg button (plans section)
+  var regWrap = document.getElementById('lp-reg-btn-wrap');
+  var regLink = document.getElementById('lp-reg-link');
+  var regLbl  = document.getElementById('lp-reg-btn-label');
+  if (regWrap) regWrap.style.display = regUrl ? '' : 'none';
+  if (regLink && regUrl) regLink.href = regUrl;
+  if (regLbl && regLabel) regLbl.textContent = regLabel;
+
+  if (!raw.trim()) {
+    if (section) section.style.display = regUrl ? '' : 'none';
+    if (!raw.trim() && regUrl && section) {
+      // มีแค่ regUrl แต่ไม่มี plans → แสดง section พร้อมปุ่มแต่ grid ว่าง
+      grid.innerHTML = '<div class="lp-plan-empty">ติดต่อโรงเรียนเพื่อสอบถามเงื่อนไขแผนการเรียน</div>';
+    }
+    return;
+  }
+
+  var lines = raw.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  // format: ชื่อแผน|ระดับ(ม.1/ม.4/ทั้งคู่)|คุณสมบัติ1||คุณสมบัติ2||...
+  var cards = [];
+  lines.forEach(function(line) {
+    var parts = line.split('|');
+    if (parts.length < 2) return;
+    var name  = (parts[0] || '').trim();
+    var level = (parts[1] || 'ม.4').trim();
+    var reqs  = parts.slice(2).map(function(r){return r.trim();}).filter(Boolean);
+    if (name) cards.push({name:name, level:level, reqs:reqs});
+  });
+
+  if (!cards.length) {
+    if (section) section.style.display = 'none';
+    return;
+  }
+
+  grid.innerHTML = cards.map(function(c) {
+    var lvlClass = c.level.indexOf('1') >= 0 ? 'm1' : 'm4';
+    var reqs = c.reqs.map(function(r){
+      return '<div class="lp-plan-req"><div class="lp-plan-req-dot"></div><div>' + _escHtml(r) + '</div></div>';
+    }).join('');
+    return '<div class="lp-plan-card">'
+      + '<div class="lp-plan-header">'
+      + '<span class="lp-plan-level-badge ' + lvlClass + '">' + _escHtml(c.level) + '</span>'
+      + '<div class="lp-plan-title">' + _escHtml(c.name) + '</div>'
+      + '</div>'
+      + '<div class="lp-plan-body">' + (reqs || '<div class="lp-plan-req"><div class="lp-plan-req-dot"></div><div>ตามประกาศโรงเรียน</div></div>') + '</div>'
+      + '</div>';
+  }).join('');
+
+  if (section) section.style.display = '';
+}
+
+
+/* ── LP Stats Render ── */
+function _renderLpStats(stats) {
+  if (!stats) return;
+  // ── Summary cards ──
+  var summary = document.getElementById('lp-stats-summary');
+  if (summary) {
+    var m1 = stats.m1 || {}; var m4 = stats.m4 || {};
+    function pct(n, q) { return q > 0 ? Math.min(100, Math.round(n*100/q)) : 0; }
+    function pill(label, count, cls) {
+      return count > 0 ? '<span class="lp-stat-pill '+cls+'">'+label+': '+count+'</span>' : '';
+    }
+    function card(level, data, cls) {
+      var quota = data.quota || 0;
+      var total = data.total || 0;
+      var p = pct(total, quota);
+      var pills = [
+        pill('สมัครแล้ว', data['สมัครแล้ว']||0, 'pending'),
+        pill('มีสิทธิ์สอบ', data['มีสิทธิ์สอบ']||0, 'exam'),
+        pill('ผ่าน', data['ผ่าน']||0, 'pass'),
+        pill('ไม่ผ่าน', data['ไม่ผ่าน']||0, 'fail'),
+      ].filter(Boolean).join('');
+      return '<div class="lp-stat-card">'
+        + '<div class="lp-stat-card-header">'
+        + '<span class="lp-stat-level '+cls+'">ม.'+level+'</span>'
+        + (quota ? '<span class="lp-stat-quota">โควตา '+quota+' คน</span>' : '')
+        + '</div>'
+        + '<div><div class="lp-stat-total">'+total+'</div>'
+        + '<div class="lp-stat-quota">คนที่สมัครแล้ว</div></div>'
+        + (quota ? '<div><div class="lp-stat-bar-wrap"><div class="lp-stat-bar '+cls+'" style="width:'+p+'%"></div></div>'
+          + '<div style="font-size:11px;color:#94a3b8;margin-top:4px;text-align:right">'+p+'% ของโควตา</div></div>' : '')
+        + (pills ? '<div class="lp-stat-pills">'+pills+'</div>' : '')
+        + '</div>';
+    }
+    summary.innerHTML = card('1', m1, 'm1') + card('4', m4, 'm4');
+  }
+
+  // ── Daily table ──
+  var wrap = document.getElementById('lp-daily-table-wrap');
+  var updEl = document.getElementById('lp-daily-updated');
+  if (!wrap) return;
+
+  var trend = stats.dailyTrend || {};
+  var keys = Object.keys(trend).sort();
+  if (!keys.length) {
+    wrap.innerHTML = '<div class="lp-daily-loading" style="color:#94a3b8">ยังไม่มีข้อมูล</div>';
+    return;
+  }
+
+  function fmtDate(k) {
+    var parts = k.split('-'); if (parts.length < 3) return k;
+    var d = new Date(k);
+    var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    return d.getDate() + ' ' + months[d.getMonth()];
+  }
+  function cell(n) {
+    return '<td class="'+(n>0?'nonzero':'zero')+'">'+(n||'○')+'</td>';
+  }
+
+  var rows = keys.map(function(k) {
+    var d = trend[k];
+    return '<tr><td>'+fmtDate(k)+'</td>'
+      + cell(d.m1) + cell(d.m4) + cell(d.total) + '</tr>';
+  });
+
+  // summary row
+  var totM1=0, totM4=0, totAll=0;
+  keys.forEach(function(k){ totM1+=trend[k].m1||0; totM4+=trend[k].m4||0; totAll+=trend[k].total||0; });
+  rows.push('<tr><td>รวมทั้งสิ้น</td><td>'+totM1+'</td><td>'+totM4+'</td><td>'+totAll+'</td></tr>');
+
+  wrap.innerHTML = '<table class="lp-daily-table">'
+    + '<thead><tr><th>วันที่</th><th>ม.1</th><th>ม.4</th><th>รวม</th></tr></thead>'
+    + '<tbody>' + rows.join('') + '</tbody></table>';
+
+  if (updEl) updEl.textContent = 'อัปเดต: ' + new Date().toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'}) + ' น.';
+}
+
 function fillSettings() {
   const c = S.settings;
   setInputVal('cfg-school-fullname',    c.SCHOOL_FULLNAME    || '');
@@ -11658,6 +12857,43 @@ function fillSettings() {
     if (c.PHOTO_FOLDER_URL) { folderLink.href = c.PHOTO_FOLDER_URL; folderLink.style.display = ''; }
     else folderLink.style.display = 'none';
   }
+
+  // ── Landing Page content ──
+  setInputVal('cfg-lp-hero-bg-url',  c.LP_HERO_BG_URL  || '');
+  setSelectVal('cfg-lp-hero-theme',   c.LP_HERO_THEME   || 'blue');
+  setSelectVal('cfg-lp-hero-overlay', c.LP_HERO_OVERLAY || 'medium');
+    setInputVal('cfg-lp-reg-url',   c.LP_REG_URL   || '');
+  setInputVal('cfg-lp-reg-label', c.LP_REG_LABEL || 'ดูระเบียบการรับสมัคร');
+  setInputVal('cfg-lp-plan-reqs', c.LP_PLAN_REQS || '');
+    setInputVal('cfg-lp-hero-badge', c.LP_HERO_BADGE || 'เปิดรับสมัคร ปีการศึกษา 2568');
+  setInputVal('cfg-lp-m1-desc',    c.LP_M1_DESC    || 'รับนักเรียนจบชั้นประถมศึกษาปีที่ 6 ทั้งในเขตและนอกเขตพื้นที่บริการ');
+  setInputVal('cfg-lp-m4-desc',    c.LP_M4_DESC    || 'รับนักเรียนจบชั้นมัธยมศึกษาปีที่ 3 สำหรับต่อเนื่องในแผนการเรียนที่สนใจ');
+  setInputVal('cfg-lp-tl1-title',  c.LP_TL1_TITLE  || 'เปิดรับสมัคร ม.1 และ ม.4');
+  setInputVal('cfg-lp-tl1-date',   c.LP_TL1_DATE   || 'มีนาคม 2568');
+  setInputVal('cfg-lp-tl1-desc',   c.LP_TL1_DESC   || 'รับสมัครออนไลน์ผ่านระบบเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมก่อนสมัคร');
+  setInputVal('cfg-lp-tl2-title',  c.LP_TL2_TITLE  || 'ประกาศรายชื่อผู้มีสิทธิ์สอบ');
+  setInputVal('cfg-lp-tl2-date',   c.LP_TL2_DATE   || 'เมษายน 2568');
+  setInputVal('cfg-lp-tl2-desc',   c.LP_TL2_DESC   || 'ผู้สมัครสามารถตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรเข้าสอบได้จากระบบออนไลน์');
+  setInputVal('cfg-lp-tl3-title',  c.LP_TL3_TITLE  || 'ประกาศผลและรายงานตัว');
+  setInputVal('cfg-lp-tl3-date',   c.LP_TL3_DATE   || 'เมษายน 2568');
+  setInputVal('cfg-lp-tl3-desc',   c.LP_TL3_DESC   || 'ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ นักเรียนที่ผ่านต้องรายงานตัวตามวันที่กำหนด');
+  // LP_DOCS: multiline → dynamic rows
+  (function(){
+    var raw = c.LP_DOCS || '';
+    var items;
+    if (raw.trim()) {
+      items = raw.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+    } else {
+      // fallback: LP_DOC1..4 (backward compat)
+      items = [
+        c.LP_DOC1 || 'รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว',
+        c.LP_DOC2 || 'สำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)',
+        c.LP_DOC3 || 'ระเบียนแสดงผลการเรียน (ปพ.1)',
+        c.LP_DOC4 || 'สำเนาทะเบียนบ้านฉบับเจ้าบ้าน',
+      ].filter(Boolean);
+    }
+    _lpDocRenderRows(items);
+  })();
   previewLogo(c.LOGO_URL || '');
   setSelectVal('cfg-m1-open', c.REG_OPEN_M1 === 'false' ? 'false' : 'true');
   setSelectVal('cfg-m4-open', c.REG_OPEN_M4 === 'false' ? 'false' : 'true');
@@ -11736,6 +12972,28 @@ function saveSettings() {
     SUPA_KEY:              val('cfg-supa-key'),
     PHOTO_FOLDER_URL:      val('cfg-photo-folder-url'),
     PDF_FOLDER_URL:        val('cfg-pdf-folder-url'),
+    // Landing Page content
+    LP_HERO_BG_URL:  val('cfg-lp-hero-bg-url'),
+    LP_HERO_THEME:   val('cfg-lp-hero-theme') || 'blue',
+    LP_HERO_OVERLAY: val('cfg-lp-hero-overlay') || 'medium',
+        LP_REG_URL:   val('cfg-lp-reg-url'),
+    LP_REG_LABEL: val('cfg-lp-reg-label'),
+    LP_PLAN_REQS: val('cfg-lp-plan-reqs'),
+        LP_HERO_BADGE:  val('cfg-lp-hero-badge'),
+    LP_M1_DESC:     val('cfg-lp-m1-desc'),
+    LP_M4_DESC:     val('cfg-lp-m4-desc'),
+    LP_TL1_TITLE:   val('cfg-lp-tl1-title'),
+    LP_TL1_DATE:    val('cfg-lp-tl1-date'),
+    LP_TL1_DESC:    val('cfg-lp-tl1-desc'),
+    LP_TL2_TITLE:   val('cfg-lp-tl2-title'),
+    LP_TL2_DATE:    val('cfg-lp-tl2-date'),
+    LP_TL2_DESC:    val('cfg-lp-tl2-desc'),
+    LP_TL3_TITLE:   val('cfg-lp-tl3-title'),
+    LP_TL3_DATE:    val('cfg-lp-tl3-date'),
+    LP_TL3_DESC:    val('cfg-lp-tl3-desc'),
+    LP_DOCS:        val('cfg-lp-docs'),
+    // LP_DOC1..4 ยังส่งไปด้วยเพื่อ backward compat (ว่าง)
+    LP_DOC1: '', LP_DOC2: '', LP_DOC3: '', LP_DOC4: '',
     LINE_GROUP_URL:        val('cfg-line-group-url'),
     LINE_QR_URL:           val('cfg-line-qr-url'),
   };
