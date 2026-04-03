@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+
+<html lang="th"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ระบบรับสมัครนักเรียนออนไลน์ | โรงเรียนหนองนาคำวิทยาคม</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&amp;family=Sarabun:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "primary": "#001b4d",
+                "primary-container": "#002870",
+                "secondary": "#a88700",
+                "secondary-container": "#ffd966",
+                "accent-gold": "#d4af37",
+                "surface": "#ffffff",
+                "on-surface": "#1e293b",
+                "outline": "#cbd5e1",
+                "background": "#f8fafc",
+            },
+            "borderRadius": {
+                "DEFAULT": "0.5rem",
+                "lg": "0.75rem",
+                "xl": "1rem",
+                "2xl": "1.5rem",
+                "3xl": "2rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Kanit", "sans-serif"],
+                "body": ["Sarabun", "sans-serif"],
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Sarabun', sans-serif; scroll-behavior: smooth; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Kanit', sans-serif; }
+        
+        .premium-gradient {
+            background: linear-gradient(135deg, #001b4d 0%, #00338d 100%);
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #FFD700 0%, #FFF9C4 50%, #FFD700 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .card-premium {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-premium:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+            border-color: #d4af37;
+        }
+        .hero-title-shadow {
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .step-connector::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 20px;
+            width: 2px;
+            background: linear-gradient(to bottom, #d4af37, #e2e8f0);
+        }
+        @media (min-width: 768px) {
+            .step-connector::before {
+                left: 50%;
+                margin-left: -1px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-on-surface">
+<!-- TopAppBar -->
+<nav class="fixed top-0 w-full z-50 glass-nav border-b border-slate-200 shadow-sm transition-all duration-300">
+<div class="flex justify-between items-center px-4 md:px-12 py-3 max-w-7xl mx-auto">
+<div class="flex items-center gap-4 cursor-pointer group">
+<div class="w-12 h-12 premium-gradient rounded-xl flex items-center justify-center text-white text-2xl border-2 border-accent-gold/30 shadow-lg group-hover:scale-105 transition-transform">🏫</div>
+<div class="hidden sm:block">
+<div class="text-xl font-extrabold text-primary tracking-tight leading-none mb-0.5">หนองนาคำวิทยาคม</div>
+<div class="text-[10px] uppercase tracking-widest text-accent-gold font-bold">Academic Excellence</div>
+</div>
+</div>
+<div class="hidden lg:flex items-center gap-x-8">
+<a class="text-primary font-semibold border-b-[3px] border-accent-gold pb-1 transition-all" href="#">หน้าแรก</a>
+<a class="text-slate-500 font-medium hover:text-primary transition-colors" href="#">สมัครเรียน</a>
+<a class="text-slate-500 font-medium hover:text-primary transition-colors" href="#">ตรวจสอบสถานะ</a>
+<a class="text-slate-500 font-medium hover:text-primary transition-colors" href="#">ประกาศผล</a>
+<button class="premium-gradient hover:opacity-90 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95">
+<span class="material-symbols-outlined text-base">lock</span>
+                เจ้าหน้าที่
+            </button>
+</div>
+<button class="lg:hidden text-primary p-2 rounded-lg hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+</div>
+</nav>
+<main class="pt-16">
+<!-- Hero Section -->
+<section class="relative min-h-[620px] flex items-center overflow-hidden premium-gradient">
+<div class="absolute inset-0 z-0">
+<img alt="School Campus" class="w-full h-full object-cover opacity-30 mix-blend-overlay scale-105 animate-[pulse_10s_ease-in-out_infinite]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC28voAzcC12wY7tnb7iPo4jqg38GL1UyNqBi_IOidclVzbohqzKTUFLh4ghn-Tns43uZi_BsIoKBu7F4BaFy6fHziz8BAsfPbSm38T5EJHBiq7lK-iykM0Xt3nxpxV1qNHkyVwy6Kwynp_9sdR9Zt66gn2qPNizaPCxnru2uAEV2KnE7rr_y_gkKvBq8Enj6Sz2WRl7V90HYmV6p1EPXedqXNh2-BqU3T-tXJMjANtGmbfW_ZYBJztpDtV5LSaMGo_TbbE67IeBk2K"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+</div>
+<div class="container mx-auto px-6 md:px-12 relative z-10 pt-12 pb-16">
+<div class="max-w-4xl">
+<div class="inline-flex items-center gap-3 px-5 py-2 mb-8 bg-white/10 backdrop-blur-md text-accent-gold border border-accent-gold/40 rounded-full text-sm font-bold tracking-wider uppercase">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-gold opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-accent-gold"></span>
+</span>
+                Enrollment Open Year 2568
+            </div>
+<h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6 hero-title-shadow">
+<span class="text-white">รับสมัครนักเรียนใหม่</span> <br/>
+<span class="text-transparent bg-clip-text gold-gradient">ปีการศึกษา 2568</span>
+</h1>
+<p class="text-lg md:text-xl mb-10 text-slate-200/90 leading-relaxed max-w-2xl font-light">
+                ระดับมัธยมศึกษาปีที่ 1 และ 4 ก้าวเข้าสู่รั้วน้ำเงิน-เหลือง มุ่งสู่ความเป็นเลิศทางวิชาการและทักษะแห่งอนาคต
+            </p>
+<div class="flex flex-wrap gap-5">
+<button class="gold-gradient hover:brightness-110 text-primary px-8 py-4 rounded-xl font-black text-base transition-all transform hover:-translate-y-1 shadow-2xl shadow-accent-gold/30 flex items-center gap-2">
+<span class="material-symbols-outlined font-bold">edit_square</span>
+                    สมัครเรียนออนไลน์
+                </button>
+<button class="bg-white/5 hover:bg-white/15 backdrop-blur-xl border border-white/30 text-white px-8 py-4 rounded-xl font-bold text-base transition-all flex items-center gap-2 group">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform">search</span>
+                    ตรวจสอบสถานะ
+                </button>
+</div>
+</div>
+</div>
+<!-- Decorative Element -->
+<div class="absolute bottom-0 right-0 w-1/3 h-full hidden lg:block pointer-events-none opacity-20">
+<div class="w-full h-full border-l-[100px] border-accent-gold/10 transform rotate-12 origin-bottom-right"></div>
+</div>
+</section>
+<!-- Quick Navigation Bar -->
+<div class="max-w-6xl mx-auto px-6 -mt-16 relative z-20">
+<div class="bg-white rounded-2xl p-2 shadow-xl shadow-primary/10 flex flex-wrap justify-center gap-2 border border-slate-100">
+<button class="flex items-center gap-3 px-6 py-3 rounded-xl premium-gradient text-white font-bold transition-all hover:shadow-lg shadow-primary/20 active:scale-95">
+<span class="material-symbols-outlined text-xl">person_add</span>
+            สมัครเรียน
+        </button>
+<button class="flex items-center gap-3 px-6 py-3 rounded-xl hover:bg-slate-50 text-primary font-bold transition-all group active:scale-95">
+<span class="material-symbols-outlined text-xl text-accent-gold group-hover:scale-110 transition-transform">fact_check</span>
+            ตรวจสอบสถานะ
+        </button>
+<button class="flex items-center gap-3 px-6 py-3 rounded-xl hover:bg-slate-50 text-primary font-bold transition-all group active:scale-95">
+<span class="material-symbols-outlined text-xl text-accent-gold group-hover:scale-110 transition-transform">campaign</span>
+            ประกาศผล
+        </button>
+<button class="flex items-center gap-3 px-6 py-3 rounded-xl hover:bg-slate-50 text-primary font-bold transition-all group active:scale-95">
+<span class="material-symbols-outlined text-xl text-accent-gold group-hover:scale-110 transition-transform">bar_chart</span>
+            สถิติ
+        </button>
+</div>
+</div>
+<!-- Enrollment Rounds -->
+<section class="py-24 bg-slate-50 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-64 h-64 bg-accent-gold/5 rounded-full blur-3xl -ml-32 -mt-32"></div>
+<div class="container mx-auto px-6">
+<div class="text-center mb-20">
+<span class="text-accent-gold font-bold tracking-widest uppercase text-sm mb-4 block">Selection Periods</span>
+<h2 class="text-3xl md:text-4xl font-black text-primary mb-5">กำหนดการรับสมัคร</h2>
+<div class="h-2 w-32 gold-gradient mx-auto rounded-full"></div>
+</div>
+<div class="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+<!-- Round 1: Normal -->
+<div class="card-premium p-8 rounded-[2rem] relative overflow-hidden group">
+<div class="absolute top-0 right-0 gold-gradient text-primary text-xs px-6 py-2 font-black rounded-bl-3xl shadow-sm">MOST POPULAR</div>
+<div class="mb-8">
+<div class="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-6">
+<span class="material-symbols-outlined text-4xl">calendar_today</span>
+</div>
+<h3 class="text-2xl font-black text-primary mb-3">รอบปกติ (Normal)</h3>
+<p class="text-slate-500 leading-relaxed font-medium">การคัดเลือกทั่วไปสำหรับนักเรียนในเขตพื้นที่และนอกเขตพื้นที่บริการ</p>
+</div>
+<div class="space-y-3 mb-10">
+<div class="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 group-hover:bg-primary group-hover:border-primary transition-all duration-500">
+<span class="material-symbols-outlined text-primary group-hover:text-accent-gold text-3xl">event_available</span>
+<div>
+<div class="font-black text-primary group-hover:text-white uppercase text-[10px] tracking-widest mb-1">Application Period</div>
+<div class="text-lg font-bold text-slate-700 group-hover:text-slate-200">มีนาคม 2568</div>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 group-hover:bg-primary group-hover:border-primary transition-all duration-500">
+<span class="material-symbols-outlined text-primary group-hover:text-accent-gold text-3xl">history_edu</span>
+<div>
+<div class="font-black text-primary group-hover:text-white uppercase text-[10px] tracking-widest mb-1">Selection Method</div>
+<div class="text-lg font-bold text-slate-700 group-hover:text-slate-200">สอบคัดเลือกและสัมภาษณ์</div>
+</div>
+</div>
+</div>
+<button class="w-full py-4 text-primary font-black text-lg bg-slate-100 rounded-2xl hover:gold-gradient hover:shadow-xl transition-all duration-300">อ่านระเบียบการ</button>
+</div>
+<!-- Round 2: Additional -->
+<div class="card-premium p-8 rounded-[2rem] relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-3 bg-slate-200 group-hover:gold-gradient transition-all"></div>
+<div class="mb-8">
+<div class="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-6">
+<span class="material-symbols-outlined text-4xl">add_circle</span>
+</div>
+<h3 class="text-2xl font-black text-primary mb-3">รอบเพิ่มเติม (Additional)</h3>
+<p class="text-slate-500 leading-relaxed font-medium">สำหรับรับสมัครเพิ่มเติมในแผนการเรียนที่ยังมีที่นั่งว่างจากการสละสิทธิ์</p>
+</div>
+<div class="space-y-3 mb-10">
+<div class="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 group-hover:bg-primary group-hover:border-primary transition-all duration-500">
+<span class="material-symbols-outlined text-primary group-hover:text-accent-gold text-3xl">event_repeat</span>
+<div>
+<div class="font-black text-primary group-hover:text-white uppercase text-[10px] tracking-widest mb-1">Application Period</div>
+<div class="text-lg font-bold text-slate-700 group-hover:text-slate-200">พฤษภาคม 2568</div>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100 group-hover:bg-primary group-hover:border-primary transition-all duration-500">
+<span class="material-symbols-outlined text-primary group-hover:text-accent-gold text-3xl">fact_check</span>
+<div>
+<div class="font-black text-primary group-hover:text-white uppercase text-[10px] tracking-widest mb-1">Requirements</div>
+<div class="text-lg font-bold text-slate-700 group-hover:text-slate-200">พิจารณาตามความเหมาะสม</div>
+</div>
+</div>
+</div>
+<button class="w-full py-4 text-slate-500 font-black text-lg bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all duration-300">อ่านระเบียบการ</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Timeline Section -->
+<section class="py-24 bg-white relative">
+<div class="container mx-auto px-6 max-w-5xl">
+<div class="text-center mb-24">
+<span class="text-accent-gold font-bold tracking-widest uppercase text-sm mb-4 block">Academic Roadmap</span>
+<h2 class="text-3xl md:text-4xl font-black text-primary mb-5">ลำดับขั้นตอนสำคัญ</h2>
+<p class="text-slate-400 font-medium text-lg">Timeline การดำเนินงานประจำปีการศึกษา 2568</p>
+</div>
+<div class="relative space-y-16 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-1 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+<!-- Item 1 -->
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group animate-on-scroll">
+<div class="flex items-center justify-center w-12 h-12 rounded-2xl gold-gradient text-primary shadow-xl shadow-accent-gold/20 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10">
+<span class="material-symbols-outlined font-black">edit</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-8 rounded-3xl card-premium">
+<div class="flex items-center justify-between gap-4 mb-3">
+<div class="font-black text-lg text-primary">เปิดรับสมัคร ม.1 และ ม.4</div>
+<span class="gold-gradient text-primary text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">มีนาคม 2568</span>
+</div>
+<p class="text-slate-500 leading-relaxed">รับสมัครออนไลน์ผ่านระบบเว็บไซต์โรงเรียน กรุณาเตรียมไฟล์เอกสารให้พร้อมตามที่กำหนด</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group animate-on-scroll">
+<div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 shadow-sm shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10 group-hover:gold-gradient group-hover:text-primary transition-all duration-500">
+<span class="material-symbols-outlined font-black">task</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-8 rounded-3xl card-premium">
+<div class="flex items-center justify-between gap-4 mb-3">
+<div class="font-black text-lg text-slate-800">ประกาศรายชื่อผู้มีสิทธิ์สอบ</div>
+<span class="bg-slate-100 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">เมษายน 2568</span>
+</div>
+<p class="text-slate-500 leading-relaxed">ผู้สมัครสามารถเข้าตรวจสอบเลขที่นั่งสอบ ห้องสอบ และพิมพ์บัตรประจำตัวผู้เข้าสอบได้จากระบบ</p>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group animate-on-scroll">
+<div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 shadow-sm shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 relative z-10 group-hover:gold-gradient group-hover:text-primary transition-all duration-500">
+<span class="material-symbols-outlined font-black">celebration</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-8 rounded-3xl card-premium">
+<div class="flex items-center justify-between gap-4 mb-3">
+<div class="font-black text-lg text-slate-800">ประกาศผลและรายงานตัว</div>
+<span class="bg-slate-100 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">เมษายน 2568</span>
+</div>
+<p class="text-slate-500 leading-relaxed">ประกาศผลการสอบคัดเลือกผ่านเว็บไซต์ และต้องรายงานตัวผ่านระบบออนไลน์และที่โรงเรียนตามกำหนด</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Documents Required -->
+<section class="py-24 premium-gradient text-white overflow-hidden relative">
+<div class="absolute top-0 right-0 w-[500px] h-[500px] bg-accent-gold/10 rounded-full blur-[120px] -mr-64 -mt-64"></div>
+<div class="absolute bottom-0 left-0 w-96 h-96 bg-primary-container rounded-full blur-[100px] -ml-48 -mb-48"></div>
+<div class="container mx-auto px-6 md:px-12 relative z-10">
+<div class="grid lg:grid-cols-2 gap-20 items-center">
+<div>
+<div class="inline-block px-4 py-1.5 mb-6 rounded-lg bg-accent-gold/20 border border-accent-gold/30 text-accent-gold text-xs font-black uppercase tracking-widest">Required Documents</div>
+<h2 class="text-3xl md:text-4xl font-black mb-8 leading-tight">เตรียมความพร้อม <br/><span class="text-accent-gold">หลักฐานการสมัครเรียน</span></h2>
+<p class="text-slate-300 mb-12 text-base leading-relaxed font-light">โปรดสแกนเอกสารต้นฉบับให้ชัดเจน (PDF หรือ JPG) เพื่ออัปโหลดเข้าสู่ระบบ หรือนำเอกสารตัวจริงมาในวันรายงานตัว</p>
+<div class="space-y-4">
+<div class="flex items-center gap-5 p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent-gold/30 transition-all group">
+<div class="w-12 h-12 rounded-xl gold-gradient text-primary flex items-center justify-center font-black text-lg shadow-lg group-hover:scale-110 transition-transform">1</div>
+<div class="text-base font-bold">รูปถ่ายชุดนักเรียน หน้าตรง ขนาด 1.5 นิ้ว</div>
+</div>
+<div class="flex items-center gap-5 p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent-gold/30 transition-all group">
+<div class="w-12 h-12 rounded-xl gold-gradient text-primary flex items-center justify-center font-black text-lg shadow-lg group-hover:scale-110 transition-transform">2</div>
+<div class="text-base font-bold">สำเนาบัตรประชาชน (นักเรียน, บิดา, มารดา)</div>
+</div>
+<div class="flex items-center gap-5 p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent-gold/30 transition-all group">
+<div class="w-12 h-12 rounded-xl gold-gradient text-primary flex items-center justify-center font-black text-lg shadow-lg group-hover:scale-110 transition-transform">3</div>
+<div class="text-base font-bold">ระเบียนแสดงผลการเรียน (ปพ.1)</div>
+</div>
+<div class="flex items-center gap-5 p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent-gold/30 transition-all group">
+<div class="w-12 h-12 rounded-xl gold-gradient text-primary flex items-center justify-center font-black text-lg shadow-lg group-hover:scale-110 transition-transform">4</div>
+<div class="text-base font-bold">สำเนาทะเบียนบ้านฉบับเจ้าบ้าน</div>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="aspect-[4/5] rounded-[2.5rem] overflow-hidden border-[10px] border-white/10 shadow-2xl rotate-3 transform transition-transform hover:rotate-0 duration-700 ease-out">
+<img alt="Document Preparation" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAx2sTqWBBZyZqHVO_Am7equvxEWw1Zle3Iv-6lbSP1fiTMarseahZvglIBf07gb1DkFDcAB3LcUUOMAS0VTUglVwQc3J84IKG3MJBsBdGS5GVT8sniqwaUrRjG1S4mB_GyqMwT2PT8fXOXNNc5HyHy96GMJeWrjizOejFshijwrkaVqoca1egFkKVWC20EQrxt0oGYbzhqHfon5_dcMaH7OSfvqLxex-NtvzBT72ZQhnobIZQdfuqRvStqDlyNlzCJ-85SSa-klaTd"/>
+</div>
+<div class="absolute -bottom-10 -left-10 gold-gradient text-primary p-10 rounded-[2.5rem] shadow-2xl hidden lg:block max-w-[280px] transform -rotate-2">
+<span class="material-symbols-outlined text-5xl mb-4 block">verified_user</span>
+<div class="font-black text-xl mb-2">ตรวจสอบให้ครบถ้วน</div>
+<div class="text-sm font-medium opacity-80 leading-relaxed">ความถูกต้องของข้อมูลช่วยให้การพิจารณาเป็นไปได้อย่างรวดเร็ว</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Map & Contact Section -->
+<section class="py-24 bg-slate-50 relative overflow-hidden">
+<div class="container mx-auto px-6 max-w-7xl">
+<div class="grid lg:grid-cols-12 gap-16 items-center">
+<div class="lg:col-span-5">
+<span class="text-accent-gold font-bold tracking-widest uppercase text-sm mb-4 block">Contact us</span>
+<h2 class="text-4xl md:text-5xl font-black text-primary mb-12">ช่องทางการติดต่อ</h2>
+<div class="space-y-10">
+<div class="flex gap-6 group">
+<div class="w-12 h-12 rounded-xl bg-white shadow-xl flex items-center justify-center shrink-0 border border-slate-100 group-hover:premium-gradient transition-all duration-300">
+<span class="material-symbols-outlined text-primary group-hover:text-accent-gold">location_on</span>
+</div>
+<div>
+<h4 class="font-black text-slate-800 text-lg mb-1">ที่ตั้งโรงเรียน</h4>
+<p class="text-slate-500 font-medium">ต.บ้านโคก อ.หนองนาคำ จ.ขอนแก่น 40150</p>
+</div>
+</div>
+<div class="flex gap-6 group">
+<div class="w-12 h-12 rounded-xl bg-white shadow-xl flex items-center justify-center shrink-0 border border-slate-100 group-hover:premium-gradient transition-all duration-300">
+<span class="material-symbols-outlined text-primary group-hover:text-accent-gold">call</span>
+</div>
+<div>
+<h4 class="font-black text-slate-800 text-lg mb-1">เบอร์โทรศัพท์</h4>
+<p class="text-slate-500 font-medium text-lg">043-xxx-xxx</p>
+</div>
+</div>
+<div class="flex gap-6 group">
+<div class="w-12 h-12 rounded-xl bg-white shadow-xl flex items-center justify-center shrink-0 border border-slate-100 group-hover:premium-gradient transition-all duration-300">
+<span class="material-symbols-outlined text-primary group-hover:text-accent-gold">mail</span>
+</div>
+<div>
+<h4 class="font-black text-slate-800 text-lg mb-1">อีเมล</h4>
+<p class="text-slate-500 font-medium">info@nnkw.ac.th</p>
+</div>
+</div>
+</div>
+<div class="mt-16 flex gap-4">
+<a class="w-12 h-12 rounded-xl premium-gradient text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined">facebook</span>
+</a>
+<a class="w-12 h-12 rounded-xl premium-gradient text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined">chat</span>
+</a>
+</div>
+</div>
+<div class="lg:col-span-7">
+<div class="h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-[16px] border-white relative group">
+<img class="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700" data-alt="Map view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1cAQna-HG3_z32l2EdDtoS5vmWaYwN_Kw5HCe5_vPW0qlelLo91cXtgCgmR2aUy7Q07aeNQrg3qpsF81YYu_dbxovbMuNyy9p0mY7VJX8jWE2Y4rYild-bIMAAR_8rWuoEahYcEB9g0R3gH6cOFvox9GijFVI_ejCbA6D2r5h0XqtSo9KDRGxJcwj1M4_PFQ-rmcXv-OxJbCjIGtq8PB_LeGvPvJBNjSk_qYFzyE2lBILJsnawjrdE7hLlWG3LzQKRCcWkwgi1sC3"/>
+<div class="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-all pointer-events-none"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-primary pt-24 pb-12 text-white border-t-8 border-accent-gold">
+<div class="max-w-7xl mx-auto px-6 md:px-12">
+<div class="grid md:grid-cols-12 gap-12 mb-20">
+<div class="md:col-span-5">
+<div class="flex items-center gap-4 mb-8">
+<div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary text-2xl font-black">🏫</div>
+<div>
+<div class="text-xl font-black tracking-tight">หนองนาคำวิทยาคม</div>
+<div class="text-[10px] text-accent-gold font-black uppercase tracking-widest">Enrollment Portal</div>
+</div>
+</div>
+<p class="text-slate-400 leading-relaxed font-light mb-8 max-w-sm">
+                    สถาบันการศึกษาคุณภาพที่มุ่งสร้างความเป็นเลิศ พร้อมด้วยนวัตกรรมการเรียนรู้ที่ทันสมัยสำหรับเยาวชนในศตวรรษที่ 21
+                </p>
+</div>
+<div class="md:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-8">
+<div>
+<h5 class="text-accent-gold font-black text-sm uppercase mb-6 tracking-widest">Menu</h5>
+<ul class="space-y-4 text-slate-300 font-medium">
+<li><a class="hover:text-white transition-colors" href="#">หน้าแรก</a></li>
+<li><a class="hover:text-white transition-colors" href="#">สมัครเรียน</a></li>
+<li><a class="hover:text-white transition-colors" href="#">ประกาศผล</a></li>
+</ul>
+</div>
+<div>
+<h5 class="text-accent-gold font-black text-sm uppercase mb-6 tracking-widest">Status</h5>
+<ul class="space-y-4 text-slate-300 font-medium">
+<li><a class="hover:text-white transition-colors" href="#">ตรวจสอบสิทธิสอบ</a></li>
+<li><a class="hover:text-white transition-colors" href="#">พิมพ์บัตรสอบ</a></li>
+<li><a class="hover:text-white transition-colors" href="#">สถิติผู้สมัคร</a></li>
+</ul>
+</div>
+<div class="col-span-2 md:col-span-1">
+<h5 class="text-accent-gold font-black text-sm uppercase mb-6 tracking-widest">Language</h5>
+<div class="flex gap-2">
+<button class="bg-white/10 px-3 py-1.5 rounded-lg text-xs font-bold">TH</button>
+<button class="bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">EN</button>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="text-sm font-medium text-slate-400">
+                © 2568 <span class="text-white">โรงเรียนหนองนาคำวิทยาคม</span> — ระบบรับสมัครนักเรียนออนไลน์
+            </div>
+<div class="flex items-center gap-6">
+<div class="text-[10px] text-slate-500 uppercase tracking-widest">
+                    Developed by <span class="text-slate-300 font-bold">ADMIN</span>
+</div>
+<div class="font-mono text-[10px] bg-white/5 px-3 py-1 rounded-full border border-white/10 text-accent-gold">v1.15.33</div>
+</div>
+</div>
+</div>
+</footer>
+</body></html>
